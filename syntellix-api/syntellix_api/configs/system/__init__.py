@@ -1,13 +1,6 @@
 from typing import Annotated, Optional
 
-from configs.hosted_service import HostedServiceConfig
-from pydantic import (
-    AliasChoices,
-    Field,
-    NonNegativeInt,
-    PositiveInt,
-    computed_field,
-)
+from pydantic import AliasChoices, Field, NonNegativeInt, PositiveInt, computed_field
 from pydantic_settings import BaseSettings
 
 
@@ -384,6 +377,5 @@ class SystemConfig(
     ModelLoadBalanceConfig,
     OAuthConfig,
     SecurityConfig,
-    HostedServiceConfig,
 ):
     pass

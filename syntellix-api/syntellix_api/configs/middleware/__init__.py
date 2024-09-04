@@ -44,44 +44,44 @@ class DatabaseConfig(BaseSettings):
 
     DB_PORT: PositiveInt = Field(
         description="db port",
-        default=5432,
+        default=3306,
     )
 
     DB_USERNAME: str = Field(
         description="db username",
-        default="postgres",
+        default="syntellix",
     )
 
     DB_PASSWORD: str = Field(
         description="db password",
-        default="",
+        default="syntellix_password",
     )
 
     DB_DATABASE: str = Field(
         description="db database",
-        default="dify",
+        default="syntellix",
     )
 
     DB_CHARSET: str = Field(
         description="db charset",
-        default="",
+        default="utf8mb4",
     )
 
     DB_EXTRAS: str = Field(
-        description="db extras options. Example: keepalives_idle=60&keepalives=1",
+        description="db extras options. Example: charset=utf8mb4&use_unicode=1",
         default="",
     )
 
     SQLALCHEMY_DATABASE_URI_SCHEME: str = Field(
         description="db uri scheme",
-        default="postgresql",
+        default="mysql+pymysql",
     )
 
     @computed_field
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
         db_extras = (
-            f"{self.DB_EXTRAS}&client_encoding={self.DB_CHARSET}"
+            f"{self.DB_EXTRAS}&charset={self.DB_CHARSET}"
             if self.DB_CHARSET
             else self.DB_EXTRAS
         ).strip("&")
@@ -125,7 +125,6 @@ class DatabaseConfig(BaseSettings):
             "max_overflow": self.SQLALCHEMY_MAX_OVERFLOW,
             "pool_recycle": self.SQLALCHEMY_POOL_RECYCLE,
             "pool_pre_ping": self.SQLALCHEMY_POOL_PRE_PING,
-            "connect_args": {"options": "-c timezone=UTC"},
         }
 
 

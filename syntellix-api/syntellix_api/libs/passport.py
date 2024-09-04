@@ -1,11 +1,11 @@
 import jwt
-from configs import dify_config
+from configs import syntellix_config
 from werkzeug.exceptions import Unauthorized
 
 
 class PassportService:
     def __init__(self):
-        self.sk = dify_config.SECRET_KEY
+        self.sk = syntellix_config.SECRET_KEY
 
     def issue(self, payload):
         return jwt.encode(payload, self.sk, algorithm="HS256")

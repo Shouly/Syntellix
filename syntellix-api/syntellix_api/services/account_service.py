@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 from typing import Any, Optional
 
-from configs import dify_config
+from configs import syntellix_config
 from extensions.ext_redis import redis_client
 from libs.helper import RateLimiter, TokenManager
 from libs.passport import PassportService
@@ -600,7 +600,7 @@ class RegisterService:
 
             if open_id is not None or provider is not None:
                 AccountService.link_account_integrate(provider, open_id, account)
-            if dify_config.EDITION != "SELF_HOSTED":
+            if syntellix_config.EDITION != "SELF_HOSTED":
                 tenant = TenantService.create_tenant(f"{account.name}'s Workspace")
 
                 TenantService.create_tenant_member(tenant, account, role="owner")
@@ -661,7 +661,7 @@ class RegisterService:
             "email": account.email,
             "workspace_id": tenant.id,
         }
-        expiryHours = dify_config.INVITE_EXPIRY_HOURS
+        expiryHours = syntellix_config.INVITE_EXPIRY_HOURS
         redis_client.setex(
             cls._get_invitation_token_key(token),
             expiryHours * 60 * 60,
