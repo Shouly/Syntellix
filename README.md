@@ -1,3 +1,3 @@
 # Syntellix
-/sɪnˈtelɪks/
+``` /sɪnˈtelɪks/ ```
 Synergy + Intelligence + Matrix
