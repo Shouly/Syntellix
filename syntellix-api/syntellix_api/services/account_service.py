@@ -159,42 +159,6 @@ class AccountService:
         return account
 
     @staticmethod
-    def link_account_integrate(provider: str, open_id: str, account: Account) -> None:
-        """Link account integrate"""
-        try:
-            # Query whether there is an existing binding record for the same provider
-            account_integrate: Optional[AccountIntegrate] = (
-                AccountIntegrate.query.filter_by(
-                    account_id=account.id, provider=provider
-                ).first()
-            )
-
-            if account_integrate:
-                # If it exists, update the record
-                account_integrate.open_id = open_id
-                account_integrate.encrypted_token = ""  # todo
-                account_integrate.updated_at = datetime.now(timezone.utc).replace(
-                    tzinfo=None
-                )
-            else:
-                # If it does not exist, create a new record
-                account_integrate = AccountIntegrate(
-                    account_id=account.id,
-                    provider=provider,
-                    open_id=open_id,
-                    encrypted_token="",
-                )
-                db.session.add(account_integrate)
-
-            db.session.commit()
-            logging.info(f"Account {account.id} linked {provider} account {open_id}.")
-        except Exception as e:
-            logging.exception(
-                f"Failed to link {provider} account {open_id} to Account {account.id}"
-            )
-            raise LinkAccountIntegrateError("Failed to link account.") from e
-
-    @staticmethod
     def close_account(account: Account) -> None:
         """Close account"""
         account.status = AccountStatus.CLOSED.value
@@ -546,9 +510,9 @@ class RegisterService:
         return f"member_invite:token:{token}"
 
     @classmethod
-    def setup(cls, email: str, name: str, password: str, ip_address: str) -> None:
+    def init(cls, email: str, name: str, password: str, ip_address: str) -> None:
         """
-        Setup dify
+        System initialization
 
         :param email: email
         :param name: username
@@ -597,14 +561,6 @@ class RegisterService:
             )
             account.status = AccountStatus.ACTIVE.value if not status else status.value
             account.initialized_at = datetime.now(timezone.utc).replace(tzinfo=None)
-
-            if open_id is not None or provider is not None:
-                AccountService.link_account_integrate(provider, open_id, account)
-            if syntellix_config.EDITION != "SELF_HOSTED":
-                tenant = TenantService.create_tenant(f"{account.name}'s Workspace")
-
-                TenantService.create_tenant_member(tenant, account, role="owner")
-                account.current_tenant = tenant
 
             db.session.commit()
         except Exception as e:

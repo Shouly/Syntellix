@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from configs.hosted_service import HostedServiceConfig
 from configs.middleware import MiddlewareConfig
 from configs.system import SystemConfig
@@ -10,7 +12,7 @@ class SyntellixConfig(
     SystemConfig,
 ):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=f"{Path(__file__).parents[2] / '.env'}",
         env_file_encoding="utf-8",
         frozen=True,
         extra="ignore",

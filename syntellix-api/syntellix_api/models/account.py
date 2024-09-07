@@ -1,6 +1,5 @@
 import enum
 import json
-from typing import Optional
 
 from extensions.ext_database import db
 from flask_login import UserMixin
@@ -16,7 +15,6 @@ class AccountStatus(str, enum.Enum):
 
 class Account(UserMixin, db.Model):
     __tablename__ = "t_sys_accounts"
-    __table_args__ = (db.Index("account_email_idx", "email"),)
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(255), nullable=False)
@@ -25,14 +23,16 @@ class Account(UserMixin, db.Model):
     password_salt = db.Column(db.String(255), nullable=True)
     avatar = db.Column(db.String(255))
     status = db.Column(db.String(16), nullable=False, server_default="active")
+    last_login_at = db.Column(db.DateTime, nullable=True)
+    last_login_ip = db.Column(db.String(255), nullable=True)
+    initialized_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(
         db.DateTime, nullable=False, server_default=db.func.current_timestamp()
     )
     updated_at = db.Column(
         db.DateTime,
         nullable=False,
-        server_default=db.func.current_timestamp(),
-        onupdate=db.func.current_timestamp(),
+        server_default=db.text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
     )
 
     @property
@@ -163,7 +163,7 @@ class Tenant(db.Model):
     __tablename__ = "t_sys_tenants"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(255), nullable=False)
+    name = db.Column(db.String(255), nullable=False, unique=True)
     status = db.Column(db.String(16), nullable=False, server_default="normal")
     custom_config = db.Column(db.Text)
     created_at = db.Column(
@@ -172,8 +172,7 @@ class Tenant(db.Model):
     updated_at = db.Column(
         db.DateTime,
         nullable=False,
-        server_default=db.func.current_timestamp(),
-        onupdate=db.func.current_timestamp(),
+        server_default=db.text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
     )
 
     def get_accounts(self) -> list[Account]:
@@ -203,13 +202,11 @@ class TenantAccountJoinRole(enum.Enum):
 
 
 class TenantAccountJoin(db.Model):
-    __tablename__ = "tenant_account_joins"
+    __tablename__ = "t_sys_tenant_account"
     __table_args__ = (
-        db.Index("tenant_account_join_account_id_idx", "account_id"),
-        db.Index("tenant_account_join_tenant_id_idx", "tenant_id"),
-        db.UniqueConstraint(
-            "tenant_id", "account_id", name="unique_tenant_account_join"
-        ),
+        db.Index("idx_tenant_id", "tenant_id"),
+        db.Index("idx_account_id", "account_id"),
+        db.UniqueConstraint("tenant_id", "account_id", name="uq_tenant_id_account_id"),
     )
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -224,6 +221,5 @@ class TenantAccountJoin(db.Model):
     updated_at = db.Column(
         db.DateTime,
         nullable=False,
-        server_default=db.func.current_timestamp(),
-        onupdate=db.func.current_timestamp(),
+        server_default=db.text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
     )
