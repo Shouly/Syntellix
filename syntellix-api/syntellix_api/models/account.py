@@ -88,24 +88,6 @@ class Account(UserMixin, db.Model):
         status_str = self.status
         return AccountStatus(status_str)
 
-    @classmethod
-    def get_by_openid(cls, provider: str, open_id: str) -> Optional["Account"]:
-        account_integrate = (
-            db.session.query(AccountIntegrate)
-            .filter(
-                AccountIntegrate.provider == provider,
-                AccountIntegrate.open_id == open_id,
-            )
-            .one_or_none()
-        )
-        if account_integrate:
-            return (
-                db.session.query(Account)
-                .filter(Account.id == account_integrate.account_id)
-                .one_or_none()
-            )
-        return None
-
     # check current_user.current_tenant.current_role in ['admin', 'owner']
     @property
     def is_admin_or_owner(self):
@@ -236,29 +218,6 @@ class TenantAccountJoin(db.Model):
     current = db.Column(db.Boolean, nullable=False, server_default="0")
     role = db.Column(db.String(16), nullable=False, server_default="normal")
     invited_by = db.Column(db.Integer, nullable=True)
-    created_at = db.Column(
-        db.DateTime, nullable=False, server_default=db.func.current_timestamp()
-    )
-    updated_at = db.Column(
-        db.DateTime,
-        nullable=False,
-        server_default=db.func.current_timestamp(),
-        onupdate=db.func.current_timestamp(),
-    )
-
-
-class AccountIntegrate(db.Model):
-    __tablename__ = "t_sys_account_integrates"
-    __table_args__ = (
-        db.UniqueConstraint("account_id", "provider", name="unique_account_provider"),
-        db.UniqueConstraint("provider", "open_id", name="unique_provider_open_id"),
-    )
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    account_id = db.Column(db.Integer, nullable=False)
-    provider = db.Column(db.String(16), nullable=False)
-    open_id = db.Column(db.String(255), nullable=False)
-    encrypted_token = db.Column(db.String(255), nullable=False)
     created_at = db.Column(
         db.DateTime, nullable=False, server_default=db.func.current_timestamp()
     )

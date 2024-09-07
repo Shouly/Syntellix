@@ -20,6 +20,7 @@ flask-migrate = "^4.0.7"
 python-dotenv = "^1.0.1"
 oss2 = "^2.19.0"
 redis = "^5.0.8"
+pymysql = "^1.1.1"
 
 
 [build-system]

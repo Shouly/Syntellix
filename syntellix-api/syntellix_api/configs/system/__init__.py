@@ -181,23 +181,6 @@ class HttpConfig(BaseSettings):
         default=None,
     )
 
-
-class InnerAPIConfig(BaseSettings):
-    """
-    Inner API configs
-    """
-
-    INNER_API: bool = Field(
-        description="whether to enable the inner API",
-        default=False,
-    )
-
-    INNER_API_KEY: Optional[str] = Field(
-        description="The inner API key is used to authenticate the inner API",
-        default=None,
-    )
-
-
 class LoggingConfig(BaseSettings):
     """
     Logging configs
@@ -272,62 +255,6 @@ class OAuthConfig(BaseSettings):
     )
 
 
-class MailConfig(BaseSettings):
-    """
-    Mail Configurations
-    """
-
-    MAIL_TYPE: Optional[str] = Field(
-        description="Mail provider type name, default to None, availabile values are `smtp` and `resend`.",
-        default=None,
-    )
-
-    MAIL_DEFAULT_SEND_FROM: Optional[str] = Field(
-        description="default email address for sending from ",
-        default=None,
-    )
-
-    RESEND_API_KEY: Optional[str] = Field(
-        description="API key for Resend",
-        default=None,
-    )
-
-    RESEND_API_URL: Optional[str] = Field(
-        description="API URL for Resend",
-        default=None,
-    )
-
-    SMTP_SERVER: Optional[str] = Field(
-        description="smtp server host",
-        default=None,
-    )
-
-    SMTP_PORT: Optional[int] = Field(
-        description="smtp server port",
-        default=465,
-    )
-
-    SMTP_USERNAME: Optional[str] = Field(
-        description="smtp server username",
-        default=None,
-    )
-
-    SMTP_PASSWORD: Optional[str] = Field(
-        description="smtp server password",
-        default=None,
-    )
-
-    SMTP_USE_TLS: bool = Field(
-        description="whether to use TLS connection to smtp server",
-        default=False,
-    )
-
-    SMTP_OPPORTUNISTIC_TLS: bool = Field(
-        description="whether to use opportunistic TLS connection to smtp server",
-        default=False,
-    )
-
-
 class DataSetConfig(BaseSettings):
     """
     Dataset configs
@@ -370,10 +297,8 @@ class SystemConfig(
     FileUploadConfig,
     HttpConfig,
     ImageFormatConfig,
-    InnerAPIConfig,
     IndexingConfig,
     LoggingConfig,
-    MailConfig,
     ModelLoadBalanceConfig,
     OAuthConfig,
     SecurityConfig,
