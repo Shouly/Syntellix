@@ -1,9 +1,9 @@
-from extensions.ext_redis import redis_client
+from syntellix_api.extensions.ext_redis import redis_client
 from flask import request
 from flask_restful import Resource, reqparse
-from libs.helper import email, get_remote_ip, str_len
-from libs.password import valid_password
-from services.account_service import RegisterService, TenantService
+from syntellix_api.libs.helper import email, get_remote_ip, str_len
+from syntellix_api.libs.password import valid_password
+from syntellix_api.services.account_service import RegisterService, TenantService
 
 from ..errors import AlreadyInitError
 from . import api

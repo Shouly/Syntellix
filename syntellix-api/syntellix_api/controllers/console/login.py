@@ -1,14 +1,14 @@
 from typing import cast
 
 import flask_login
-import services
-from controllers.console import api
+import syntellix_api.services as services
+from syntellix_api.controllers.console import api
 from flask import request
 from flask_restful import Resource, reqparse
-from libs.helper import email, get_remote_ip
-from libs.password import valid_password
-from models.account import Account
-from services.account_service import AccountService, TenantService
+from syntellix_api.libs.helper import email, get_remote_ip
+from syntellix_api.libs.password import valid_password
+from syntellix_api.models.account import Account
+from syntellix_api.services.account_service import AccountService, TenantService
 
 
 class LoginApi(Resource):

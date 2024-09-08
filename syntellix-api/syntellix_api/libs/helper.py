@@ -12,10 +12,10 @@ from hashlib import sha256
 from typing import Any, Optional, Union
 from zoneinfo import available_timezones
 
-from extensions.ext_redis import redis_client
+from syntellix_api.extensions.ext_redis import redis_client
 from flask import Response, current_app, stream_with_context
 from flask_restful import fields
-from models.account import Account
+from syntellix_api.models.account import Account
 
 from .rate_limit import RateLimitGenerator
 

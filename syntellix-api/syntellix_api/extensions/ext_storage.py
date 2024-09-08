@@ -1,8 +1,8 @@
 from collections.abc import Generator
 from typing import Union
 
-from extensions.storage.aliyun_storage import AliyunStorage
-from extensions.storage.local_storage import LocalStorage
+from syntellix_api.extensions.storage.aliyun_storage import AliyunStorage
+from syntellix_api.extensions.storage.local_storage import LocalStorage
 from flask import Flask
 
 

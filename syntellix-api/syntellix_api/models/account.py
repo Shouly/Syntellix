@@ -1,7 +1,7 @@
 import enum
 import json
 
-from extensions.ext_database import db
+from syntellix_api.extensions.ext_database import db
 from flask_login import UserMixin
 
 

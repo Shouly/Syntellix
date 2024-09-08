@@ -1,8 +1,8 @@
 from pathlib import Path
 
-from configs.hosted_service import HostedServiceConfig
-from configs.middleware import MiddlewareConfig
-from configs.system import SystemConfig
+from syntellix_api.configs.hosted_service import HostedServiceConfig
+from syntellix_api.configs.middleware import MiddlewareConfig
+from syntellix_api.configs.system import SystemConfig
 from pydantic_settings import SettingsConfigDict
 
 

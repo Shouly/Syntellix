@@ -1,5 +1,5 @@
 import jwt
-from configs import syntellix_config
+from syntellix_api.configs import syntellix_config
 from werkzeug.exceptions import Unauthorized
 
 

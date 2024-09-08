@@ -4,7 +4,7 @@ from contextlib import closing
 import oss2 as aliyun_s3
 from flask import Flask
 
-from extensions.storage.base_storage import BaseStorage
+from syntellix_api.extensions.storage.base_storage import BaseStorage
 
 
 class AliyunStorage(BaseStorage):

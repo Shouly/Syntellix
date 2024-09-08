@@ -1,4 +1,4 @@
-from libs.exception import BaseHTTPException
+from syntellix_api.libs.exception import BaseHTTPException
 
 
 class AlreadyInitError(BaseHTTPException):

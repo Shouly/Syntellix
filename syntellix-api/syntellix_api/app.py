@@ -5,9 +5,9 @@ import sys
 import threading
 from logging.handlers import RotatingFileHandler
 
-import contexts
-from configs import syntellix_config
-from extensions import (
+import syntellix_api.contexts as contexts
+from syntellix_api.configs import syntellix_config
+from syntellix_api.extensions import (
     ext_compress,
     ext_database,
     ext_login,
@@ -15,12 +15,12 @@ from extensions import (
     ext_redis,
     ext_storage,
 )
-from extensions.ext_database import db
-from extensions.ext_login import login_manager
+from syntellix_api.extensions.ext_database import db
+from syntellix_api.extensions.ext_login import login_manager
 from flask import Flask, Response, request
 from flask_cors import CORS
-from libs.passport import PassportService
-from services.account_service import AccountService
+from syntellix_api.libs.passport import PassportService
+from syntellix_api.services.account_service import AccountService
 from werkzeug.exceptions import Unauthorized
 
 
@@ -142,7 +142,7 @@ def unauthorized_handler():
 
 # register blueprint routers
 def register_blueprints(app):
-    from controllers.console import bp as console_app_bp
+    from syntellix_api.controllers.console import bp as console_app_bp
 
     # from controllers.files import bp as files_bp
     # from controllers.inner_api import bp as inner_api_bp

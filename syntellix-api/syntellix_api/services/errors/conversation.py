@@ -1,4 +1,4 @@
-from services.errors.base import BaseServiceError
+from syntellix_api.services.errors.base import BaseServiceError
 
 
 class LastConversationNotExistsError(BaseServiceError):

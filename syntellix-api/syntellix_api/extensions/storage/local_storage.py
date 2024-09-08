@@ -4,7 +4,7 @@ from collections.abc import Generator
 
 from flask import Flask
 
-from extensions.storage.base_storage import BaseStorage
+from syntellix_api.extensions.storage.base_storage import BaseStorage
 
 
 class LocalStorage(BaseStorage):

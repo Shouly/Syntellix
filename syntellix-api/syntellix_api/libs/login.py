@@ -7,8 +7,8 @@ from flask_login.config import EXEMPT_METHODS
 from werkzeug.exceptions import Unauthorized
 from werkzeug.local import LocalProxy
 
-from extensions.ext_database import db
-from models.account import Account, Tenant, TenantAccountJoin
+from syntellix_api.extensions.ext_database import db
+from syntellix_api.models.account import Account, Tenant, TenantAccountJoin
 
 #: A proxy for the current user. If no user is logged in, this will be an
 #: anonymous user

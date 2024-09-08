@@ -5,7 +5,7 @@ from collections.abc import Generator
 from datetime import timedelta
 from typing import Optional, Union
 
-from extensions.ext_redis import redis_client
+from syntellix_api.extensions.ext_redis import redis_client
 
 logger = logging.getLogger(__name__)
 
