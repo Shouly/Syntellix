@@ -25,7 +25,7 @@ function App() {
 
   if (isInitialized === null) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-100 via-blue-300 to-purple-400 font-['Inter',_'Roboto',_sans-serif]">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-100 via-blue-300 to-purple-400 font-tech">
         <ArrowPathIcon className="h-16 w-16 text-white animate-spin" />
         <div className="mt-4 text-3xl font-bold text-white tracking-wide">
           Loading...

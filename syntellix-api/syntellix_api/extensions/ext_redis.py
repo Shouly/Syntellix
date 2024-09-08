@@ -18,7 +18,7 @@ def init_app(app):
             "db": app.config.get("REDIS_DB"),
             "encoding": "utf-8",
             "encoding_errors": "strict",
-            "decode_responses": False,
+            "decode_responses": True,
         },
         connection_class=connection_class,
     )

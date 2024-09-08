@@ -16,6 +16,9 @@ class ExternalApi(Api):
         :type e: Exception
 
         """
+
+        print(e)
+        
         got_request_exception.send(current_app, exception=e)
 
         headers = Headers()
