@@ -82,13 +82,13 @@ function Login({ setIsAuthenticated }) {
           </div>
         </div>
         <div className="flex-[2] flex items-center justify-start">
-          <div className="max-w-md w-full space-y-8 bg-white bg-opacity-40 backdrop-filter backdrop-blur-xl p-10 rounded-2xl shadow-xl border border-indigo-300">
+          <div className="max-w-md w-full space-y-8 bg-white bg-opacity-20 backdrop-filter backdrop-blur-xl p-10 rounded-2xl shadow-xl border border-indigo-300">
             <div>
               <h2 className="mt-2 text-3xl font-bold text-indigo-800 font-noto-sans-sc">
-                登录账户
+                系统登录
               </h2>
               <p className="mt-2 text-sm text-gray-700 font-noto-sans-sc">
-                欢迎回来，请输入您的账户信息。
+                欢迎回来，请输入您的账号信息。
               </p>
             </div>
             <form className="mt-10 space-y-6" onSubmit={handleSubmit}>

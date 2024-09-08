@@ -84,7 +84,7 @@ function SystemInit({ setIsInitialized }) {
                     </div>
                 </div>
                 <div className="flex-[2] flex items-center justify-start">
-                    <div className="max-w-md w-full space-y-8 bg-white bg-opacity-40 backdrop-filter backdrop-blur-xl p-10 rounded-2xl shadow-xl border border-indigo-300">
+                    <div className="max-w-md w-full space-y-8 bg-white bg-opacity-20 backdrop-filter backdrop-blur-xl p-10 rounded-2xl shadow-xl border border-indigo-300">
                         <div>
                             <h2 className="mt-2 text-3xl font-bold text-indigo-800 font-noto-sans-sc">
                                 设置系统管理员
