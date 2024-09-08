@@ -25,7 +25,7 @@ function SystemInit() {
         <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-100 via-blue-300 to-purple-400">
             <div className="flex-grow flex">
                 <div className="flex-[3] flex items-center justify-end pr-4">
-                    <div class="max-w-2xl w-full space-y-8 text-white">
+                    <div class="max-w-2xl w-full space-y-14 text-white">
                         <div class="space-y-4">
                             <h1 className="text-8xl font-bold bg-gradient-to-r from-blue-400 to-purple-600 text-transparent bg-clip-text font-heading">
                                 Syntellix <span className="text-xl font-normal font-sans">/sɪnˈtelɪks/</span>
@@ -40,14 +40,14 @@ function SystemInit() {
                 <div className="flex-[2] flex items-center justify-start">
                     <div className="max-w-md w-full space-y-8 bg-white bg-opacity-20 backdrop-filter backdrop-blur-xl p-10 rounded-xl shadow-lg">
                         <div>
-                            <h2 className="mt-6 text-3xl font-bold text-gray-900">
+                            <h2 className="mt-2 text-3xl font-bold text-gray-900">
                                 设置系统管理员
                             </h2>
                             <p className="mt-2 text-sm text-gray-600">
                                 管理员拥有的最大权限，可用于组织管理、数据管理、应用管理等。
                             </p>
                         </div>
-                        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                        <form className="mt-10 space-y-6" onSubmit={handleSubmit}>
                             <div className="space-y-4">
                                 <div>
                                     <label htmlFor="email" className="block text-sm font-bold text-gray-700">
@@ -59,7 +59,7 @@ function SystemInit() {
                                         type="email"
                                         autoComplete="email"
                                         required
-                                        className="mt-1 block w-full px-3 py-2 border border-blue-200 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-300 focus:border-blue-300 sm:text-sm "
+                                        className="mt-1 block w-full px-3 py-2 border border-blue-200 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-300 focus:border-blue-300 sm:text-sm bg-white bg-opacity-80"
                                         placeholder="输入邮箱地址"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
@@ -75,7 +75,7 @@ function SystemInit() {
                                         type="text"
                                         autoComplete="name"
                                         required
-                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white bg-opacity-80"
                                         placeholder="输入用户名"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
@@ -92,7 +92,7 @@ function SystemInit() {
                                             type={showPassword ? "text" : "password"}
                                             autoComplete="new-password"
                                             required
-                                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm pr-10"
+                                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm pr-10 bg-white bg-opacity-80"
                                             placeholder="输入密码"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
