@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { ArrowPathIcon } from '@heroicons/react/24/solid';
 
-function Login() {
+function Login({ setIsAuthenticated }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -15,12 +15,25 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
+
     try {
-      const response = await axios.post('/api/login', { email, password });
-      localStorage.setItem('token', response.data.token);
-      navigate('/dashboard');
+      const response = await axios.post('/console/api/login', { email, password });
+      if (response.data.result === 'success') {
+        const token = response.data.data;
+        localStorage.setItem('token', token);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        setIsAuthenticated(true); // Add this line
+        navigate('/dashboard');
+      } else {
+        setError(response.data.data || 'Login failed. Please try again.');
+      }
     } catch (error) {
-      setError('Invalid email or password');
+      if (error.response && error.response.data) {
+        setError(error.response.data.message || 'An error occurred. Please try again.');
+      } else {
+        setError('An error occurred. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }

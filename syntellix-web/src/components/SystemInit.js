@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowPathIcon } from '@heroicons/react/24/solid';
 
-function SystemInit() {
+function SystemInit({ setIsInitialized }) {
     const [email, setEmail] = useState('');
     const [name, setName] = useState('');
     const [password, setPassword] = useState('');
@@ -16,11 +16,27 @@ function SystemInit() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
+        setError('');
         try {
-            await axios.post('/console/api/sys_init', { email, name, password });
-            navigate('/');
+            const response = await axios.post('/console/api/sys_init', { email, name, password });
+            if (response.data.result === 'success') {
+                setIsInitialized(true); // Update the initialization status
+                navigate('/'); // Navigate to the login page
+            } else {
+                setError('Unexpected response from server. Please try again.');
+            }
         } catch (error) {
-            setError('Error initializing system. Please try again.');
+            if (error.response) {
+                if (error.response.status === 400) {
+                    setError('Invalid input. Please check your email, name, and password.');
+                } else if (error.response.status === 409) {
+                    setError('System is already initialized.');
+                } else {
+                    setError(error.response.data.message || 'An error occurred. Please try again.');
+                }
+            } else {
+                setError('Network error. Please check your connection and try again.');
+            }
         } finally {
             setIsLoading(false);
         }
@@ -37,7 +53,7 @@ function SystemInit() {
                 <img src="logo512.png" alt="Syntellix Logo" className="w-16 h-16" />
             </div>
             <div className="flex-grow flex">
-                <div className="flex-[3] flex items-center justify-end pr-14"> 
+                <div className="flex-[3] flex items-center justify-end pr-14">
                     <div className="max-w-2xl w-full space-y-16">
                         <div className="space-y-3">
                             <h1 className="relative">
@@ -52,10 +68,9 @@ function SystemInit() {
                                 {['Synergy', 'Intelligence', 'Matrix'].map((word, index) => (
                                     <React.Fragment key={word}>
                                         {index > 0 && <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full"></span>}
-                                        <span className={`text-lg font-medium ${
-                                            index === 0 ? 'text-blue-700' :
-                                            index === 1 ? 'text-indigo-700' : 'text-purple-700'
-                                        }`}>
+                                        <span className={`text-lg font-medium ${index === 0 ? 'text-blue-700' :
+                                                index === 1 ? 'text-indigo-700' : 'text-purple-700'
+                                            }`}>
                                             {word}
                                         </span>
                                     </React.Fragment>

@@ -6,13 +6,13 @@ from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 from typing import Any, Optional
 
-from configs import syntellix_config
-from extensions.ext_redis import redis_client
-from libs.helper import RateLimiter, TokenManager
-from libs.passport import PassportService
-from libs.password import compare_password, hash_password, valid_password
-from models.account import *
-from services.errors.account import (
+from syntellix_api.configs import syntellix_config
+from syntellix_api.extensions.ext_redis import redis_client
+from syntellix_api.libs.helper import RateLimiter, TokenManager
+from syntellix_api.libs.passport import PassportService
+from syntellix_api.libs.password import compare_password, hash_password, valid_password
+from syntellix_api.models.account import *
+from syntellix_api.services.errors.account import (
     AccountAlreadyInTenantError,
     AccountLoginError,
     AccountNotLinkTenantError,
@@ -20,7 +20,6 @@ from services.errors.account import (
     CannotOperateSelfError,
     CurrentPasswordIncorrectError,
     InvalidActionError,
-    LinkAccountIntegrateError,
     MemberNotInTenantError,
     NoPermissionError,
     RateLimitExceededError,
@@ -49,6 +48,7 @@ class AccountService:
         current_tenant: TenantAccountJoin = TenantAccountJoin.query.filter_by(
             account_id=account.id, current=True
         ).first()
+        
         if current_tenant:
             account.current_tenant_id = current_tenant.tenant_id
         else:
@@ -62,12 +62,6 @@ class AccountService:
 
             account.current_tenant_id = available_ta.tenant_id
             available_ta.current = True
-            db.session.commit()
-
-        if datetime.now(timezone.utc).replace(
-            tzinfo=None
-        ) - account.last_active_at > timedelta(minutes=10):
-            account.last_active_at = datetime.now(timezone.utc).replace(tzinfo=None)
             db.session.commit()
 
         return account
@@ -89,13 +83,13 @@ class AccountService:
 
         account = Account.query.filter_by(email=email).first()
         if not account:
-            raise AccountLoginError("Invalid email or password.")
+            raise AccountLoginError("邮箱或密码错误。")
 
         if (
             account.status == AccountStatus.BANNED.value
             or account.status == AccountStatus.CLOSED.value
         ):
-            raise AccountLoginError("Account is banned or closed.")
+            raise AccountLoginError("账户已关闭或已被禁用。")
 
         if account.status == AccountStatus.PENDING.value:
             account.status = AccountStatus.ACTIVE.value
@@ -105,7 +99,7 @@ class AccountService:
         if account.password is None or not compare_password(
             password, account.password, account.password_salt
         ):
-            raise AccountLoginError("Invalid email or password.")
+            raise AccountLoginError("邮箱或密码错误。")
         return account
 
     @staticmethod

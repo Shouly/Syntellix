@@ -2,9 +2,9 @@ from typing import cast
 
 import flask_login
 import syntellix_api.services as services
-from syntellix_api.controllers.console import api
 from flask import request
 from flask_restful import Resource, reqparse
+from syntellix_api.controllers.console import api
 from syntellix_api.libs.helper import email, get_remote_ip
 from syntellix_api.libs.password import valid_password
 from syntellix_api.models.account import Account
@@ -20,9 +20,6 @@ class LoginApi(Resource):
         parser.add_argument("email", type=email, required=True, location="json")
         parser.add_argument(
             "password", type=valid_password, required=True, location="json"
-        )
-        parser.add_argument(
-            "remember_me", type=bool, required=False, default=False, location="json"
         )
         args = parser.parse_args()
 

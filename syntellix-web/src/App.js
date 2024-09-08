@@ -8,9 +8,11 @@ import Dashboard from './components/Dashboard';
 
 function App() {
   const [isInitialized, setIsInitialized] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     checkSystemInit();
+    checkAuthentication();
   }, []);
 
   const checkSystemInit = async () => {
@@ -20,6 +22,14 @@ function App() {
     } catch (error) {
       console.error('Error checking system init status:', error);
       setIsInitialized(false);
+    }
+  };
+
+  const checkAuthentication = () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      setIsAuthenticated(true);
     }
   };
 
@@ -38,13 +48,17 @@ function App() {
     <Router>
       <div className="App">
         <Routes>
-          <Route path="/" element={
-            isInitialized ? <Login /> : <Navigate to="/system-init" />
-          } />
           <Route path="/system-init" element={
-            isInitialized ? <Navigate to="/" /> : <SystemInit />
+            isInitialized ? <Navigate to="/" /> : <SystemInit setIsInitialized={setIsInitialized} />
           } />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/" element={
+            isInitialized ? (
+              isAuthenticated ? <Navigate to="/dashboard" /> : <Login setIsAuthenticated={setIsAuthenticated} />
+            ) : <Navigate to="/system-init" />
+          } />
+          <Route path="/dashboard" element={
+            isAuthenticated ? <Dashboard setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/" />
+          } />
         </Routes>
       </div>
     </Router>
