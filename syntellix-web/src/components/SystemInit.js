@@ -48,16 +48,12 @@ function SystemInit({ setIsInitialized }) {
             <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjZmZmZmZmMTAiPjwvcmVjdD4KPHBhdGggZD0iTTAgNUw1IDBaTTYgNEw0IDZaTS0xIDFMMSAtMVoiIHN0cm9rZT0iIzAwMDAwMDIwIiBzdHJva2Utd2lkdGg9IjEiPjwvcGF0aD4KPC9zdmc+')] opacity-30"></div>
             </div>
-            {/* Logo in the top-left corner */}
-            <div className="absolute top-4 left-4 z-10">
-                <img src="logo512.png" alt="Syntellix Logo" className="w-16 h-16" />
-            </div>
             <div className="flex-grow flex">
                 <div className="flex-[3] flex items-center justify-end pr-14">
                     <div className="max-w-2xl w-full space-y-16">
                         <div className="space-y-3">
                             <h1 className="relative">
-                                <span className="text-8xl md:text-9xl font-bold bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 text-transparent bg-clip-text font-tech tracking-tight animate-pulse">
+                                <span className="text-8xl md:text-9xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-transparent bg-clip-text font-tech tracking-tight animate-pulse">
                                     Syntellix
                                 </span>
                                 <span className="absolute bottom-0 right-5 px-3 py-1 text-sm font-medium text-indigo-600 bg-indigo-100 bg-opacity-50 rounded-full whitespace-nowrap">
