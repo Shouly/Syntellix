@@ -9,6 +9,9 @@ import {
   FolderPlusIcon,
   MagnifyingGlassIcon,
   PlusIcon,
+  ArrowPathIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
@@ -25,6 +28,7 @@ function Dashboard({ setIsAuthenticated }) {
   const [showMenu, setShowMenu] = useState(false);
   const [isMenuCollapsed, setIsMenuCollapsed] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -41,6 +45,7 @@ function Dashboard({ setIsAuthenticated }) {
   }, []);
 
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     try {
       await axios.get('/console/api/logout');
       localStorage.removeItem('token');
@@ -49,6 +54,8 @@ function Dashboard({ setIsAuthenticated }) {
       navigate('/');
     } catch (error) {
       console.error('Logout failed:', error);
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 
@@ -82,11 +89,15 @@ function Dashboard({ setIsAuthenticated }) {
       </div>
 
       {/* Left Sidebar */}
-      <div className={`${isMenuCollapsed ? 'w-16' : 'w-56'} flex flex-col transition-all duration-300 ease-in-out relative z-10`}>
-        <div className="p-6 flex items-center">
-          {!isMenuCollapsed && (
+      <div className={`${isMenuCollapsed ? 'w-16' : 'w-48'} flex flex-col transition-all duration-300 ease-in-out relative z-10`}>
+        <div className={`flex items-center ${isMenuCollapsed ? 'justify-center px-3' : 'px-4'} py-6`}>
+          {isMenuCollapsed ? (
+            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-500 flex items-center justify-center text-white font-bold text-xl shadow-lg overflow-hidden">
+              <span className="flex-shrink-0">S</span>
+            </div>
+          ) : (
             <h1
-              className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-500 text-transparent bg-clip-text cursor-pointer transition-all duration-300 hover:scale-105"
+              className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-500 text-transparent bg-clip-text cursor-pointer transition-all duration-300 hover:scale-110"
               onClick={handleLogoClick}
             >
               Syntellix
@@ -94,55 +105,60 @@ function Dashboard({ setIsAuthenticated }) {
           )}
         </div>
 
-        <nav className="flex-grow px-2 flex flex-col justify-start pt-10">
+        <nav className={`flex-grow ${isMenuCollapsed ? 'px-1' : 'px-4'} flex flex-col justify-start pt-10`}>
           {menuItems.map((item, index) => (
             <React.Fragment key={item.name}>
               <button
-                className={`flex items-center w-11/12 mx-auto px-4 py-3 mb-4 text-sm font-medium rounded-full transition-all duration-200 ${
+                className={`flex items-center ${
+                  isMenuCollapsed ? 'justify-center w-full' : 'w-full'
+                } px-4 py-3 mb-4 text-sm font-medium rounded-full transition-all duration-200 ${
                   activeMenu === item.name
                     ? 'bg-white bg-opacity-60 text-indigo-800 shadow-md'
                     : 'text-gray-600 hover:bg-white hover:bg-opacity-40 hover:text-indigo-700'
                 }`}
                 onClick={() => setActiveMenu(item.name)}
               >
-                <item.icon className={`w-5 h-5 mr-3 ${activeMenu === item.name ? 'text-indigo-700' : 'text-gray-500'}`} />
+                <item.icon className={`w-5 h-5 ${!isMenuCollapsed && 'mr-3'} ${activeMenu === item.name ? 'text-indigo-700' : 'text-gray-500'}`} />
                 {!isMenuCollapsed && <span>{item.displayName}</span>}
               </button>
-              {index === 0 && <div className="w-11/12 mx-auto border-t border-indigo-200 mb-4"></div>}
+              {index === 0 && <div className={`${isMenuCollapsed ? 'w-full' : 'w-full'} border-t border-indigo-200 mb-4`}></div>}
             </React.Fragment>
           ))}
         </nav>
 
         {/* Updated user info section with hover effect and dropdown menu */}
-        <div className="mt-auto p-4 relative">
+        <div className={`mt-auto ${isMenuCollapsed ? 'px-1' : 'px-4'} pb-4 relative`}>
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setShowMenu(!showMenu)}
               onMouseEnter={() => setIsHovering(true)}
               onMouseLeave={() => setIsHovering(false)}
-              className={`flex items-center justify-between w-full text-left bg-white backdrop-filter backdrop-blur-sm transition-all duration-200 rounded-full p-2 ${
+              className={`flex items-center justify-center w-full text-left transition-all duration-200 rounded-full ${
+                isMenuCollapsed ? 'p-0' : 'p-2'
+              } ${
                 isHovering
-                  ? 'bg-opacity-50 shadow-md'
-                  : 'bg-opacity-30 shadow-sm'
+                  ? 'bg-indigo-200 shadow-md'
+                  : 'bg-white bg-opacity-60'
               }`}
             >
-              <div className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-medium text-sm shadow-inner transition-colors duration-200 ${isHovering ? 'bg-indigo-600' : 'bg-indigo-400'
-                  }`}>
-                  A
-                </div>
-                {!isMenuCollapsed && (
-                  <span className={`ml-3 text-sm font-medium transition-colors duration-200 ${isHovering ? 'text-indigo-700' : 'text-gray-800'
-                    }`}>Admin</span>
-                )}
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-medium text-xs shadow-sm transition-colors duration-200 ${
+                isHovering ? 'bg-indigo-700' : 'bg-indigo-500'
+              }`}>
+                A
               </div>
               {!isMenuCollapsed && (
-                <EllipsisHorizontalIcon className={`w-5 h-5 transition-colors duration-200 ${isHovering ? 'text-indigo-600' : 'text-gray-600'
-                  }`} />
+                <>
+                  <span className={`ml-2 text-sm font-medium transition-colors duration-200 ${
+                    isHovering ? 'text-indigo-800' : 'text-gray-700'
+                  }`}>Admin</span>
+                  <EllipsisHorizontalIcon className={`w-4 h-4 transition-colors duration-200 ${
+                    isHovering ? 'text-indigo-700' : 'text-gray-500'
+                  } ml-auto`} />
+                </>
               )}
             </button>
             {showMenu && (
-              <div className="absolute bottom-full left-0 w-full bg-white bg-opacity-90 backdrop-filter backdrop-blur-lg shadow-lg rounded-lg overflow-hidden mb-2 z-20">
+              <div className="absolute bottom-full left-0 w-full bg-white shadow-lg rounded-lg overflow-hidden mb-2 z-20">
                 <button
                   onClick={handleAccountSettings}
                   className="w-full text-left py-2 px-4 text-sm text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition-colors duration-200 flex items-center font-noto-sans-sc"
@@ -152,10 +168,20 @@ function Dashboard({ setIsAuthenticated }) {
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="w-full text-left py-2 px-4 text-sm text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition-colors duration-200 flex items-center font-noto-sans-sc"
+                  disabled={isLoggingOut}
+                  className="w-full text-left py-2 px-4 text-sm text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition-colors duration-200 flex items-center font-noto-sans-sc disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <ArrowRightOnRectangleIcon className="w-4 h-4 mr-2" />
-                  登出
+                  {isLoggingOut ? (
+                    <>
+                      <ArrowPathIcon className="animate-spin w-4 h-4 mr-2" />
+                      登出中...
+                    </>
+                  ) : (
+                    <>
+                      <ArrowRightOnRectangleIcon className="w-4 h-4 mr-2" />
+                      登出
+                    </>
+                  )}
                 </button>
               </div>
             )}
@@ -163,11 +189,28 @@ function Dashboard({ setIsAuthenticated }) {
         </div>
       </div>
 
+      {/* Collapse/Expand button */}
+      <div className="absolute left-0 top-1/2 -translate-y-1/2 z-20">
+        <button
+          onClick={toggleMenu}
+          className={`${
+            isMenuCollapsed ? 'left-16' : 'left-48'
+          } absolute p-1 rounded-full bg-white shadow-md hover:bg-opacity-70 transition-all duration-300 flex items-center justify-center`}
+          style={{ transform: 'translateX(-25%)' }}
+        >
+          {isMenuCollapsed ? (
+            <ChevronRightIcon className="w-5 h-5 text-indigo-600" />
+          ) : (
+            <ChevronLeftIcon className="w-5 h-5 text-indigo-600" />
+          )}
+        </button>
+      </div>
+
       {/* Main content area */}
       <div className="flex-1 flex flex-col overflow-hidden p-2">
-        <div className="bg-white bg-opacity-70 backdrop-filter backdrop-blur-xl rounded-2xl shadow-lg flex-1 overflow-hidden flex flex-col">
+        <div className="bg-white bg-opacity-40 backdrop-filter backdrop-blur-lg rounded-2xl shadow-lg flex-1 overflow-hidden flex flex-col">
           {/* Header */}
-          <header className="p-6 border-b border-indigo-200 flex items-center justify-between bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm">
+          <header className="p-6 flex items-center justify-between bg-white bg-opacity-50 backdrop-filter backdrop-blur-md">
             <h2 className="text-2xl font-bold text-indigo-800 font-noto-sans-sc">
               {menuItems.find(item => item.name === activeMenu)?.displayName}
             </h2>
@@ -194,8 +237,11 @@ function Dashboard({ setIsAuthenticated }) {
             </div>
           </header>
 
+          {/* Divider */}
+          <div className="mx-6 border-t border-indigo-200 opacity-50"></div>
+
           {/* Content area */}
-          <main className="flex-1 overflow-auto p-4 pt-8">
+          <main className="flex-1 overflow-auto p-6 bg-white bg-opacity-30 backdrop-filter backdrop-blur-md">
             {activeMenu === 'Chat' && <Chat />}
             {activeMenu === 'Agent' && <Agent />}
             {activeMenu === 'KnowledgeBase' && <KnowledgeBase />}
