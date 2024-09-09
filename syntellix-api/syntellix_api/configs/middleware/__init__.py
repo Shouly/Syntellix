@@ -38,82 +38,81 @@ class KeywordStoreConfig(BaseSettings):
 
 class DatabaseConfig(BaseSettings):
     DB_HOST: str = Field(
-        description="db host",
+        description="MySQL database host",
         default="localhost",
     )
 
     DB_PORT: PositiveInt = Field(
-        description="db port",
+        description="MySQL database port",
         default=3306,
     )
 
     DB_USERNAME: str = Field(
-        description="db username",
+        description="MySQL database username",
         default="syntellix",
     )
 
     DB_PASSWORD: str = Field(
-        description="db password",
+        description="MySQL database password",
         default="syntellix_password",
     )
 
     DB_DATABASE: str = Field(
-        description="db database",
+        description="MySQL database name",
         default="syntellix",
     )
 
     DB_CHARSET: str = Field(
-        description="db charset",
+        description="MySQL database charset",
         default="utf8mb4",
     )
 
-    DB_EXTRAS: str = Field(
-        description="db extras options. Example: charset=utf8mb4&use_unicode=1",
-        default="",
+    DB_COLLATION: str = Field(
+        description="MySQL database collation",
+        default="utf8mb4_unicode_ci",
     )
 
     SQLALCHEMY_DATABASE_URI_SCHEME: str = Field(
-        description="db uri scheme",
+        description="Database URI scheme for MySQL",
         default="mysql+pymysql",
     )
 
     @computed_field
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
-        db_extras = (
-            f"{self.DB_EXTRAS}&charset={self.DB_CHARSET}"
-            if self.DB_CHARSET
-            else self.DB_EXTRAS
-        ).strip("&")
-        db_extras = f"?{db_extras}" if db_extras else ""
         return (
             f"{self.SQLALCHEMY_DATABASE_URI_SCHEME}://"
             f"{quote_plus(self.DB_USERNAME)}:{quote_plus(self.DB_PASSWORD)}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_DATABASE}"
-            f"{db_extras}"
+            f"?charset={self.DB_CHARSET}&collation={self.DB_COLLATION}"
         )
 
     SQLALCHEMY_POOL_SIZE: NonNegativeInt = Field(
-        description="pool size of SqlAlchemy",
-        default=30,
-    )
-
-    SQLALCHEMY_MAX_OVERFLOW: NonNegativeInt = Field(
-        description="max overflows for SqlAlchemy",
+        description="SQLAlchemy connection pool size",
         default=10,
     )
 
+    SQLALCHEMY_MAX_OVERFLOW: NonNegativeInt = Field(
+        description="SQLAlchemy connection pool max overflow",
+        default=20,
+    )
+
     SQLALCHEMY_POOL_RECYCLE: NonNegativeInt = Field(
-        description="SqlAlchemy pool recycle",
+        description="SQLAlchemy connection pool recycle time in seconds",
         default=3600,
     )
 
-    SQLALCHEMY_POOL_PRE_PING: bool = Field(
-        description="whether to enable pool pre-ping in SqlAlchemy",
-        default=False,
+    SQLALCHEMY_POOL_TIMEOUT: int = Field(
+        description="SQLAlchemy connection pool timeout in seconds",
+        default=30,
     )
 
-    SQLALCHEMY_ECHO: bool | str = Field(
-        description="whether to enable SqlAlchemy echo",
+    SQLALCHEMY_POOL_PRE_PING: bool = Field(
+        description="Enable SQLAlchemy connection pool pre-ping",
+        default=True,
+    )
+
+    SQLALCHEMY_ECHO: bool = Field(
+        description="Enable SQLAlchemy query echoing",
         default=False,
     )
 
@@ -125,6 +124,11 @@ class DatabaseConfig(BaseSettings):
             "max_overflow": self.SQLALCHEMY_MAX_OVERFLOW,
             "pool_recycle": self.SQLALCHEMY_POOL_RECYCLE,
             "pool_pre_ping": self.SQLALCHEMY_POOL_PRE_PING,
+            "pool_timeout": self.SQLALCHEMY_POOL_TIMEOUT,
+            "connect_args": {
+                "charset": self.DB_CHARSET,
+                "collation": self.DB_COLLATION,
+            },
         }
 
 
