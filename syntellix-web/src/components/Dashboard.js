@@ -8,12 +8,12 @@ import {
   EllipsisHorizontalIcon,
   FolderPlusIcon,
   MagnifyingGlassIcon,
-  PlusIcon
+  PlusIcon,
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Agents from './dashboard/Agent';
+import Agent from './dashboard/Agent';
 import Chat from './dashboard/Chat';
 import Database from './dashboard/Database';
 import KnowledgeBase from './dashboard/KnowledgeBase';
@@ -21,7 +21,7 @@ import Settings from './dashboard/Settings';
 
 function Dashboard({ setIsAuthenticated }) {
   const navigate = useNavigate();
-  const [activeMenu, setActiveMenu] = useState('Agent'); // Changed default to 'Agent'
+  const [activeMenu, setActiveMenu] = useState('Agent');
   const [showMenu, setShowMenu] = useState(false);
   const [isMenuCollapsed, setIsMenuCollapsed] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
@@ -85,8 +85,8 @@ function Dashboard({ setIsAuthenticated }) {
       <div className={`${isMenuCollapsed ? 'w-16' : 'w-56'} flex flex-col transition-all duration-300 ease-in-out relative z-10`}>
         <div className="p-6 flex items-center">
           {!isMenuCollapsed && (
-            <h1 
-              className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-transparent bg-clip-text drop-shadow-lg cursor-pointer"
+            <h1
+              className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-500 text-transparent bg-clip-text cursor-pointer transition-all duration-300 hover:scale-105"
               onClick={handleLogoClick}
             >
               Syntellix
@@ -98,13 +98,14 @@ function Dashboard({ setIsAuthenticated }) {
           {menuItems.map((item, index) => (
             <React.Fragment key={item.name}>
               <button
-                className={`flex items-center w-11/12 mx-auto px-3 py-3 mb-4 text-sm font-medium rounded-lg transition-all duration-200 ${activeMenu === item.name
-                  ? 'bg-white bg-opacity-50 text-indigo-800'
-                  : 'text-gray-600 hover:bg-white hover:bg-opacity-30 hover:text-indigo-700'
-                  }`}
+                className={`flex items-center w-11/12 mx-auto px-4 py-3 mb-4 text-sm font-medium rounded-full transition-all duration-200 ${
+                  activeMenu === item.name
+                    ? 'bg-white bg-opacity-60 text-indigo-800 shadow-md'
+                    : 'text-gray-600 hover:bg-white hover:bg-opacity-40 hover:text-indigo-700'
+                }`}
                 onClick={() => setActiveMenu(item.name)}
               >
-                <item.icon className={`w-5 h-5 mr-2 ${activeMenu === item.name ? 'text-indigo-700' : 'text-gray-500'}`} />
+                <item.icon className={`w-5 h-5 mr-3 ${activeMenu === item.name ? 'text-indigo-700' : 'text-gray-500'}`} />
                 {!isMenuCollapsed && <span>{item.displayName}</span>}
               </button>
               {index === 0 && <div className="w-11/12 mx-auto border-t border-indigo-200 mb-4"></div>}
@@ -119,42 +120,39 @@ function Dashboard({ setIsAuthenticated }) {
               onClick={() => setShowMenu(!showMenu)}
               onMouseEnter={() => setIsHovering(true)}
               onMouseLeave={() => setIsHovering(false)}
-              className={`flex items-center justify-between w-full text-left bg-white backdrop-filter backdrop-blur-sm transition-all duration-200 rounded-xl p-2 ${
+              className={`flex items-center justify-between w-full text-left bg-white backdrop-filter backdrop-blur-sm transition-all duration-200 rounded-full p-2 ${
                 isHovering
                   ? 'bg-opacity-50 shadow-md'
                   : 'bg-opacity-30 shadow-sm'
               }`}
             >
               <div className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-medium text-sm shadow-inner transition-colors duration-200 ${
-                  isHovering ? 'bg-indigo-600' : 'bg-indigo-400'
-                }`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-medium text-sm shadow-inner transition-colors duration-200 ${isHovering ? 'bg-indigo-600' : 'bg-indigo-400'
+                  }`}>
                   A
                 </div>
                 {!isMenuCollapsed && (
-                  <span className={`ml-3 text-sm font-medium transition-colors duration-200 ${
-                    isHovering ? 'text-indigo-700' : 'text-gray-800'
-                  }`}>Admin</span>
+                  <span className={`ml-3 text-sm font-medium transition-colors duration-200 ${isHovering ? 'text-indigo-700' : 'text-gray-800'
+                    }`}>Admin</span>
                 )}
               </div>
               {!isMenuCollapsed && (
-                <EllipsisHorizontalIcon className={`w-5 h-5 transition-colors duration-200 ${
-                  isHovering ? 'text-indigo-600' : 'text-gray-600'
-                }`} />
+                <EllipsisHorizontalIcon className={`w-5 h-5 transition-colors duration-200 ${isHovering ? 'text-indigo-600' : 'text-gray-600'
+                  }`} />
               )}
             </button>
             {showMenu && (
               <div className="absolute bottom-full left-0 w-full bg-white bg-opacity-90 backdrop-filter backdrop-blur-lg shadow-lg rounded-lg overflow-hidden mb-2 z-20">
                 <button
                   onClick={handleAccountSettings}
-                  className="w-full text-left py-2 px-4 text-sm text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition-colors duration-200 flex items-center"
+                  className="w-full text-left py-2 px-4 text-sm text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition-colors duration-200 flex items-center font-noto-sans-sc"
                 >
                   <Cog6ToothIcon className="w-4 h-4 mr-2" />
                   设置
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="w-full text-left py-2 px-4 text-sm text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition-colors duration-200 flex items-center"
+                  className="w-full text-left py-2 px-4 text-sm text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition-colors duration-200 flex items-center font-noto-sans-sc"
                 >
                   <ArrowRightOnRectangleIcon className="w-4 h-4 mr-2" />
                   登出
@@ -179,17 +177,17 @@ function Dashboard({ setIsAuthenticated }) {
                 <input
                   type="text"
                   placeholder="搜索..."
-                  className="pl-10 pr-4 py-2 text-sm rounded-full bg-white bg-opacity-50 border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all duration-300 w-64"
+                  className="pl-10 pr-4 py-2 text-sm rounded-full bg-white bg-opacity-50 border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all duration-300 w-64 font-noto-sans-sc"
                 />
                 <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               </div>
               {/* New group button */}
-              <button className="flex items-center px-4 py-2 text-sm bg-indigo-100 text-indigo-600 rounded-full hover:bg-indigo-200 transition-colors duration-200 shadow-sm">
+              <button className="flex items-center px-4 py-2 text-sm bg-indigo-100 text-indigo-600 rounded-full hover:bg-indigo-200 transition-colors duration-200 shadow-sm font-noto-sans-sc">
                 <FolderPlusIcon className="w-5 h-5 mr-2" />
                 <span>新建分组</span>
               </button>
               {/* New module button */}
-              <button className="flex items-center px-4 py-2 text-sm bg-indigo-500 text-white rounded-full hover:bg-indigo-700 transition-colors duration-200 shadow-sm">
+              <button className="flex items-center px-4 py-2 text-sm bg-indigo-500 text-white rounded-full hover:bg-indigo-700 transition-colors duration-200 shadow-sm font-noto-sans-sc">
                 <PlusIcon className="w-5 h-5 mr-2" />
                 <span>新建{menuItems.find(item => item.name === activeMenu)?.displayName}</span>
               </button>
@@ -199,7 +197,7 @@ function Dashboard({ setIsAuthenticated }) {
           {/* Content area */}
           <main className="flex-1 overflow-auto p-4 pt-8">
             {activeMenu === 'Chat' && <Chat />}
-            {activeMenu === 'Agent' && <Agents />}
+            {activeMenu === 'Agent' && <Agent />}
             {activeMenu === 'KnowledgeBase' && <KnowledgeBase />}
             {activeMenu === 'Database' && <Database />}
             {activeMenu === 'Settings' && <Settings />}
