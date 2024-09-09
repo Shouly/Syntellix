@@ -11,7 +11,7 @@ import {
   PlusIcon
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Agents from './dashboard/Agent';
 import Chat from './dashboard/Chat';
@@ -21,10 +21,24 @@ import Settings from './dashboard/Settings';
 
 function Dashboard({ setIsAuthenticated }) {
   const navigate = useNavigate();
-  const [activeMenu, setActiveMenu] = useState('Agent');
+  const [activeMenu, setActiveMenu] = useState('Agent'); // Changed default to 'Agent'
   const [showMenu, setShowMenu] = useState(false);
   const [isMenuCollapsed, setIsMenuCollapsed] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowMenu(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -48,6 +62,10 @@ function Dashboard({ setIsAuthenticated }) {
     setIsMenuCollapsed(!isMenuCollapsed);
   };
 
+  const handleLogoClick = () => {
+    navigate('/dashboard');
+  };
+
   const menuItems = [
     { name: 'Chat', displayName: '对话', icon: ChatBubbleLeftRightIcon },
     { name: 'Agent', displayName: '智能体', icon: BeakerIcon },
@@ -67,7 +85,10 @@ function Dashboard({ setIsAuthenticated }) {
       <div className={`${isMenuCollapsed ? 'w-16' : 'w-56'} flex flex-col transition-all duration-300 ease-in-out relative z-10`}>
         <div className="p-6 flex items-center">
           {!isMenuCollapsed && (
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-transparent bg-clip-text drop-shadow-lg">
+            <h1 
+              className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-transparent bg-clip-text drop-shadow-lg cursor-pointer"
+              onClick={handleLogoClick}
+            >
               Syntellix
             </h1>
           )}
@@ -93,7 +114,7 @@ function Dashboard({ setIsAuthenticated }) {
 
         {/* Updated user info section with hover effect and dropdown menu */}
         <div className="mt-auto p-4 relative">
-          <div className="relative">
+          <div className="relative" ref={menuRef}>
             <button
               onClick={() => setShowMenu(!showMenu)}
               onMouseEnter={() => setIsHovering(true)}
@@ -113,7 +134,7 @@ function Dashboard({ setIsAuthenticated }) {
                 {!isMenuCollapsed && (
                   <span className={`ml-3 text-sm font-medium transition-colors duration-200 ${
                     isHovering ? 'text-indigo-700' : 'text-gray-800'
-                  }`}>shouty.</span>
+                  }`}>Admin</span>
                 )}
               </div>
               {!isMenuCollapsed && (
@@ -129,7 +150,7 @@ function Dashboard({ setIsAuthenticated }) {
                   className="w-full text-left py-2 px-4 text-sm text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition-colors duration-200 flex items-center"
                 >
                   <Cog6ToothIcon className="w-4 h-4 mr-2" />
-                  账号设置
+                  设置
                 </button>
                 <button
                   onClick={handleLogout}
@@ -148,8 +169,8 @@ function Dashboard({ setIsAuthenticated }) {
       <div className="flex-1 flex flex-col overflow-hidden p-2">
         <div className="bg-white bg-opacity-70 backdrop-filter backdrop-blur-xl rounded-2xl shadow-lg flex-1 overflow-hidden flex flex-col">
           {/* Header */}
-          <header className="p-6 border-b border-indigo-200 flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-indigo-800 font-noto-sans-sc pl-4">
+          <header className="p-6 border-b border-indigo-200 flex items-center justify-between bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm">
+            <h2 className="text-2xl font-bold text-indigo-800 font-noto-sans-sc">
               {menuItems.find(item => item.name === activeMenu)?.displayName}
             </h2>
             <div className="flex items-center space-x-4">
@@ -158,18 +179,18 @@ function Dashboard({ setIsAuthenticated }) {
                 <input
                   type="text"
                   placeholder="搜索..."
-                  className="pl-8 pr-3 py-1.5 text-sm rounded-lg bg-white bg-opacity-50 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all duration-300"
+                  className="pl-10 pr-4 py-2 text-sm rounded-full bg-white bg-opacity-50 border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all duration-300 w-64"
                 />
-                <MagnifyingGlassIcon className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-indigo-500" />
+                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               </div>
               {/* New group button */}
-              <button className="flex items-center px-2.5 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200">
-                <FolderPlusIcon className="w-4 h-4 mr-1.5" />
-                <span>新分组</span>
+              <button className="flex items-center px-4 py-2 text-sm bg-indigo-100 text-indigo-600 rounded-full hover:bg-indigo-200 transition-colors duration-200 shadow-sm">
+                <FolderPlusIcon className="w-5 h-5 mr-2" />
+                <span>新建分组</span>
               </button>
               {/* New module button */}
-              <button className="flex items-center px-2.5 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200">
-                <PlusIcon className="w-4 h-4 mr-1.5" />
+              <button className="flex items-center px-4 py-2 text-sm bg-indigo-500 text-white rounded-full hover:bg-indigo-700 transition-colors duration-200 shadow-sm">
+                <PlusIcon className="w-5 h-5 mr-2" />
                 <span>新建{menuItems.find(item => item.name === activeMenu)?.displayName}</span>
               </button>
             </div>

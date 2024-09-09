@@ -83,13 +83,13 @@ class AccountService:
 
         account = Account.query.filter_by(email=email).first()
         if not account:
-            raise AccountLoginError("邮箱或密码错误。")
+            raise AccountLoginError("邮箱或密码错误")
 
         if (
             account.status == AccountStatus.BANNED.value
             or account.status == AccountStatus.CLOSED.value
         ):
-            raise AccountLoginError("账户已关闭或已被禁用。")
+            raise AccountLoginError("账户已关闭或已被禁用")
 
         if account.status == AccountStatus.PENDING.value:
             account.status = AccountStatus.ACTIVE.value
@@ -99,7 +99,7 @@ class AccountService:
         if account.password is None or not compare_password(
             password, account.password, account.password_salt
         ):
-            raise AccountLoginError("邮箱或密码错误。")
+            raise AccountLoginError("邮箱或密码错误")
         return account
 
     @staticmethod
