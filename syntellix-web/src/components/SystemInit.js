@@ -1,8 +1,8 @@
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon } from '@heroicons/react/24/solid';
 import axios from 'axios';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowPathIcon } from '@heroicons/react/24/solid';
 
 function SystemInit({ setIsInitialized }) {
     const [email, setEmail] = useState('');
@@ -64,8 +64,8 @@ function SystemInit({ setIsInitialized }) {
                                 {['Synergy', 'Intelligence', 'Matrix'].map((word, index) => (
                                     <React.Fragment key={word}>
                                         {index > 0 && <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full"></span>}
-                                        <span className={`text-lg font-medium ${index === 0 ? 'text-blue-700' :
-                                                index === 1 ? 'text-indigo-700' : 'text-purple-700'
+                                        <span className={`text-lg font-semibold font-tech ${index === 0 ? 'text-blue-700' :
+                                            index === 1 ? 'text-indigo-700' : 'text-purple-700'
                                             }`}>
                                             {word}
                                         </span>

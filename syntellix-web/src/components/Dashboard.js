@@ -82,10 +82,10 @@ function Dashboard({ setIsAuthenticated }) {
   ];
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-blue-50 via-indigo-100 to-purple-100 relative overflow-hidden">
+    <div className="min-h-screen flex bg-gradient-to-br from-blue-200 via-indigo-200 to-purple-200 relative overflow-hidden">
       {/* Subtle tech-inspired background */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjZmZmZmZmMTAiPjwvcmVjdD4KPHBhdGggZD0iTTAgNUw1IDBaTTYgNEw0IDZaTS0xIDFMMSAtMVoiIHN0cm9rZT0iIzAwMDAwMDEwIiBzdHJva2Utd2lkdGg9IjEiPjwvcGF0aD4KPC9zdmc+')] opacity-20"></div>
+      <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjZmZmZmZmMTAiPjwvcmVjdD4KPHBhdGggZD0iTTAgNUw1IDBaTTYgNEw0IDZaTS0xIDFMMSAtMVoiIHN0cm9rZT0iIzAwMDAwMDEwIiBzdHJva2Utd2lkdGg9IjEiPjwvcGF0aD4KPC9zdmc+')] opacity-20"></div>
       </div>
 
       {/* Left Sidebar */}
@@ -121,7 +121,7 @@ function Dashboard({ setIsAuthenticated }) {
                 <item.icon className={`w-5 h-5 ${!isMenuCollapsed && 'mr-3'} ${activeMenu === item.name ? 'text-indigo-700' : 'text-gray-500'}`} />
                 {!isMenuCollapsed && <span>{item.displayName}</span>}
               </button>
-              {index === 0 && <div className={`${isMenuCollapsed ? 'w-full' : 'w-full'} border-t border-indigo-200 mb-4`}></div>}
+              {index === 0 && <div className={`${isMenuCollapsed ? 'w-full' : 'w-full'} border-t border-indigo-300 mb-4`}></div>}
             </React.Fragment>
           ))}
         </nav>
@@ -208,10 +208,10 @@ function Dashboard({ setIsAuthenticated }) {
 
       {/* Main content area */}
       <div className="flex-1 flex flex-col overflow-hidden p-2">
-        <div className="bg-white bg-opacity-40 backdrop-filter backdrop-blur-lg rounded-2xl shadow-lg flex-1 overflow-hidden flex flex-col">
+        <div className="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-2xl shadow-lg flex-1 overflow-hidden flex flex-col">
           {/* Header */}
-          <header className="p-6 flex items-center justify-between bg-white bg-opacity-50 backdrop-filter backdrop-blur-md">
-            <h2 className="text-2xl font-bold text-indigo-800 font-noto-sans-sc">
+          <header className="p-6 flex items-center justify-between bg-white bg-opacity-60 backdrop-filter backdrop-blur-md">
+            <h2 className="text-2xl font-bold text-indigo-700 font-noto-sans-sc">
               {menuItems.find(item => item.name === activeMenu)?.displayName}
             </h2>
             <div className="flex items-center space-x-4">
@@ -238,10 +238,10 @@ function Dashboard({ setIsAuthenticated }) {
           </header>
 
           {/* Divider */}
-          <div className="mx-6 border-t border-indigo-200 opacity-50"></div>
+          <div className="mx-6 border-t border-indigo-300 opacity-20"></div>
 
           {/* Content area */}
-          <main className="flex-1 overflow-auto p-6 bg-white bg-opacity-30 backdrop-filter backdrop-blur-md">
+          <main className="flex-1 overflow-auto p-6 bg-white bg-opacity-40 backdrop-filter backdrop-blur-sm">
             {activeMenu === 'Chat' && <Chat />}
             {activeMenu === 'Agent' && <Agent />}
             {activeMenu === 'KnowledgeBase' && <KnowledgeBase />}
