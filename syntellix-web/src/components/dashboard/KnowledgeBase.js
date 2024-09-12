@@ -17,16 +17,19 @@ function KnowledgeBase() {
   };
 
   const NewKnowledgeBaseCard = () => (
-    <div className="bg-gray-100 rounded-lg p-4 h-48 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors duration-300">
-      <div className="flex items-center mb-3">
-        <div className="w-8 h-8 bg-gray-300 rounded-md flex items-center justify-center mr-2">
-          <PlusIcon className="w-5 h-5 text-gray-600" />
+    <div className="group bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative cursor-pointer">
+      <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 opacity-70 group-hover:from-indigo-100 group-hover:via-purple-100 group-hover:to-blue-100 group-hover:opacity-80 transition-all duration-300"></div>
+      <div className="absolute inset-[1px] rounded-[11px] flex items-center p-6 z-10">
+        <div className="w-16 h-16 bg-indigo-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0 group-hover:bg-indigo-200 transition-all duration-300">
+          <PlusIcon className="w-10 h-10 text-indigo-500 group-hover:text-indigo-600 transition-all duration-300" />
         </div>
-        <h3 className="text-lg font-semibold text-gray-700 font-noto-sans-sc">创建知识库</h3>
+        <div>
+          <h3 className="text-base font-semibold text-indigo-600 font-noto-sans-sc mb-2 group-hover:text-indigo-700 transition-all duration-300">创建知识库</h3>
+          <p className="text-xs text-indigo-500 font-noto-sans-sc group-hover:text-indigo-600 transition-all duration-300">
+            接入您的文本数据让AI更了解您。
+          </p>
+        </div>
       </div>
-      <p className="text-xs text-gray-500 font-noto-sans-sc text-center">
-        接入您的文本数据让AI更了解您。
-      </p>
     </div>
   );
 
@@ -36,7 +39,7 @@ function KnowledgeBase() {
       {knowledgeBases.map((kb) => {
         const RandomIcon = getRandomIcon();
         return (
-          <div key={kb.id} className="group bg-white bg-opacity-60 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative">
+          <div key={kb.id} className="group bg-white bg-opacity-60 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative">
             <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-indigo-200 via-purple-200 to-blue-200 opacity-40 group-hover:from-indigo-300 group-hover:via-purple-300 group-hover:to-blue-300 group-hover:opacity-50 transition-all duration-300"></div>
             <div className="absolute inset-[1px] bg-white bg-opacity-60 rounded-[11px] flex flex-col justify-between z-10">
               <div className="p-6">
@@ -46,7 +49,7 @@ function KnowledgeBase() {
                       <RandomIcon className="w-12 h-12 text-indigo-500" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-800 font-noto-sans-sc mb-1">{kb.name}</h3>
+                      <h3 className="text-base font-semibold text-gray-800 font-noto-sans-sc mb-1">{kb.name}</h3>
                       <div className="flex items-center text-xs text-gray-500 font-noto-sans-sc">
                         <span>{kb.documents} 文档</span>
                         <span className="mx-1 text-gray-400">•</span>
