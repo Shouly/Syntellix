@@ -129,11 +129,11 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
         try {
             const response = await axios.post('/console/api/knowledge-bases', { name: kbName.trim() });
             showToast('创建成功', 'success');
-            onCreated(response.data);
+            // onCreated(response.data);
             handleCloseModal();
         } catch (error) {
-            if (error.response && error.response.status === 409) {
-                setKbNameError('知识库名称已存在');
+            if (error.response && error.response.data && error.response.data.message) {
+                setKbNameError(error.response.data.message);
             } else {
                 showToast('创建知识库失败', 'error');
             }
