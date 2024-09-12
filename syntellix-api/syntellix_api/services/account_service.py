@@ -6,12 +6,13 @@ from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 from typing import Any, Optional
 
+from sqlalchemy import func
 from syntellix_api.configs import syntellix_config
 from syntellix_api.extensions.ext_redis import redis_client
 from syntellix_api.libs.helper import RateLimiter, TokenManager
 from syntellix_api.libs.passport import PassportService
 from syntellix_api.libs.password import compare_password, hash_password, valid_password
-from syntellix_api.models.account import *
+from syntellix_api.models.account_model import *
 from syntellix_api.services.errors.account import (
     AccountAlreadyInTenantError,
     AccountLoginError,
@@ -26,7 +27,6 @@ from syntellix_api.services.errors.account import (
     RoleAlreadyAssignedError,
     TenantNotFound,
 )
-from sqlalchemy import func
 from werkzeug.exceptions import Unauthorized
 
 
@@ -48,7 +48,7 @@ class AccountService:
         current_tenant: TenantAccountJoin = TenantAccountJoin.query.filter_by(
             account_id=account.id, current=True
         ).first()
-        
+
         if current_tenant:
             account.current_tenant_id = current_tenant.tenant_id
         else:

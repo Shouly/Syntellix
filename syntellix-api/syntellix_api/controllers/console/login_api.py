@@ -7,7 +7,7 @@ from flask_restful import Resource, reqparse
 from syntellix_api.controllers.console import api
 from syntellix_api.libs.helper import email, get_remote_ip
 from syntellix_api.libs.password import valid_password
-from syntellix_api.models.account import Account
+from syntellix_api.models.account_model import Account
 from syntellix_api.services.account_service import AccountService, TenantService
 
 

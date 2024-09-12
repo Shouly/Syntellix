@@ -5,7 +5,7 @@ from flask import current_app, g, has_request_context, request
 from flask_login import user_logged_in
 from flask_login.config import EXEMPT_METHODS
 from syntellix_api.extensions.ext_database import db
-from syntellix_api.models.account import Account, Tenant, TenantAccountJoin
+from syntellix_api.models.account_model import Account, Tenant, TenantAccountJoin
 from werkzeug.exceptions import Unauthorized
 from werkzeug.local import LocalProxy
 

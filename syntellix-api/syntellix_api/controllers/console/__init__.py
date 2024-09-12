@@ -8,3 +8,5 @@ api = ExternalApi(bp)
 from . import sys_init_api
 from . import login_api
 from . import account_api
+
+from .datasets import knowledge_base_api
