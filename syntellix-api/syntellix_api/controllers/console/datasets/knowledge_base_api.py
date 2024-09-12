@@ -14,6 +14,7 @@ from syntellix_api.services.errors.dataset import (
     DatasetInUseError,
     DatasetNameDuplicateError,
 )
+from syntellix_api.controllers.api_errors import KnowledgeBaseNameDuplicateError
 from werkzeug.exceptions import Forbidden, NotFound
 
 
@@ -100,7 +101,7 @@ class KnowledgeBaseListApi(Resource):
                 permission=KnowledgeBasePermissionEnum.ONLY_ME,
             )
         except DatasetNameDuplicateError:
-            raise DatasetNameDuplicateError()
+            raise KnowledgeBaseNameDuplicateError()
 
         return marshal(knowledge_base, knowledge_base_detail_fields), 201
 

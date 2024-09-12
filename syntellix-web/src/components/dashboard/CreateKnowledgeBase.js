@@ -125,10 +125,11 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
             return;
         }
         setIsLoading(true);
+        setKbNameError(''); // Clear any previous errors
         try {
             const response = await axios.post('/console/api/knowledge-bases', { name: kbName.trim() });
             showToast('创建成功', 'success');
-            onCreated(response.data); // 假设您想在创建后执行一些操作
+            onCreated(response.data);
             handleCloseModal();
         } catch (error) {
             if (error.response && error.response.status === 409) {

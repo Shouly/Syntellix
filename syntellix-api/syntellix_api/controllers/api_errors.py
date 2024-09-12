@@ -53,3 +53,9 @@ class RepeatPasswordNotMatchError(BaseHTTPException):
     error_code = "repeat_password_not_match"
     description = "两次输入的密码不匹配"
     code = 403
+
+
+class KnowledgeBaseNameDuplicateError(BaseHTTPException):
+    error_code = "knowledge_base_name_duplicate"
+    description = "知识库名称已存在"
+    code = 403
