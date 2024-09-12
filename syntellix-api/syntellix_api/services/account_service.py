@@ -108,7 +108,7 @@ class AccountService:
         if account.password and not compare_password(
             password, account.password, account.password_salt
         ):
-            raise CurrentPasswordIncorrectError("Current password is incorrect.")
+            raise CurrentPasswordIncorrectError("当前密码不正确")
 
         # may be raised
         valid_password(new_password)

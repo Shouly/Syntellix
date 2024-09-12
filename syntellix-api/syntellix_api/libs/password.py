@@ -13,7 +13,7 @@ def valid_password(password):
     if re.match(pattern, password) is not None:
         return password
 
-    raise ValueError("Not a valid password.")
+    raise ValueError("密码必须包含字母和数字，且长度不小于8位")
 
 
 def hash_password(password_str, salt_byte):

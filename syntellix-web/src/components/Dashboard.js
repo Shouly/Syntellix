@@ -23,6 +23,7 @@ import Chat from './dashboard/Chat';
 import Database from './dashboard/Database';
 import KnowledgeBase from './dashboard/KnowledgeBase';
 import Settings from './dashboard/Settings';
+import AccountSettings from './AccountSettings';
 
 function Dashboard({ setIsAuthenticated }) {
   const navigate = useNavigate();
@@ -34,6 +35,9 @@ function Dashboard({ setIsAuthenticated }) {
   const menuRef = useRef(null);
   const [tags, setTags] = useState(['全部标签']);
   const [selectedTag, setSelectedTag] = useState('全部标签');
+  const [userProfile, setUserProfile] = useState(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [isAccountSettingsOpen, setIsAccountSettingsOpen] = useState(false);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -46,6 +50,23 @@ function Dashboard({ setIsAuthenticated }) {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
+  }, []);
+
+  useEffect(() => {
+    // Fetch user profile
+    const fetchUserProfile = async () => {
+      setIsLoadingProfile(true);
+      try {
+        const response = await axios.get('/console/api/account/profile');
+        setUserProfile(response.data);
+      } catch (error) {
+        console.error('Failed to fetch user profile:', error);
+      } finally {
+        setIsLoadingProfile(false);
+      }
+    };
+
+    fetchUserProfile();
   }, []);
 
   const handleLogout = async () => {
@@ -64,8 +85,7 @@ function Dashboard({ setIsAuthenticated }) {
   };
 
   const handleAccountSettings = () => {
-    // Implement account settings logic here
-    console.log("Navigate to account settings");
+    setIsAccountSettingsOpen(true);
     setShowMenu(false);
   };
 
@@ -75,6 +95,13 @@ function Dashboard({ setIsAuthenticated }) {
 
   const handleLogoClick = () => {
     navigate('/dashboard');
+  };
+
+  const handleProfileUpdate = (updatedProfile) => {
+    setUserProfile(prevProfile => ({
+      ...prevProfile,
+      ...updatedProfile
+    }));
   };
 
   const menuItems = [
@@ -130,7 +157,7 @@ function Dashboard({ setIsAuthenticated }) {
           ))}
         </nav>
 
-        {/* Updated user info section with hover effect and dropdown menu */}
+        {/* Updated user info section with loading effect */}
         <div className={`mt-auto ${isMenuCollapsed ? 'px-1' : 'px-4'} pb-4 relative`}>
           <div className="relative" ref={menuRef}>
             <button
@@ -148,13 +175,21 @@ function Dashboard({ setIsAuthenticated }) {
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-medium font-tech text-xs shadow-sm transition-colors duration-200 ${
                 isHovering ? 'bg-indigo-700' : 'bg-indigo-500'
               }`}>
-                A
+                {isLoadingProfile ? (
+                  <ArrowPathIcon className="w-4 h-4 animate-spin text-white" />
+                ) : userProfile?.avatar ? (
+                  <img src={userProfile.avatar} alt="User Avatar" className="w-full h-full rounded-full object-cover" />
+                ) : (
+                  (userProfile?.name && userProfile.name.charAt(0).toUpperCase()) || 'U'
+                )}
               </div>
               {!isMenuCollapsed && (
                 <>
                   <span className={`ml-2 text-sm font-medium font-tech transition-colors duration-200 ${
                     isHovering ? 'text-indigo-800' : 'text-gray-700'
-                  }`}>Admin</span>
+                  }`}>
+                    {isLoadingProfile ? 'Loading...' : userProfile?.name || 'User'}
+                  </span>
                   <EllipsisHorizontalIcon className={`w-4 h-4 transition-colors duration-200 ${
                     isHovering ? 'text-indigo-700' : 'text-gray-500'
                   } ml-auto`} />
@@ -258,6 +293,14 @@ function Dashboard({ setIsAuthenticated }) {
           </main>
         </div>
       </div>
+
+      {/* Add this at the end of the JSX */}
+      <AccountSettings 
+        isOpen={isAccountSettingsOpen} 
+        onClose={() => setIsAccountSettingsOpen(false)}
+        userProfile={userProfile}
+        onProfileUpdate={handleProfileUpdate}
+      />
     </div>
   );
 }
