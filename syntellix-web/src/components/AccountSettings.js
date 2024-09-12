@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { XMarkIcon, UserCircleIcon, KeyIcon, EyeIcon, EyeSlashIcon, ArrowPathIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 import AvatarSelector from './AvatarSelector'; // 新增导入
 import axios from 'axios';
+import { useToast } from '../components/Toast'; // 导入 useToast
 
 function AccountSettings({ isOpen, onClose, userProfile, onProfileUpdate }) {
   const [activeTab, setActiveTab] = useState('account');
@@ -19,6 +20,8 @@ function AccountSettings({ isOpen, onClose, userProfile, onProfileUpdate }) {
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [passwordError, setPasswordError] = useState('');
   const [nameError, setNameError] = useState('');
+
+  const { showToast } = useToast(); // 使用 useToast hook
 
   useEffect(() => {
     if (userProfile) {
@@ -56,7 +59,7 @@ function AccountSettings({ isOpen, onClose, userProfile, onProfileUpdate }) {
       // Call the onProfileUpdate function to update the Dashboard
       onProfileUpdate({ name, avatar });
       
-      console.log('Account info saved successfully');
+      showToast('保存成功', 'success'); // 使用 toast 显示成功消息
       onClose(); // 自动关闭弹框
     } catch (error) {
       if (error.response && error.response.data) {
@@ -98,7 +101,7 @@ function AccountSettings({ isOpen, onClose, userProfile, onProfileUpdate }) {
         new_password: newPassword,
         repeat_new_password: confirmPassword
       });
-      console.log('Password reset successfully');
+      showToast('密码重置成功', 'success'); // 使用 toast 显示成功消息
       // Clear password fields
       setOldPassword('');
       setNewPassword('');
@@ -203,7 +206,6 @@ function AccountSettings({ isOpen, onClose, userProfile, onProfileUpdate }) {
                     onChange={(e) => setName(e.target.value)}
                     className="w-full p-2 font-tech bg-gray-100 border border-gray-200 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all duration-200" 
                     placeholder="输入用户名"
-                    required
                   />
                   {nameError && (
                     <p className="mt-1 text-xs text-red-500 flex items-center">

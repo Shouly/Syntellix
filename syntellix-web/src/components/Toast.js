@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/solid';
+import { XMarkIcon, CheckCircleIcon, ExclamationCircleIcon, InformationCircleIcon } from '@heroicons/react/24/solid';
 
 const ToastContext = createContext();
 
@@ -33,17 +33,20 @@ export function ToastProvider({ children }) {
 }
 
 function Toast({ message, type, onClose }) {
-  const bgColor = {
-    success: 'bg-green-500',
-    error: 'bg-red-500',
-    info: 'bg-blue-500',
-    warning: 'bg-yellow-500',
-  }[type] || 'bg-gray-500';
+  const config = {
+    success: { icon: CheckCircleIcon, bgColor: 'bg-green-500', textColor: 'text-white' },
+    error: { icon: ExclamationCircleIcon, bgColor: 'bg-red-500', textColor: 'text-white' },
+    info: { icon: InformationCircleIcon, bgColor: 'bg-indigo-500', textColor: 'text-white' },
+    warning: { icon: ExclamationCircleIcon, bgColor: 'bg-yellow-500', textColor: 'text-white' },
+  }[type] || { icon: InformationCircleIcon, bgColor: 'bg-gray-500', textColor: 'text-white' };
+
+  const Icon = config.icon;
 
   return (
-    <div className={`${bgColor} text-white px-4 py-2 rounded-lg shadow-lg mb-2 flex items-center`}>
-      <span className="flex-grow">{message}</span>
-      <button onClick={onClose} className="ml-2 focus:outline-none">
+    <div className={`${config.bgColor} ${config.textColor} px-4 py-3 rounded-2xl shadow-lg flex items-center max-w-md backdrop-filter backdrop-blur-lg bg-opacity-90 transition-all duration-300 transform hover:scale-105`}>
+      <Icon className="h-5 w-5 mr-3" />
+      <span className="flex-grow text-sm font-medium">{message}</span>
+      <button onClick={onClose} className="ml-3 focus:outline-none hover:text-opacity-75 transition-colors duration-200">
         <XMarkIcon className="h-5 w-5" />
       </button>
     </div>
