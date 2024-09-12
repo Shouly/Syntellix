@@ -12,6 +12,8 @@ import {
   ArrowPathIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  ChevronDownIcon,
+  FunnelIcon,
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
@@ -30,6 +32,8 @@ function Dashboard({ setIsAuthenticated }) {
   const [isHovering, setIsHovering] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const menuRef = useRef(null);
+  const [tags, setTags] = useState(['全部标签']);
+  const [selectedTag, setSelectedTag] = useState('全部标签');
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -82,7 +86,7 @@ function Dashboard({ setIsAuthenticated }) {
   ];
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-blue-200 via-indigo-200 to-purple-200 relative overflow-hidden">
+    <div className="min-h-screen flex bg-gradient-to-br from-blue-300 via-indigo-200 to-purple-200 relative overflow-hidden">
       {/* Subtle tech-inspired background */}
       <div className="absolute inset-0 overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjZmZmZmZmMTAiPjwvcmVjdD4KPHBhdGggZD0iTTAgNUw1IDBaTTYgNEw0IDZaTS0xIDFMMSAtMVoiIHN0cm9rZT0iIzAwMDAwMDEwIiBzdHJva2Utd2lkdGg9IjEiPjwvcGF0aD4KPC9zdmc+')] opacity-20"></div>
@@ -141,14 +145,14 @@ function Dashboard({ setIsAuthenticated }) {
                   : 'bg-white bg-opacity-60'
               }`}
             >
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-medium text-xs shadow-sm transition-colors duration-200 ${
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-medium font-tech text-xs shadow-sm transition-colors duration-200 ${
                 isHovering ? 'bg-indigo-700' : 'bg-indigo-500'
               }`}>
                 A
               </div>
               {!isMenuCollapsed && (
                 <>
-                  <span className={`ml-2 text-sm font-medium transition-colors duration-200 ${
+                  <span className={`ml-2 text-sm font-medium font-tech transition-colors duration-200 ${
                     isHovering ? 'text-indigo-800' : 'text-gray-700'
                   }`}>Admin</span>
                   <EllipsisHorizontalIcon className={`w-4 h-4 transition-colors duration-200 ${
@@ -208,32 +212,36 @@ function Dashboard({ setIsAuthenticated }) {
 
       {/* Main content area */}
       <div className="flex-1 flex flex-col overflow-hidden p-2">
-        <div className="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-2xl shadow-lg flex-1 overflow-hidden flex flex-col">
+        <div className="bg-white bg-opacity-70 backdrop-filter backdrop-blur-lg rounded-2xl shadow-lg flex-1 overflow-hidden flex flex-col">
           {/* Header */}
-          <header className="p-6 flex items-center justify-between bg-white bg-opacity-60 backdrop-filter backdrop-blur-md">
-            <h2 className="text-2xl font-bold text-indigo-700 font-noto-sans-sc">
+          <header className="p-6 flex items-center justify-between bg-white bg-opacity-70 backdrop-filter backdrop-blur-md">
+            <h2 className="text-xl font-bold text-indigo-700 font-noto-sans-sc">
               {menuItems.find(item => item.name === activeMenu)?.displayName}
             </h2>
             <div className="flex items-center space-x-4">
+              {/* Tag selector */}
+              <div className="relative">
+                <select
+                  value={selectedTag}
+                  onChange={(e) => setSelectedTag(e.target.value)}
+                  className="pl-10 pr-8 py-2 text-sm rounded-full bg-white bg-opacity-50 border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all duration-300 appearance-none cursor-pointer font-noto-sans-sc text-gray-700"
+                >
+                  {tags.map((tag) => (
+                    <option key={tag} value={tag}>{tag}</option>
+                  ))}
+                </select>
+                <FunnelIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <ChevronDownIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
               {/* Search box */}
               <div className="relative">
                 <input
                   type="text"
                   placeholder="搜索..."
-                  className="pl-10 pr-4 py-2 text-sm rounded-full bg-white bg-opacity-50 border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all duration-300 w-64 font-noto-sans-sc"
+                  className="pl-10 pr-4 py-2 text-sm rounded-full bg-white bg-opacity-50 border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all duration-300 w-64 font-noto-sans-sc text-gray-700"
                 />
                 <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               </div>
-              {/* New group button */}
-              <button className="flex items-center px-4 py-2 text-sm bg-indigo-100 text-indigo-600 rounded-full hover:bg-indigo-200 transition-colors duration-200 shadow-sm font-noto-sans-sc">
-                <FolderPlusIcon className="w-5 h-5 mr-2" />
-                <span>新建分组</span>
-              </button>
-              {/* New module button */}
-              <button className="flex items-center px-4 py-2 text-sm bg-indigo-500 text-white rounded-full hover:bg-indigo-700 transition-colors duration-200 shadow-sm font-noto-sans-sc">
-                <PlusIcon className="w-5 h-5 mr-2" />
-                <span>新建{menuItems.find(item => item.name === activeMenu)?.displayName}</span>
-              </button>
             </div>
           </header>
 
@@ -241,7 +249,7 @@ function Dashboard({ setIsAuthenticated }) {
           <div className="mx-6 border-t border-indigo-300 opacity-20"></div>
 
           {/* Content area */}
-          <main className="flex-1 overflow-auto p-6 bg-white bg-opacity-40 backdrop-filter backdrop-blur-sm">
+          <main className="flex-1 overflow-auto p-6 bg-white bg-opacity-30 backdrop-filter backdrop-blur-sm">
             {activeMenu === 'Chat' && <Chat />}
             {activeMenu === 'Agent' && <Agent />}
             {activeMenu === 'KnowledgeBase' && <KnowledgeBase />}
