@@ -5,6 +5,7 @@ import { ToastProvider } from './components/Toast';
 import Login from './components/Login';
 import SystemInit from './components/SystemInit';
 import Dashboard from './components/Dashboard';
+import LoadingSpinner from './components/LoadingSpinner'; // 导入 LoadingSpinner 组件
 
 function App() {
   const [isInitialized, setIsInitialized] = useState(null);
@@ -40,13 +41,7 @@ function App() {
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjZmZmZmZmMTAiPjwvcmVjdD4KPHBhdGggZD0iTTAgNUw1IDBaTTYgNEw0IDZaTS0xIDFMMSAtMVoiIHN0cm9rZT0iIzAwMDAwMDIwIiBzdHJva2Utd2lkdGg9IjEiPjwvcGF0aD4KPC9zdmc+')] opacity-30"></div>
         </div>
-        <div className="relative">
-          <div className="flex space-x-2">
-            <div className="w-4 h-4 bg-blue-600 rounded-full animate-bounce"></div>
-            <div className="w-4 h-4 bg-indigo-600 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-            <div className="w-4 h-4 bg-purple-600 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-          </div>
-        </div>
+        <LoadingSpinner /> {/* 使用 LoadingSpinner 组件 */}
       </div>
     );
   }
