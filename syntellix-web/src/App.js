@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowPathIcon } from '@heroicons/react/24/outline';
+import { ToastProvider } from './components/Toast';
 import Login from './components/Login';
 import SystemInit from './components/SystemInit';
 import Dashboard from './components/Dashboard';
@@ -53,21 +53,23 @@ function App() {
 
   return (
     <Router>
-      <div className="App">
-        <Routes>
-          <Route path="/system-init" element={
-            isInitialized ? <Navigate to="/" /> : <SystemInit setIsInitialized={setIsInitialized} />
-          } />
-          <Route path="/" element={
-            isInitialized ? (
-              isAuthenticated ? <Navigate to="/dashboard" /> : <Login setIsAuthenticated={setIsAuthenticated} />
-            ) : <Navigate to="/system-init" />
-          } />
-          <Route path="/dashboard" element={
-            isAuthenticated ? <Dashboard setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/" />
-          } />
-        </Routes>
-      </div>
+      <ToastProvider>
+        <div className="App">
+          <Routes>
+            <Route path="/system-init" element={
+              isInitialized ? <Navigate to="/" /> : <SystemInit setIsInitialized={setIsInitialized} />
+            } />
+            <Route path="/" element={
+              isInitialized ? (
+                isAuthenticated ? <Navigate to="/dashboard" /> : <Login setIsAuthenticated={setIsAuthenticated} />
+              ) : <Navigate to="/system-init" />
+            } />
+            <Route path="/dashboard" element={
+              isAuthenticated ? <Dashboard setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/" />
+            } />
+          </Routes>
+        </div>
+      </ToastProvider>
     </Router>
   );
 }
