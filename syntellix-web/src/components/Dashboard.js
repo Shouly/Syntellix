@@ -14,6 +14,7 @@ import {
   ChevronRightIcon,
   ChevronDownIcon,
   FunnelIcon,
+  ArrowLeftIcon,
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
@@ -24,6 +25,7 @@ import Database from './dashboard/Database';
 import KnowledgeBase from './dashboard/KnowledgeBase';
 import Settings from './dashboard/Settings';
 import AccountSettings from './AccountSettings';
+import CreateKnowledgeBase from './dashboard/CreateKnowledgeBase';
 
 function Dashboard({ setIsAuthenticated }) {
   const navigate = useNavigate();
@@ -38,6 +40,7 @@ function Dashboard({ setIsAuthenticated }) {
   const [userProfile, setUserProfile] = useState(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isAccountSettingsOpen, setIsAccountSettingsOpen] = useState(false);
+  const [showCreateKnowledgeBase, setShowCreateKnowledgeBase] = useState(false);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -104,6 +107,19 @@ function Dashboard({ setIsAuthenticated }) {
     }));
   };
 
+  const handleMenuChange = (menuName) => {
+    setActiveMenu(menuName);
+    setShowCreateKnowledgeBase(false);
+  };
+
+  const handleCreateKnowledgeBase = () => {
+    setShowCreateKnowledgeBase(true);
+  };
+
+  const handleBackToKnowledgeBase = () => {
+    setShowCreateKnowledgeBase(false);
+  };
+
   const menuItems = [
     { name: 'Chat', displayName: '对话', icon: ChatBubbleLeftRightIcon },
     { name: 'Agent', displayName: '智能体', icon: BeakerIcon },
@@ -111,6 +127,27 @@ function Dashboard({ setIsAuthenticated }) {
     { name: 'Database', displayName: '数据库', icon: CircleStackIcon },
     { name: 'Settings', displayName: '设置', icon: Cog6ToothIcon },
   ];
+
+  const renderContent = () => {
+    if (showCreateKnowledgeBase) {
+      return <CreateKnowledgeBase onBack={handleBackToKnowledgeBase} />;
+    }
+
+    switch (activeMenu) {
+      case 'Chat':
+        return <Chat />;
+      case 'Agent':
+        return <Agent />;
+      case 'KnowledgeBase':
+        return <KnowledgeBase onCreateKnowledgeBase={handleCreateKnowledgeBase} />;
+      case 'Database':
+        return <Database />;
+      case 'Settings':
+        return <Settings />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-blue-300 via-indigo-200 to-purple-200 relative overflow-hidden">
@@ -147,7 +184,7 @@ function Dashboard({ setIsAuthenticated }) {
                     ? 'bg-white bg-opacity-60 text-indigo-800 shadow-md'
                     : 'text-gray-600 hover:bg-white hover:bg-opacity-40 hover:text-indigo-700'
                 }`}
-                onClick={() => setActiveMenu(item.name)}
+                onClick={() => handleMenuChange(item.name)}
               >
                 <item.icon className={`w-5 h-5 ${!isMenuCollapsed && 'mr-3'} ${activeMenu === item.name ? 'text-indigo-700' : 'text-gray-500'}`} />
                 {!isMenuCollapsed && <span>{item.displayName}</span>}
@@ -250,34 +287,46 @@ function Dashboard({ setIsAuthenticated }) {
         <div className="bg-white bg-opacity-70 backdrop-filter backdrop-blur-lg rounded-2xl shadow-lg flex-1 overflow-hidden flex flex-col">
           {/* Header */}
           <header className="p-6 flex items-center justify-between bg-white bg-opacity-70 backdrop-filter backdrop-blur-md">
-            <h2 className="text-xl font-bold text-indigo-700 font-noto-sans-sc">
-              {menuItems.find(item => item.name === activeMenu)?.displayName}
-            </h2>
-            <div className="flex items-center space-x-4">
-              {/* Tag selector */}
-              <div className="relative">
-                <select
-                  value={selectedTag}
-                  onChange={(e) => setSelectedTag(e.target.value)}
-                  className="pl-10 pr-8 py-2 text-sm rounded-full bg-white bg-opacity-50 border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all duration-300 appearance-none cursor-pointer font-noto-sans-sc text-gray-600"
+            <div className="flex items-center">
+              {showCreateKnowledgeBase && (
+                <button
+                  onClick={handleBackToKnowledgeBase}
+                  className="mr-4 bg-indigo-100 hover:bg-indigo-200 text-indigo-600 p-2 rounded-full transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-50"
                 >
-                  {tags.map((tag) => (
-                    <option key={tag} value={tag}>{tag}</option>
-                  ))}
-                </select>
-                <FunnelIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <ChevronDownIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-              </div>
-              {/* Search box */}
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="搜索..."
-                  className="pl-10 pr-4 py-2 text-sm rounded-full bg-white bg-opacity-50 border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all duration-300 w-64 font-noto-sans-sc text-gray-600"
-                />
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              </div>
+                  <ArrowLeftIcon className="w-5 h-5" />
+                </button>
+              )}
+              <h2 className="text-xl font-bold text-indigo-700 font-noto-sans-sc">
+                {showCreateKnowledgeBase ? '创建知识库' : menuItems.find(item => item.name === activeMenu)?.displayName}
+              </h2>
             </div>
+            {!showCreateKnowledgeBase && (
+              <div className="flex items-center space-x-4">
+                {/* Tag selector */}
+                <div className="relative">
+                  <select
+                    value={selectedTag}
+                    onChange={(e) => setSelectedTag(e.target.value)}
+                    className="pl-10 pr-8 py-2 text-sm rounded-full bg-white bg-opacity-50 border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all duration-300 appearance-none cursor-pointer font-noto-sans-sc text-gray-600"
+                  >
+                    {tags.map((tag) => (
+                      <option key={tag} value={tag}>{tag}</option>
+                    ))}
+                  </select>
+                  <FunnelIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <ChevronDownIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                </div>
+                {/* Search box */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="搜索..."
+                    className="pl-10 pr-4 py-2 text-sm rounded-full bg-white bg-opacity-50 border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all duration-300 w-64 font-noto-sans-sc text-gray-600"
+                  />
+                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                </div>
+              </div>
+            )}
           </header>
 
           {/* Divider */}
@@ -285,11 +334,7 @@ function Dashboard({ setIsAuthenticated }) {
 
           {/* Content area */}
           <main className="flex-1 overflow-auto p-6 bg-white bg-opacity-30 backdrop-filter backdrop-blur-sm">
-            {activeMenu === 'Chat' && <Chat />}
-            {activeMenu === 'Agent' && <Agent />}
-            {activeMenu === 'KnowledgeBase' && <KnowledgeBase />}
-            {activeMenu === 'Database' && <Database />}
-            {activeMenu === 'Settings' && <Settings />}
+            {renderContent()}
           </main>
         </div>
       </div>

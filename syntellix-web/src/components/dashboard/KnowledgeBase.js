@@ -2,7 +2,7 @@ import React from 'react';
 import { DocumentTextIcon, DocumentDuplicateIcon, CubeIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
 import { PlusIcon, BookOpenIcon, ArchiveBoxIcon, DocumentIcon } from '@heroicons/react/24/solid';
 
-function KnowledgeBase() {
+function KnowledgeBase({ onCreateKnowledgeBase }) {
   const knowledgeBases = [
     { id: 1, name: '财务知识库', documents: 10, characters: 5000, apps: 2, lastUpdated: '2 天前更新' },
     { id: 2, name: '公司规章制度知识库', documents: 5, characters: 2500, apps: 1, lastUpdated: '1 天前更新' },
@@ -17,7 +17,10 @@ function KnowledgeBase() {
   };
 
   const NewKnowledgeBaseCard = () => (
-    <div className="group bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative cursor-pointer">
+    <div 
+      className="group bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative cursor-pointer"
+      onClick={onCreateKnowledgeBase}
+    >
       <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 opacity-70 group-hover:from-indigo-100 group-hover:via-purple-100 group-hover:to-blue-100 group-hover:opacity-80 transition-all duration-300"></div>
       <div className="absolute inset-[1px] rounded-[11px] flex items-center p-6 z-10">
         <div className="w-16 h-16 bg-indigo-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0 group-hover:bg-indigo-200 transition-all duration-300">
