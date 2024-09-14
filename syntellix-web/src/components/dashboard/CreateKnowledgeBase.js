@@ -35,7 +35,7 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
     };
 
     const handleFiles = (uploadedFiles) => {
-        const validFiles = [];
+        const newValidFiles = [];
         const newErrors = [];
         const validTypes = ['txt', 'md', 'pdf', 'html', 'xlsx', 'xls', 'docx', 'csv'];
         const maxSize = 15 * 1024 * 1024; // 15MB in bytes
@@ -50,16 +50,19 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
             } else if (!isValidSize) {
                 newErrors.push(`文件大小超过15MB: ${file.name}`);
             } else {
-                validFiles.push(file);
+                newValidFiles.push(file);
             }
         });
 
-        setFiles(validFiles.map(file => ({
-            name: file.name,
-            size: formatFileSize(file.size),
-            file: file
-        })));
-        setErrors(newErrors);
+        setFiles(prevFiles => [
+            ...prevFiles,
+            ...newValidFiles.map(file => ({
+                name: file.name,
+                size: formatFileSize(file.size),
+                file: file
+            }))
+        ]);
+        setErrors(prevErrors => [...prevErrors, ...newErrors]);
     };
 
     const formatFileSize = (bytes) => {
@@ -180,7 +183,7 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
             </div>
 
             {files.length > 0 && (
-                <ul className="space-y-3">
+                <ul className="space-y-2">
                     {files.map((file, index) => (
                         <li
                             key={index}
@@ -190,7 +193,7 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
                             <div className="flex-1 ml-3 overflow-hidden">
                                 <div className="flex items-center">
                                     <span className="font-semibold truncate mr-2">{file.name}</span>
-                                    <span className="text-gray-400 text-xs whitespace-nowrap">{file.size}</span>
+                                    <span className="text-gray-600 text-xs whitespace-nowrap">{file.size}</span>
                                 </div>
                             </div>
                             <button
