@@ -33,7 +33,7 @@ function Chat() {
   return (
     <div className="flex h-full">
       {/* 左侧边栏 */}
-      <div className="w-1/4 bg-gray-100 p-4 flex flex-col">
+      <div className="w-1/4 bg-white bg-opacity-70 backdrop-filter backdrop-blur-md p-4 flex flex-col border-r border-indigo-100">
         <div className="mb-4">
           <div className="relative">
             <input
@@ -72,10 +72,10 @@ function Chat() {
       </div>
 
       {/* 主对话区域 */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col bg-white bg-opacity-50 backdrop-filter backdrop-blur-sm">
         {currentAgent ? (
           <>
-            <div className="bg-white p-4 shadow">
+            <div className="bg-white bg-opacity-80 p-4 shadow-md">
               <div className="flex items-center">
                 <img src={currentAgent.avatar} alt={currentAgent.name} className="w-12 h-12 rounded-full mr-4" />
                 <div>
@@ -87,14 +87,14 @@ function Chat() {
             <div className="flex-1 overflow-y-auto p-4">
               {/* 这里显示消息历史 */}
             </div>
-            <div className="p-4 border-t">
+            <div className="p-4 border-t border-indigo-100">
               <div className="flex items-center">
                 <input
                   type="text"
                   placeholder="问我任何问题..."
-                  className="flex-1 p-2 rounded-l-lg border-l border-t border-b"
+                  className="flex-1 p-2 rounded-l-lg border-l border-t border-b border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                 />
-                <button className="bg-blue-600 text-white p-2 rounded-r-lg">
+                <button className="bg-indigo-600 text-white p-2 rounded-r-lg hover:bg-indigo-700 transition-colors duration-200">
                   <ArrowPathIcon className="h-6 w-6" />
                 </button>
               </div>

@@ -44,7 +44,7 @@ function Database() {
 
 function DatabaseCard({ name, icon, tables, applications, description }) {
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow duration-300">
+    <div className="bg-white bg-opacity-80 backdrop-filter backdrop-blur-lg rounded-lg shadow-md p-4 hover:shadow-lg transition-all duration-300">
       <div className="flex items-center mb-4">
         <img src={icon} alt={`${name} Icon`} className="w-12 h-12 rounded-full mr-4" />
         <div>

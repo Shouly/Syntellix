@@ -1,13 +1,14 @@
-import { Cog6ToothIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
-import { ArchiveBoxIcon, BookOpenIcon, DocumentTextIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
+import { ChevronDownIcon, Cog6ToothIcon, ExclamationCircleIcon, FunnelIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { BookOpenIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
-import { useToast } from '../../components/Toast';
-import DeleteConfirmationModal from '../DeleteConfirmationModal';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '../../components/Toast';
+import DeleteConfirmationModal from '../DeleteConfirmationModal';
 
-function KnowledgeBase({ onCreateKnowledgeBase }) {
+function KnowledgeBase({ onCreateNew }) {
   const [knowledgeBases, setKnowledgeBases] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,6 +17,10 @@ function KnowledgeBase({ onCreateKnowledgeBase }) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [knowledgeBaseToDelete, setKnowledgeBaseToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const [tags, setTags] = useState(['全部标签']);
+  const [selectedTag, setSelectedTag] = useState('全部标签');
+  const navigate = useNavigate();
 
   const handleDeleteClick = (kb) => {
     setKnowledgeBaseToDelete(kb);
@@ -71,20 +76,45 @@ function KnowledgeBase({ onCreateKnowledgeBase }) {
     }
   };
 
-  // Remove this function as it's no longer needed
-  // const getRandomIcon = () => {
-  //   const icons = [BookOpenIcon, ArchiveBoxIcon, DocumentTextIcon];
-  //   return icons[Math.floor(Math.random() * icons.length)];
-  // };
+  const handleCreateKnowledgeBase = () => {
+    onCreateNew();
+  };
+
+  const TagSelector = ({ tags, selectedTag, setSelectedTag }) => (
+    <div className="relative">
+      <select
+        value={selectedTag}
+        onChange={(e) => setSelectedTag(e.target.value)}
+        className="pl-10 pr-8 py-2 text-sm rounded-md bg-white bg-opacity-50 border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all duration-300 appearance-none cursor-pointer font-noto-sans-sc text-gray-600"
+      >
+        {tags.map((tag) => (
+          <option key={tag} value={tag}>{tag}</option>
+        ))}
+      </select>
+      <FunnelIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-400" />
+      <ChevronDownIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-indigo-400 pointer-events-none" />
+    </div>
+  );
+
+  const SearchBox = () => (
+    <div className="relative">
+      <input
+        type="text"
+        placeholder="搜索..."
+        className="pl-10 pr-4 py-2 text-sm rounded-md bg-white bg-opacity-50 border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all duration-300 w-48 font-noto-sans-sc text-gray-600"
+      />
+      <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-400" />
+    </div>
+  );
 
   const NewKnowledgeBaseCard = () => (
     <div
-      className="group bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative cursor-pointer"
-      onClick={onCreateKnowledgeBase}
+      className="group bg-white bg-opacity-30 backdrop-filter backdrop-blur-sm rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative cursor-pointer"
+      onClick={handleCreateKnowledgeBase}
     >
-      <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 opacity-70 group-hover:from-indigo-100 group-hover:via-purple-100 group-hover:to-blue-100 group-hover:opacity-80 transition-all duration-300"></div>
+      <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 opacity-70 group-hover:opacity-80 transition-all duration-300"></div>
       <div className="absolute inset-[1px] rounded-[11px] flex items-center p-6 z-10">
-        <div className="w-16 h-16 bg-indigo-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0 group-hover:bg-indigo-200 transition-all duration-300">
+        <div className="w-16 h-16 bg-indigo-100 bg-opacity-50 rounded-lg flex items-center justify-center mr-4 flex-shrink-0 group-hover:bg-opacity-70 transition-all duration-300">
           <PlusIcon className="w-10 h-10 text-indigo-500 group-hover:text-indigo-600 transition-all duration-300" />
         </div>
         <div>
@@ -98,18 +128,18 @@ function KnowledgeBase({ onCreateKnowledgeBase }) {
   );
 
   const SkeletonCard = () => (
-    <div className="bg-white bg-opacity-60 rounded-xl shadow-md overflow-hidden flex flex-col justify-between h-48 relative animate-pulse">
+    <div className="bg-white bg-opacity-30 backdrop-filter backdrop-blur-sm rounded-xl shadow-md overflow-hidden flex flex-col justify-between h-48 relative animate-pulse">
       <div className="p-6">
         <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 bg-indigo-200 rounded-lg"></div>
+          <div className="w-16 h-16 bg-indigo-200 bg-opacity-50 rounded-lg"></div>
           <div className="flex-1">
-            <div className="h-4 bg-indigo-200 rounded w-3/4 mb-2"></div>
-            <div className="h-3 bg-indigo-100 rounded w-1/2"></div>
+            <div className="h-4 bg-indigo-200 bg-opacity-50 rounded w-3/4 mb-2"></div>
+            <div className="h-3 bg-indigo-100 bg-opacity-50 rounded w-1/2"></div>
           </div>
         </div>
       </div>
-      <div className="px-4 py-3 bg-indigo-50">
-        <div className="h-3 bg-indigo-100 rounded w-1/4"></div>
+      <div className="px-4 py-3 bg-indigo-50 bg-opacity-30">
+        <div className="h-3 bg-indigo-100 bg-opacity-50 rounded w-1/4"></div>
       </div>
     </div>
   );
@@ -118,10 +148,10 @@ function KnowledgeBase({ onCreateKnowledgeBase }) {
     const date = new Date(dateString);
     const distance = formatDistanceToNow(date, { locale: zhCN });
     return distance.replace(/约 /, '') // 移除"约"字
-                   .replace(/ 天/, '天')
-                   .replace(/ 个?小时/, '小时')
-                   .replace(/ 分钟/, '分钟')
-                   .replace(/不到 /, ''); // 移除"不到"
+      .replace(/ 天/, '天')
+      .replace(/ 个?小时/, '小时')
+      .replace(/ 分钟/, '分钟')
+      .replace(/不到 /, ''); // 移除"不到"
   };
 
   const renderContent = () => {
@@ -138,13 +168,13 @@ function KnowledgeBase({ onCreateKnowledgeBase }) {
 
     if (error) {
       return (
-        <div className="col-span-full flex flex-col items-center justify-center h-64 bg-red-50 rounded-xl p-6">
+        <div className="col-span-full flex flex-col items-center justify-center h-64 bg-red-50 bg-opacity-50 backdrop-filter backdrop-blur-sm rounded-xl p-6">
           <ExclamationCircleIcon className="w-12 h-12 text-red-500 mb-4" />
           <div className="text-red-600 font-semibold text-lg mb-2">获取知识库失败</div>
           <div className="text-red-500 text-sm mb-4">{error}</div>
           <button
             onClick={fetchKnowledgeBases}
-            className="px-4 py-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200 transition-colors duration-200"
+            className="px-4 py-2 bg-red-100 bg-opacity-50 text-red-600 rounded-md hover:bg-opacity-70 transition-colors duration-200"
           >
             重试
           </button>
@@ -156,13 +186,13 @@ function KnowledgeBase({ onCreateKnowledgeBase }) {
       <>
         <NewKnowledgeBaseCard />
         {knowledgeBases.map((kb) => (
-          <div key={kb.id} className="group bg-white bg-opacity-60 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative">
-            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-indigo-200 via-purple-200 to-blue-200 opacity-40 group-hover:from-indigo-300 group-hover:via-purple-300 group-hover:to-blue-300 group-hover:opacity-50 transition-all duration-300"></div>
-            <div className="absolute inset-[1px] bg-white bg-opacity-60 rounded-[11px] flex flex-col justify-between z-10">
+          <div key={kb.id} className="group bg-white bg-opacity-30 backdrop-filter backdrop-blur-sm rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative">
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-indigo-100 via-purple-100 to-blue-100 opacity-30 group-hover:opacity-50 transition-all duration-300"></div>
+            <div className="absolute inset-[1px] bg-white bg-opacity-50 rounded-[11px] flex flex-col justify-between z-10">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center">
-                    <div className="w-16 h-16 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
+                    <div className="w-16 h-16 bg-indigo-100 bg-opacity-50 rounded-lg flex items-center justify-center mr-3">
                       <BookOpenIcon className="w-12 h-12 text-indigo-500" />
                     </div>
                     <div>
@@ -179,10 +209,10 @@ function KnowledgeBase({ onCreateKnowledgeBase }) {
                   </span>
                 </div>
               </div>
-              <div className="px-4 py-3 flex items-center justify-between mt-auto">
+              <div className="px-4 py-3 flex items-center justify-between mt-auto bg-indigo-50 bg-opacity-30">
                 <div className="flex items-center text-xs text-gray-700 space-x-2 font-noto-sans-sc">
                   {kb.tags && kb.tags.map((tag, index) => (
-                    <span key={index} className="bg-gray-100 text-gray-600 px-2 py-1 rounded">{tag}</span>
+                    <span key={index} className="bg-gray-100 bg-opacity-50 text-gray-600 px-2 py-1 rounded">{tag}</span>
                   ))}
                 </div>
                 <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -205,8 +235,25 @@ function KnowledgeBase({ onCreateKnowledgeBase }) {
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {renderContent()}
+    <div className="space-y-6 pt-4">
+      {/* Header */}
+      <header className="flex items-center justify-between px-6">
+        <div className="flex items-end space-x-4">
+          <h2 className="text-2xl font-semibold text-indigo-700 font-noto-sans-sc">知识库</h2>
+          <p className="text-sm text-gray-500 font-noto-sans-sc mb-1">
+            管理您的知识库和相关文档。
+          </p>
+        </div>
+        <div className="flex items-center space-x-4">
+          <TagSelector tags={tags} selectedTag={selectedTag} setSelectedTag={setSelectedTag} />
+          <SearchBox />
+        </div>
+      </header>
+
+      {/* Content */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 px-6">
+        {renderContent()}
+      </div>
       <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
