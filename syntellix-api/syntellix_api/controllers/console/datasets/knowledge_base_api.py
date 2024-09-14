@@ -179,8 +179,8 @@ class KnowledgeBasePermissionUserListApi(Resource):
 
 
 api.add_resource(KnowledgeBaseListApi, "/knowledge-bases")
-api.add_resource(KnowledgeBaseApi, "/knowledge-bases/<uuid:knowledge_base_id>")
+api.add_resource(KnowledgeBaseApi, "/knowledge-bases/<int:knowledge_base_id>")
 api.add_resource(
     KnowledgeBasePermissionUserListApi,
-    "/knowledge-bases/<uuid:knowledge_base_id>/permission-part-users",
+    "/knowledge-bases/<int:knowledge_base_id>/permission-part-users",
 )

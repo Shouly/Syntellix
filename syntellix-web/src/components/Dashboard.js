@@ -1,31 +1,29 @@
 import {
+  ArrowLeftIcon,
+  ArrowPathIcon,
   ArrowRightOnRectangleIcon,
   BeakerIcon,
   BookOpenIcon,
   ChatBubbleLeftRightIcon,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   CircleStackIcon,
   Cog6ToothIcon,
   EllipsisHorizontalIcon,
-  FolderPlusIcon,
-  MagnifyingGlassIcon,
-  PlusIcon,
-  ArrowPathIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  ChevronDownIcon,
   FunnelIcon,
-  ArrowLeftIcon,
+  MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import AccountSettings from './AccountSettings';
 import Agent from './dashboard/Agent';
 import Chat from './dashboard/Chat';
+import CreateKnowledgeBase from './dashboard/CreateKnowledgeBase';
 import Database from './dashboard/Database';
 import KnowledgeBase from './dashboard/KnowledgeBase';
 import Settings from './dashboard/Settings';
-import AccountSettings from './AccountSettings';
-import CreateKnowledgeBase from './dashboard/CreateKnowledgeBase';
 
 function Dashboard({ setIsAuthenticated }) {
   const navigate = useNavigate();
@@ -153,7 +151,7 @@ function Dashboard({ setIsAuthenticated }) {
     <div className="min-h-screen flex bg-gradient-to-br from-blue-300 via-indigo-200 to-purple-200 relative overflow-hidden">
       {/* Subtle tech-inspired background */}
       <div className="absolute inset-0 overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjZmZmZmZmMTAiPjwvcmVjdD4KPHBhdGggZD0iTTAgNUw1IDBaTTYgNEw0IDZaTS0xIDFMMSAtMVoiIHN0cm9rZT0iIzAwMDAwMDEwIiBzdHJva2Utd2lkdGg9IjEiPjwvcGF0aD4KPC9zdmc+')] opacity-20"></div>
+        <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjZmZmZmZmMTAiPjwvcmVjdD4KPHBhdGggZD0iTTAgNUw1IDBaTTYgNEw0IDZaTS0xIDFMMSAtMVoiIHN0cm9rZT0iIzAwMDAwMDEwIiBzdHJva2Utd2lkdGg9IjEiPjwvcGF0aD4KPC9zdmc+')] opacity-20"></div>
       </div>
 
       {/* Left Sidebar */}
@@ -177,13 +175,11 @@ function Dashboard({ setIsAuthenticated }) {
           {menuItems.map((item, index) => (
             <React.Fragment key={item.name}>
               <button
-                className={`flex items-center ${
-                  isMenuCollapsed ? 'justify-center w-full' : 'w-full'
-                } px-4 py-3 mb-4 text-sm font-medium rounded-full transition-all duration-200 ${
-                  activeMenu === item.name
+                className={`flex items-center ${isMenuCollapsed ? 'justify-center w-full' : 'w-full'
+                  } px-4 py-3 mb-4 text-sm font-medium rounded-full transition-all duration-200 ${activeMenu === item.name
                     ? 'bg-white bg-opacity-60 text-indigo-800 shadow-md'
                     : 'text-gray-600 hover:bg-white hover:bg-opacity-40 hover:text-indigo-700'
-                }`}
+                  }`}
                 onClick={() => handleMenuChange(item.name)}
               >
                 <item.icon className={`w-5 h-5 ${!isMenuCollapsed && 'mr-3'} ${activeMenu === item.name ? 'text-indigo-700' : 'text-gray-500'}`} />
@@ -201,17 +197,14 @@ function Dashboard({ setIsAuthenticated }) {
               onClick={() => setShowMenu(!showMenu)}
               onMouseEnter={() => setIsHovering(true)}
               onMouseLeave={() => setIsHovering(false)}
-              className={`flex items-center justify-center w-full text-left transition-all duration-200 rounded-full ${
-                isMenuCollapsed ? 'p-0' : 'p-2'
-              } ${
-                isHovering
+              className={`flex items-center justify-center w-full text-left transition-all duration-200 rounded-full ${isMenuCollapsed ? 'p-0' : 'p-2'
+                } ${isHovering
                   ? 'bg-indigo-200 shadow-md'
                   : 'bg-white bg-opacity-60'
-              }`}
+                }`}
             >
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-medium font-tech text-xs shadow-sm transition-colors duration-200 ${
-                isHovering ? 'bg-indigo-700' : 'bg-indigo-500'
-              }`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-medium font-tech text-xs shadow-sm transition-colors duration-200 ${isHovering ? 'bg-indigo-700' : 'bg-indigo-500'
+                }`}>
                 {isLoadingProfile ? (
                   <ArrowPathIcon className="w-4 h-4 animate-spin text-white" />
                 ) : userProfile?.avatar ? (
@@ -222,14 +215,12 @@ function Dashboard({ setIsAuthenticated }) {
               </div>
               {!isMenuCollapsed && (
                 <>
-                  <span className={`ml-2 text-sm font-medium font-tech transition-colors duration-200 ${
-                    isHovering ? 'text-indigo-800' : 'text-gray-700'
-                  }`}>
+                  <span className={`ml-2 text-sm font-medium font-tech transition-colors duration-200 ${isHovering ? 'text-indigo-800' : 'text-gray-700'
+                    }`}>
                     {isLoadingProfile ? 'Loading...' : userProfile?.name || 'User'}
                   </span>
-                  <EllipsisHorizontalIcon className={`w-4 h-4 transition-colors duration-200 ${
-                    isHovering ? 'text-indigo-700' : 'text-gray-500'
-                  } ml-auto`} />
+                  <EllipsisHorizontalIcon className={`w-4 h-4 transition-colors duration-200 ${isHovering ? 'text-indigo-700' : 'text-gray-500'
+                    } ml-auto`} />
                 </>
               )}
             </button>
@@ -269,9 +260,8 @@ function Dashboard({ setIsAuthenticated }) {
       <div className="absolute left-0 top-1/2 -translate-y-1/2 z-20">
         <button
           onClick={toggleMenu}
-          className={`${
-            isMenuCollapsed ? 'left-16' : 'left-48'
-          } absolute p-1 rounded-full bg-white shadow-md hover:bg-opacity-70 transition-all duration-300 flex items-center justify-center`}
+          className={`${isMenuCollapsed ? 'left-16' : 'left-48'
+            } absolute p-1 rounded-full bg-white shadow-md hover:bg-opacity-70 transition-all duration-300 flex items-center justify-center`}
           style={{ transform: 'translateX(-25%)' }}
         >
           {isMenuCollapsed ? (
@@ -340,8 +330,8 @@ function Dashboard({ setIsAuthenticated }) {
       </div>
 
       {/* Add this at the end of the JSX */}
-      <AccountSettings 
-        isOpen={isAccountSettingsOpen} 
+      <AccountSettings
+        isOpen={isAccountSettingsOpen}
         onClose={() => setIsAccountSettingsOpen(false)}
         userProfile={userProfile}
         onProfileUpdate={handleProfileUpdate}

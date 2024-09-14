@@ -1,14 +1,50 @@
-import { EllipsisHorizontalIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
-import { ArchiveBoxIcon, BookOpenIcon, DocumentIcon, PlusIcon } from '@heroicons/react/24/solid';
+import { Cog6ToothIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
+import { ArchiveBoxIcon, BookOpenIcon, DocumentTextIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { useToast } from '../../components/Toast';
+import DeleteConfirmationModal from '../DeleteConfirmationModal';
+import { formatDistanceToNow } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
 
 function KnowledgeBase({ onCreateKnowledgeBase }) {
   const [knowledgeBases, setKnowledgeBases] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const { showToast } = useToast();
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [knowledgeBaseToDelete, setKnowledgeBaseToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteClick = (kb) => {
+    setKnowledgeBaseToDelete(kb);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (knowledgeBaseToDelete) {
+      setIsDeleting(true);
+      try {
+        await axios.delete(`/console/api/knowledge-bases/${knowledgeBaseToDelete.id}`);
+        setKnowledgeBases(knowledgeBases.filter(kb => kb.id !== knowledgeBaseToDelete.id));
+        showToast('知识库删除成功', 'success');
+      } catch (error) {
+        console.error('Error deleting knowledge base:', error);
+        if (error.response && error.response.status === 403) {
+          showToast('您没有权限删除此知识库', 'error');
+        } else if (error.response && error.response.data && error.response.data.message) {
+          showToast(error.response.data.message, 'error');
+        } else {
+          showToast('知识库删除失败', 'error');
+        }
+      } finally {
+        setIsDeleting(false);
+        setIsDeleteModalOpen(false);
+        setKnowledgeBaseToDelete(null);
+      }
+    }
+  };
 
   useEffect(() => {
     fetchKnowledgeBases();
@@ -35,10 +71,11 @@ function KnowledgeBase({ onCreateKnowledgeBase }) {
     }
   };
 
-  const getRandomIcon = () => {
-    const icons = [BookOpenIcon, ArchiveBoxIcon, DocumentIcon];
-    return icons[Math.floor(Math.random() * icons.length)];
-  };
+  // Remove this function as it's no longer needed
+  // const getRandomIcon = () => {
+  //   const icons = [BookOpenIcon, ArchiveBoxIcon, DocumentTextIcon];
+  //   return icons[Math.floor(Math.random() * icons.length)];
+  // };
 
   const NewKnowledgeBaseCard = () => (
     <div
@@ -77,6 +114,16 @@ function KnowledgeBase({ onCreateKnowledgeBase }) {
     </div>
   );
 
+  const formatRelativeTime = (dateString) => {
+    const date = new Date(dateString);
+    const distance = formatDistanceToNow(date, { locale: zhCN });
+    return distance.replace(/约 /, '') // 移除"约"字
+                   .replace(/ 天/, '天')
+                   .replace(/ 个?小时/, '小时')
+                   .replace(/ 分钟/, '分钟')
+                   .replace(/不到 /, ''); // 移除"不到"
+  };
+
   const renderContent = () => {
     if (isLoading) {
       return (
@@ -108,44 +155,51 @@ function KnowledgeBase({ onCreateKnowledgeBase }) {
     return (
       <>
         <NewKnowledgeBaseCard />
-        {knowledgeBases.map((kb) => {
-          const RandomIcon = getRandomIcon();
-          return (
-            <div key={kb.id} className="group bg-white bg-opacity-60 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative">
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-indigo-200 via-purple-200 to-blue-200 opacity-40 group-hover:from-indigo-300 group-hover:via-purple-300 group-hover:to-blue-300 group-hover:opacity-50 transition-all duration-300"></div>
-              <div className="absolute inset-[1px] bg-white bg-opacity-60 rounded-[11px] flex flex-col justify-between z-10">
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center">
-                      <div className="w-16 h-16 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
-                        <RandomIcon className="w-12 h-12 text-indigo-500" />
-                      </div>
-                      <div>
-                        <h3 className="text-base font-semibold text-gray-800 font-noto-sans-sc mb-1">{kb.name}</h3>
-                        <div className="flex items-center text-xs text-gray-500 font-noto-sans-sc">
-                          <span>{kb.document_count} 文档</span>
-                          <span className="mx-1 text-gray-400">•</span>
-                          <span>{kb.app_count} 智能体</span>
-                        </div>
+        {knowledgeBases.map((kb) => (
+          <div key={kb.id} className="group bg-white bg-opacity-60 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative">
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-indigo-200 via-purple-200 to-blue-200 opacity-40 group-hover:from-indigo-300 group-hover:via-purple-300 group-hover:to-blue-300 group-hover:opacity-50 transition-all duration-300"></div>
+            <div className="absolute inset-[1px] bg-white bg-opacity-60 rounded-[11px] flex flex-col justify-between z-10">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center">
+                    <div className="w-16 h-16 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
+                      <BookOpenIcon className="w-12 h-12 text-indigo-500" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-semibold text-gray-800 font-noto-sans-sc mb-1">{kb.name}</h3>
+                      <div className="flex items-center text-xs text-gray-500 font-noto-sans-sc">
+                        <span>{kb.document_count} 文档</span>
+                        <span className="mx-1 text-gray-400">•</span>
+                        <span>{kb.app_count} 智能体</span>
                       </div>
                     </div>
-                    <span className="text-xs text-gray-500 font-noto-sans-sc">{kb.updated_at}</span>
                   </div>
+                  <span className="text-xs text-gray-500 font-noto-sans-sc">
+                    {formatRelativeTime(kb.updated_at)}前更新
+                  </span>
                 </div>
-                <div className="px-4 py-3 flex items-center justify-between mt-auto">
-                  <div className="flex items-center text-xs text-gray-700 space-x-2 font-noto-sans-sc">
-                    {kb.tags && kb.tags.map((tag, index) => (
-                      <span key={index} className="bg-gray-100 text-gray-600 px-2 py-1 rounded">{tag}</span>
-                    ))}
-                  </div>
-                  <button className="text-gray-600 hover:text-gray-700 transition-colors duration-200">
-                    <EllipsisHorizontalIcon className="w-5 h-5" />
+              </div>
+              <div className="px-4 py-3 flex items-center justify-between mt-auto">
+                <div className="flex items-center text-xs text-gray-700 space-x-2 font-noto-sans-sc">
+                  {kb.tags && kb.tags.map((tag, index) => (
+                    <span key={index} className="bg-gray-100 text-gray-600 px-2 py-1 rounded">{tag}</span>
+                  ))}
+                </div>
+                <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <button className="text-gray-400 hover:text-indigo-500 transition-colors duration-200">
+                    <Cog6ToothIcon className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteClick(kb)}
+                    className="text-gray-400 hover:text-red-500 transition-colors duration-200"
+                  >
+                    <TrashIcon className="w-5 h-5" />
                   </button>
                 </div>
               </div>
             </div>
-          );
-        })}
+          </div>
+        ))}
       </>
     );
   };
@@ -153,6 +207,14 @@ function KnowledgeBase({ onCreateKnowledgeBase }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {renderContent()}
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        itemType="知识库"
+        itemName={knowledgeBaseToDelete?.name}
+        isLoading={isDeleting}
+      />
     </div>
   );
 }
