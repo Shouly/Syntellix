@@ -1,4 +1,4 @@
-import { EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
+import { EllipsisHorizontalIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 import { ArchiveBoxIcon, BookOpenIcon, DocumentIcon, PlusIcon } from '@heroicons/react/24/solid';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
@@ -14,15 +14,22 @@ function KnowledgeBase({ onCreateKnowledgeBase }) {
     fetchKnowledgeBases();
   }, []);
 
+  // Add this new useEffect for error handling
+  useEffect(() => {
+    if (error) {
+      showToast(error, 'error');
+    }
+  }, [error, showToast]);
+
   const fetchKnowledgeBases = async () => {
     setIsLoading(true);
+    setError(null); // Reset error state before fetching
     try {
       const response = await axios.get('/console/api/knowledge-bases');
       setKnowledgeBases(response.data.data);
     } catch (error) {
       console.error('Error fetching knowledge bases:', error);
-      setError('获取知识库列表失败');
-      showToast('获取知识库列表失败', 'error');
+      setError('知识库获取失败');
     } finally {
       setIsLoading(false);
     }
@@ -84,8 +91,16 @@ function KnowledgeBase({ onCreateKnowledgeBase }) {
 
     if (error) {
       return (
-        <div className="col-span-full flex items-center justify-center h-64 bg-red-50 rounded-xl">
-          <div className="text-red-500">错误: {error}</div>
+        <div className="col-span-full flex flex-col items-center justify-center h-64 bg-red-50 rounded-xl p-6">
+          <ExclamationCircleIcon className="w-12 h-12 text-red-500 mb-4" />
+          <div className="text-red-600 font-semibold text-lg mb-2">获取知识库失败</div>
+          <div className="text-red-500 text-sm mb-4">{error}</div>
+          <button
+            onClick={fetchKnowledgeBases}
+            className="px-4 py-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200 transition-colors duration-200"
+          >
+            重试
+          </button>
         </div>
       );
     }
