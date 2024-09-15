@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../components/Toast';
 import DeleteConfirmationModal from '../DeleteConfirmationModal';
 
-function KnowledgeBase({ onCreateNew }) {
+function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
   const [knowledgeBases, setKnowledgeBases] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -154,6 +154,10 @@ function KnowledgeBase({ onCreateNew }) {
       .replace(/不到 /, ''); // 移除"不到"
   };
 
+  const handleKnowledgeBaseClick = (kb) => {
+    onKnowledgeBaseClick(kb.id);
+  };
+
   const renderContent = () => {
     if (isLoading) {
       return (
@@ -186,7 +190,11 @@ function KnowledgeBase({ onCreateNew }) {
       <>
         <NewKnowledgeBaseCard />
         {knowledgeBases.map((kb) => (
-          <div key={kb.id} className="group bg-white bg-opacity-30 backdrop-filter backdrop-blur-sm rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative">
+          <div
+            key={kb.id}
+            className="group bg-white bg-opacity-30 backdrop-filter backdrop-blur-sm rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative cursor-pointer"
+            onClick={() => handleKnowledgeBaseClick(kb)}
+          >
             <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-indigo-100 via-purple-100 to-blue-100 opacity-30 group-hover:opacity-50 transition-all duration-300"></div>
             <div className="absolute inset-[1px] bg-white bg-opacity-50 rounded-[11px] flex flex-col justify-between z-10">
               <div className="p-6">
@@ -216,11 +224,21 @@ function KnowledgeBase({ onCreateNew }) {
                   ))}
                 </div>
                 <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <button className="text-gray-400 hover:text-indigo-500 transition-colors duration-200">
+                  <button
+                    className="text-gray-400 hover:text-indigo-500 transition-colors duration-200"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // 添加设置按钮的处理逻辑
+                      console.log('Settings clicked for', kb.name);
+                    }}
+                  >
                     <Cog6ToothIcon className="w-5 h-5" />
                   </button>
                   <button
-                    onClick={() => handleDeleteClick(kb)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteClick(kb);
+                    }}
                     className="text-gray-400 hover:text-red-500 transition-colors duration-200"
                   >
                     <TrashIcon className="w-5 h-5" />

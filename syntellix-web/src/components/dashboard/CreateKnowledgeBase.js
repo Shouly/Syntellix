@@ -1,5 +1,5 @@
-import { CloudArrowUpIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { ArchiveBoxIcon, ArrowLeftIcon, ArrowPathIcon, BookOpenIcon, CloudIcon, DocumentTextIcon, ExclamationCircleIcon, PlusIcon, XCircleIcon } from '@heroicons/react/24/solid';
+import { BookOpenIcon, CloudArrowUpIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ArchiveBoxIcon, ArrowPathIcon, CloudIcon, DocumentTextIcon, ExclamationCircleIcon, PlusIcon, XCircleIcon } from '@heroicons/react/24/solid';
 import {
     mdiFile,
     mdiFileDelimited,
@@ -137,7 +137,7 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
     const handleSubmitEmptyKB = async (e) => {
         e.preventDefault();
         if (!kbName.trim()) {
-            setKbNameError('知识库名称不能为空');
+            setKbNameError('知���库名称不能为空');
             return;
         }
         setIsLoading(true);
@@ -158,24 +158,16 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
         }
     };
 
-    const handleBack = () => {
-        onBack();
-    };
-
     return (
         <div className="flex pt-4">
             {/* Redesigned left sidebar */}
             <div className="w-55 pr-6 border-r border-gray-200">
-                <button
-                    onClick={handleBack}
-                    className="mb-10 text-gray-800 transition-colors duration-200 flex items-center group"
-                >
-                    <span className="w-8 h-8 flex items-center justify-center bg-indigo-100 rounded-full mr-3 group-hover:bg-indigo-200 transition-colors duration-200">
-                        <ArrowLeftIcon className="w-4 h-4 text-indigo-600 group-hover:-translate-x-0.5 transition-transform duration-200" />
-                    </span>
-                    <span className="font-noto-sans-sc text-lg font-semibold">知识库列表</span>
-                </button>
-
+                <div className="mb-10 mt-5">
+                    <div className="flex items-center mb-10">
+                        <BookOpenIcon className="w-10 h-10 text-indigo-600 mr-3" />
+                        <span className="text-xl font-semibold text-gray-800 font-noto-sans-sc truncate">新建知识库</span>
+                    </div>
+                </div>
                 <ol className="space-y-4 relative">
                     <div className="absolute left-3 top-6 bottom-0 w-0.5 bg-gray-200"></div>
                     <StepItem number={1} text="选数据源" active />
@@ -186,7 +178,7 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
 
             {/* Main content area */}
             <div className="flex-1 pl-8 space-y-6">
-                <div className="bg-white bg-opacity-30 backdrop-filter backdrop-blur-sm rounded-xl shadow-md p-6 space-y-6">
+                <div className="bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm rounded-lg shadow-sm p-6 space-y-6">
                     <h3 className="text-lg font-semibold text-gray-700 font-noto-sans-sc">选择数据源</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 font-medium">
                         <DataSourceButton icon={DocumentTextIcon} text="导入本地文件" active />
@@ -198,7 +190,7 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
                 </div>
 
                 <div
-                    className={`bg-white bg-opacity-30 backdrop-filter backdrop-blur-sm rounded-xl shadow-md p-8 border-2 border-dashed transition-colors duration-200 ${dragActive ? 'border-indigo-400 bg-indigo-50' : 'border-gray-300 hover:border-indigo-300'
+                    className={`bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm rounded-lg shadow-sm p-8 border-2 border-dashed transition-colors duration-200 ${dragActive ? 'border-indigo-400 bg-indigo-50' : 'border-gray-300 hover:border-indigo-300'
                         }`}
                     onDragEnter={handleDrag}
                     onDragLeave={handleDrag}

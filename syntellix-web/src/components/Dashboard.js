@@ -28,6 +28,7 @@ import Database from './dashboard/Database';
 import KnowledgeBase from './dashboard/KnowledgeBase';
 import Settings from './dashboard/Settings';
 import CreateKnowledgeBase from './dashboard/CreateKnowledgeBase';
+import KnowledgeBaseDetail from './dashboard/KnowledgeBaseDetail';
 
 function Dashboard({ setIsAuthenticated }) {
   const navigate = useNavigate();
@@ -39,6 +40,7 @@ function Dashboard({ setIsAuthenticated }) {
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isAccountSettingsOpen, setIsAccountSettingsOpen] = useState(false);
   const [isCreatingKnowledgeBase, setIsCreatingKnowledgeBase] = useState(false);
+  const [selectedKnowledgeBaseId, setSelectedKnowledgeBaseId] = useState(null);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -106,7 +108,17 @@ function Dashboard({ setIsAuthenticated }) {
     // 当切换到知识库菜单时，确保回到知识库主页面
     if (menuName === 'KnowledgeBase') {
       setIsCreatingKnowledgeBase(false);
+      setSelectedKnowledgeBaseId(null);
     }
+  };
+
+  const handleKnowledgeBaseClick = (id) => {
+    setSelectedKnowledgeBaseId(id);
+  };
+
+  const handleBackToKnowledgeBase = () => {
+    setSelectedKnowledgeBaseId(null);
+    setIsCreatingKnowledgeBase(false);
   };
 
   const menuItems = [
@@ -124,19 +136,31 @@ function Dashboard({ setIsAuthenticated }) {
       case 'Agent':
         return <Agent />;
       case 'KnowledgeBase':
-        return isCreatingKnowledgeBase ? (
-          <CreateKnowledgeBase 
-            onBack={() => setIsCreatingKnowledgeBase(false)}
-            onCreated={(newKnowledgeBase) => {
-              setIsCreatingKnowledgeBase(false);
-              // 这里可以添加逻辑来更新知识库列表
-            }}
-          />
-        ) : (
-          <KnowledgeBase 
-            onCreateNew={() => setIsCreatingKnowledgeBase(true)}
-          />
-        );
+        if (isCreatingKnowledgeBase) {
+          return (
+            <CreateKnowledgeBase 
+              onBack={handleBackToKnowledgeBase}
+              onCreated={(newKnowledgeBase) => {
+                setIsCreatingKnowledgeBase(false);
+                // 这里可以添加逻辑来更新知识库列表
+              }}
+            />
+          );
+        } else if (selectedKnowledgeBaseId) {
+          return (
+            <KnowledgeBaseDetail
+              id={selectedKnowledgeBaseId}
+              onBack={handleBackToKnowledgeBase}
+            />
+          );
+        } else {
+          return (
+            <KnowledgeBase 
+              onCreateNew={() => setIsCreatingKnowledgeBase(true)}
+              onKnowledgeBaseClick={handleKnowledgeBaseClick}
+            />
+          );
+        }
       case 'Database':
         return <Database />;
       case 'Settings':
