@@ -8,6 +8,8 @@ import { useToast } from '../../components/Toast';
 import { Menu, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { PencilIcon, AdjustmentsHorizontalIcon as AdjustmentsHorizontalIconOutline, ArchiveBoxIcon, TrashIcon } from '@heroicons/react/24/outline';
+import UploadFiles from './UploadFiles';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 function KnowledgeBaseDetail({ id, onBack }) {
   const { showToast } = useToast();
@@ -17,6 +19,7 @@ function KnowledgeBaseDetail({ id, onBack }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [isUploadingFiles, setIsUploadingFiles] = useState(false);
 
   // Mock data for documents
   const mockDocuments = [
@@ -48,8 +51,7 @@ function KnowledgeBaseDetail({ id, onBack }) {
   };
 
   const handleAddDocument = () => {
-    // Implement add document functionality
-    showToast('添加文档功能待实现', 'info');
+    setIsUploadingFiles(true);
   };
 
   const handleEditKnowledgeBase = () => {
@@ -92,12 +94,12 @@ function KnowledgeBaseDetail({ id, onBack }) {
 
   if (isLoading) {
     return (
-      <div className="flex pt-4">
+      <div className="flex pt-4 h-full">
         {/* Left sidebar skeleton */}
-        <div className="w-60 pr-6 border-r border-gray-200">
+        <div className="w-58 pr-6 border-r border-gray-200">
           <div className="mb-10 mt-5 animate-pulse">
-            <div className="flex items-center">
-              <div className="w-10 h-10 bg-indigo-200 rounded-lg mr-3"></div>
+            <div className="flex items-center mb-10">
+              <div className="w-8 h-8 bg-indigo-100 rounded-full mr-3"></div>
               <div className="h-6 bg-indigo-100 rounded w-3/4"></div>
             </div>
           </div>
@@ -114,8 +116,8 @@ function KnowledgeBaseDetail({ id, onBack }) {
         </div>
 
         {/* Main content area skeleton */}
-        <div className="flex-1 pl-4">
-          <div className="bg-white bg-opacity-90 backdrop-filter backdrop-blur-sm rounded-lg shadow-sm p-6">
+        <div className="flex-1 pl-4 flex flex-col h-full">
+          <div className="bg-white bg-opacity-90 backdrop-filter backdrop-blur-sm rounded-lg shadow-sm p-6 flex flex-col h-full">
             <div className="mb-10">
               <div className="h-6 bg-indigo-100 rounded w-1/4 mb-1"></div>
               <div className="h-4 bg-gray-100 rounded w-3/4"></div>
@@ -124,12 +126,12 @@ function KnowledgeBaseDetail({ id, onBack }) {
               <div className="w-64 h-9 bg-indigo-50 rounded"></div>
               <div className="w-32 h-9 bg-indigo-200 rounded"></div>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto flex-grow" style={{ minHeight: '400px' }}>
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     {[1, 2, 3, 4, 5, 6].map((item) => (
-                      <th key={item} className="px-6 py-3">
+                      <th key={item} className="px-4 py-3">
                         <div className="h-4 bg-indigo-100 rounded"></div>
                       </th>
                     ))}
@@ -139,7 +141,7 @@ function KnowledgeBaseDetail({ id, onBack }) {
                   {[1, 2, 3].map((row) => (
                     <tr key={row}>
                       {[1, 2, 3, 4, 5, 6].map((cell) => (
-                        <td key={cell} className="px-6 py-4">
+                        <td key={cell} className="px-4 py-3">
                           <div className="h-4 bg-gray-100 rounded"></div>
                         </td>
                       ))}
@@ -147,6 +149,13 @@ function KnowledgeBaseDetail({ id, onBack }) {
                   ))}
                 </tbody>
               </table>
+            </div>
+            {/* Pagination skeleton */}
+            <div className="mt-4 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+              <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                <div className="w-1/3 h-4 bg-gray-100 rounded"></div>
+                <div className="w-1/4 h-8 bg-gray-100 rounded"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -158,15 +167,29 @@ function KnowledgeBaseDetail({ id, onBack }) {
     return <div className="text-red-500 text-center">{error}</div>;
   }
 
+  if (isUploadingFiles) {
+    return (
+      <UploadFiles
+        onBack={() => setIsUploadingFiles(false)}
+        onUploadComplete={() => {
+          setIsUploadingFiles(false);
+          fetchKnowledgeBaseDetails();
+        }}
+      />
+    );
+  }
+
   return (
     <div className="flex pt-4 h-full">
       {/* Left sidebar */}
-      <div className="w-60 pr-6 border-r border-gray-200">
+      <div className="w-58 pr-6 border-r border-gray-200">
         {/* Knowledge Base Icon and Title */}
         <div className="mb-10 mt-5">
-          <div className="flex items-center">
-            <FolderIcon className="w-10 h-10 text-indigo-600 mr-3" />
-            <h1 className="text-xl font-semibold text-gray-800 font-noto-sans-sc truncate">
+          <div className="flex items-center mb-10 cursor-pointer group" onClick={handleBack}>
+            <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-3 transition-colors duration-200 group-hover:bg-indigo-200">
+              <ArrowLeftIcon className="w-5 h-5 text-indigo-600 transition-colors duration-200 group-hover:text-indigo-700" />
+            </div>
+            <h1 className="text-base font-semibold text-gray-800 font-noto-sans-sc truncate">
               {knowledgeBase?.name}
             </h1>
           </div>
@@ -187,7 +210,7 @@ function KnowledgeBaseDetail({ id, onBack }) {
         <div className="bg-white bg-opacity-90 backdrop-filter backdrop-blur-sm rounded-lg shadow-sm p-6 flex flex-col h-full">
           {/* Breadcrumb navigation and description */}
           <div className="mb-10">
-            <nav className="text-xl font-semibold text-gray-800 font-noto-sans-sc mb-1">
+            <nav className="text-lg font-semibold text-gray-800 font-noto-sans-sc mb-1">
               <span>文档</span>
             </nav>
             <p className="text-xs text-gray-500 font-noto-sans-sc">

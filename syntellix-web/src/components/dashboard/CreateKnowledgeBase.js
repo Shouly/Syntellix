@@ -1,4 +1,4 @@
-import { BookOpenIcon, CloudArrowUpIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, BookOpenIcon, CloudArrowUpIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { ArchiveBoxIcon, ArrowPathIcon, CloudIcon, DocumentTextIcon, ExclamationCircleIcon, PlusIcon, XCircleIcon } from '@heroicons/react/24/solid';
 import {
     mdiFile,
@@ -40,9 +40,13 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
         e.preventDefault();
         e.stopPropagation();
         setDragActive(false);
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
             handleFiles(e.dataTransfer.files);
         }
+    };
+
+    const handleClick = () => {
+        fileInputRef.current.click();
     };
 
     const handleFiles = (uploadedFiles) => {
@@ -90,10 +94,6 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
         }
     };
 
-    const openFileSelector = () => {
-        fileInputRef.current.click();
-    };
-
     const getFileIcon = (fileName) => {
         const extension = fileName.split('.').pop().toLowerCase();
         const baseProps = { size: 1, className: "w-5 h-5" };
@@ -137,7 +137,7 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
     const handleSubmitEmptyKB = async (e) => {
         e.preventDefault();
         if (!kbName.trim()) {
-            setKbNameError('知���库名称不能为空');
+            setKbNameError('知库名称不能为空');
             return;
         }
         setIsLoading(true);
@@ -161,11 +161,13 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
     return (
         <div className="flex pt-4">
             {/* Redesigned left sidebar */}
-            <div className="w-55 pr-6 border-r border-gray-200">
+            <div className="w-58 pr-6 border-r border-gray-200">
                 <div className="mb-10 mt-5">
-                    <div className="flex items-center mb-10">
-                        <BookOpenIcon className="w-10 h-10 text-indigo-600 mr-3" />
-                        <span className="text-xl font-semibold text-gray-800 font-noto-sans-sc truncate">新建知识库</span>
+                    <div className="flex items-center mb-10 cursor-pointer group" onClick={onBack}>
+                        <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-3 transition-colors duration-200 group-hover:bg-indigo-200">
+                            <ArrowLeftIcon className="w-5 h-5 text-indigo-600 transition-colors duration-200 group-hover:text-indigo-700" />
+                        </div>
+                        <span className="text-base font-semibold text-gray-800 font-noto-sans-sc truncate">新建知识库</span>
                     </div>
                 </div>
                 <ol className="space-y-4 relative">
@@ -179,7 +181,7 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
             {/* Main content area */}
             <div className="flex-1 pl-8 space-y-6">
                 <div className="bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm rounded-lg shadow-sm p-6 space-y-6">
-                    <h3 className="text-xl font-semibold text-gray-800 font-noto-sans-sc">选择数据源</h3>
+                    <h3 className="text-lg font-semibold text-gray-800 font-noto-sans-sc">选择数据源</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 font-medium">
                         <DataSourceButton icon={DocumentTextIcon} text="导入本地文件" active />
                         <DataSourceButton icon={CloudIcon} text="同步钉钉文档" developing />
@@ -190,17 +192,19 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
                 </div>
 
                 <div
-                    className={`bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm rounded-lg shadow-sm p-8 border-2 border-dashed transition-colors duration-200 ${dragActive ? 'border-indigo-400 bg-indigo-50' : 'border-gray-300 hover:border-indigo-300'
-                        }`}
+                    className={`bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm rounded-lg shadow-sm p-8 border-2 border-dashed transition-colors duration-200 cursor-pointer ${
+                        dragActive ? 'border-indigo-400 bg-indigo-50' : 'border-gray-300 hover:border-indigo-300'
+                    }`}
                     onDragEnter={handleDrag}
                     onDragLeave={handleDrag}
                     onDragOver={handleDrag}
                     onDrop={handleDrop}
+                    onClick={handleClick}
                 >
                     <div className="text-center">
                         <CloudArrowUpIcon className={`w-16 h-16 mx-auto mb-4 ${dragActive ? 'text-indigo-500' : 'text-gray-400'}`} />
                         <p className="text-gray-600 mb-2 font-noto-sans-sc">
-                            拖拽文件至此，或者 <span className="text-indigo-600 cursor-pointer hover:underline" onClick={openFileSelector}>选择文件</span>
+                            点击或拖拽文件至此区域即可上传
                         </p>
                         <p className="text-xs text-gray-500 font-noto-sans-sc">
                             支持 TXT、MARKDOWN、PDF、HTML、XLSX、XLS、DOCX、CSV，每个文件不超过 15MB

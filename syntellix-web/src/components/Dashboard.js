@@ -29,6 +29,7 @@ import KnowledgeBase from './dashboard/KnowledgeBase';
 import Settings from './dashboard/Settings';
 import CreateKnowledgeBase from './dashboard/CreateKnowledgeBase';
 import KnowledgeBaseDetail from './dashboard/KnowledgeBaseDetail';
+import UploadFiles from './dashboard/UploadFiles';
 
 function Dashboard({ setIsAuthenticated }) {
   const navigate = useNavigate();
@@ -41,6 +42,7 @@ function Dashboard({ setIsAuthenticated }) {
   const [isAccountSettingsOpen, setIsAccountSettingsOpen] = useState(false);
   const [isCreatingKnowledgeBase, setIsCreatingKnowledgeBase] = useState(false);
   const [selectedKnowledgeBaseId, setSelectedKnowledgeBaseId] = useState(null);
+  const [isUploadingFiles, setIsUploadingFiles] = useState(false);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -151,6 +153,17 @@ function Dashboard({ setIsAuthenticated }) {
             <KnowledgeBaseDetail
               id={selectedKnowledgeBaseId}
               onBack={handleBackToKnowledgeBase}
+              onAddDocument={() => setIsUploadingFiles(true)}
+            />
+          );
+        } else if (isUploadingFiles) {
+          return (
+            <UploadFiles
+              onBack={() => setIsUploadingFiles(false)}
+              onUploadComplete={() => {
+                setIsUploadingFiles(false);
+                // 可以在这里添加刷新文档列表的逻辑
+              }}
             />
           );
         } else {
