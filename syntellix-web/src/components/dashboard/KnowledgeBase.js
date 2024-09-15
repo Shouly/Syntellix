@@ -258,9 +258,6 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
       <header className="flex items-center justify-between px-6">
         <div className="flex items-end space-x-4">
           <h2 className="text-2xl font-semibold text-indigo-700 font-noto-sans-sc">知识库</h2>
-          <p className="text-sm text-gray-500 font-noto-sans-sc mb-1">
-            管理您的知识库和相关文档。
-          </p>
         </div>
         <div className="flex items-center space-x-4">
           <TagSelector tags={tags} selectedTag={selectedTag} setSelectedTag={setSelectedTag} />

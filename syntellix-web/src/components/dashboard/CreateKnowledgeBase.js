@@ -179,7 +179,7 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
             {/* Main content area */}
             <div className="flex-1 pl-8 space-y-6">
                 <div className="bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm rounded-lg shadow-sm p-6 space-y-6">
-                    <h3 className="text-lg font-semibold text-gray-700 font-noto-sans-sc">选择数据源</h3>
+                    <h3 className="text-xl font-semibold text-gray-800 font-noto-sans-sc">选择数据源</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 font-medium">
                         <DataSourceButton icon={DocumentTextIcon} text="导入本地文件" active />
                         <DataSourceButton icon={CloudIcon} text="同步钉钉文档" developing />

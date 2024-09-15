@@ -5,6 +5,7 @@
   "dependencies": {
     "@dicebear/collection": "^9.2.1",
     "@dicebear/core": "^9.2.1",
+    "@headlessui/react": "^2.1.8",
     "@heroicons/react": "^2.1.5",
     "@mdi/js": "^7.4.47",
     "@mdi/react": "^1.6.1",
