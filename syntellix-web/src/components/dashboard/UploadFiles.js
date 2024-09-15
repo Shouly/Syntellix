@@ -136,9 +136,9 @@ function UploadFiles({ onUploadComplete, onBack }) {
                 </div>
                 <ol className="space-y-4 relative">
                     <div className="absolute left-3 top-6 bottom-0 w-0.5 bg-gray-200"></div>
-                    <StepItem number={1} text="上传文本文件" active />
-                    <StepItem number={2} text="文本分段与清洗" />
-                    <StepItem number={3} text="处理并完成" />
+                    <StepItem number={1} text="选取文件" active />
+                    <StepItem number={2} text="文本切分" />
+                    <StepItem number={3} text="处理完成" />
                 </ol>
             </div>
 
@@ -218,16 +218,20 @@ function UploadFiles({ onUploadComplete, onBack }) {
                     </div>
                 )}
 
-                <div className="flex justify-start items-center">
-                    <button
-                        className={`font-semibold py-3 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 ${
-                            files.length > 0 ? 'bg-indigo-600 hover:bg-indigo-700 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        }`}
-                        disabled={files.length === 0}
-                        onClick={handleUpload}
-                    >
-                        <span className="font-noto-sans-sc">下一步</span>
-                    </button>
+                <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                        <button
+                            className={`text-sm font-semibold py-2.5 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 ${
+                                files.length > 0
+                                    ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            }`}
+                            disabled={files.length === 0}
+                            onClick={handleUpload}
+                        >
+                            <span className="font-noto-sans-sc">下一步</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

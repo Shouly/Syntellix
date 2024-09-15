@@ -1,15 +1,12 @@
-import { AdjustmentsHorizontalIcon, DocumentTextIcon, FolderIcon } from '@heroicons/react/24/outline';
-import { PlusIcon, EllipsisHorizontalIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
+import { Menu, Transition } from '@headlessui/react';
+import { AdjustmentsHorizontalIcon, AdjustmentsHorizontalIcon as AdjustmentsHorizontalIconOutline, ArrowLeftIcon, Cog6ToothIcon, DocumentTextIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { ChevronLeftIcon, ChevronRightIcon, EllipsisHorizontalIcon, PlusIcon } from '@heroicons/react/24/solid';
 import { mdiFileDelimited, mdiFileDocumentOutline, mdiFileExcelBox, mdiFilePdfBox, mdiFileWordBox } from '@mdi/js';
 import Icon from '@mdi/react';
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 import { useToast } from '../../components/Toast';
-import { Menu, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
-import { PencilIcon, AdjustmentsHorizontalIcon as AdjustmentsHorizontalIconOutline, ArchiveBoxIcon, TrashIcon } from '@heroicons/react/24/outline';
 import UploadFiles from './UploadFiles';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 function KnowledgeBaseDetail({ id, onBack }) {
   const { showToast } = useToast();
@@ -197,10 +194,10 @@ function KnowledgeBaseDetail({ id, onBack }) {
 
         {/* Sidebar Navigation */}
         <nav>
-          <ul className="space-y-2">
+          <ul className="space-y-4">
             <SidebarItem icon={DocumentTextIcon} text="文档" active />
             <SidebarItem icon={AdjustmentsHorizontalIcon} text="召回测试" />
-            <SidebarItem icon={AdjustmentsHorizontalIcon} text="设置" />
+            <SidebarItem icon={Cog6ToothIcon} text="设置" />
           </ul>
         </nav>
       </div>
@@ -263,9 +260,8 @@ function KnowledgeBaseDetail({ id, onBack }) {
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{doc.recallCount}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{doc.uploadTime}</td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        doc.status === '可用' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
+                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${doc.status === '可用' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
                         {doc.status}
                       </span>
                     </td>
@@ -290,9 +286,8 @@ function KnowledgeBaseDetail({ id, onBack }) {
                               <Menu.Item>
                                 {({ active }) => (
                                   <button
-                                    className={`${
-                                      active ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700'
-                                    } group flex w-full items-center px-3 py-2 text-sm font-medium font-noto-sans-sc`}
+                                    className={`${active ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700'
+                                      } group flex w-full items-center px-3 py-2 text-sm font-medium font-noto-sans-sc`}
                                   >
                                     <PencilIcon className="mr-2 h-4 w-4 text-gray-500" aria-hidden="true" />
                                     重命名
@@ -302,9 +297,8 @@ function KnowledgeBaseDetail({ id, onBack }) {
                               <Menu.Item>
                                 {({ active }) => (
                                   <button
-                                    className={`${
-                                      active ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700'
-                                    } group flex w-full items-center px-3 py-2 text-sm font-medium font-noto-sans-sc`}
+                                    className={`${active ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700'
+                                      } group flex w-full items-center px-3 py-2 text-sm font-medium font-noto-sans-sc`}
                                   >
                                     <AdjustmentsHorizontalIconOutline className="mr-2 h-4 w-4 text-gray-500" aria-hidden="true" />
                                     分段设置
@@ -314,9 +308,8 @@ function KnowledgeBaseDetail({ id, onBack }) {
                               <Menu.Item>
                                 {({ active }) => (
                                   <button
-                                    className={`${
-                                      active ? 'bg-red-50 text-red-700' : 'text-red-600'
-                                    } group flex w-full items-center px-3 py-2 text-sm font-medium font-noto-sans-sc`}
+                                    className={`${active ? 'bg-red-50 text-red-700' : 'text-red-600'
+                                      } group flex w-full items-center px-3 py-2 text-sm font-medium font-noto-sans-sc`}
                                   >
                                     <TrashIcon className="mr-2 h-4 w-4 text-red-500" aria-hidden="true" />
                                     删除
@@ -391,17 +384,10 @@ function KnowledgeBaseDetail({ id, onBack }) {
 
 function SidebarItem({ icon: Icon, text, active = false }) {
   return (
-    <li>
-      <a
-        href="#"
-        className={`flex items-center px-4 py-2 text-sm font-medium ${active
-          ? 'text-indigo-600 bg-indigo-50'
-          : 'text-gray-600 hover:text-indigo-600 hover:bg-indigo-50'
-          } transition-colors duration-150`}
-      >
-        <Icon className="w-5 h-5 mr-3" />
-        <span className="font-noto-sans-sc">{text}</span>
-      </a>
+    <li className={`flex items-center py-2 px-3 rounded-lg transition-colors duration-200 ${active ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-100'
+      }`}>
+      <Icon className={`w-5 h-5 mr-3 ${active ? 'text-indigo-600' : 'text-gray-400'}`} />
+      <span className={`font-noto-sans-sc text-sm ${active ? 'font-semibold' : ''}`}>{text}</span>
     </li>
   );
 }

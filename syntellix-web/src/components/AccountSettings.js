@@ -132,7 +132,7 @@ function AccountSettings({ isOpen, onClose, userProfile, onProfileUpdate }) {
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="w-full p-2 bg-gray-100 border border-gray-200 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all duration-200"
+        className="w-full p-1.5 text-sm bg-gray-100 border border-gray-200 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all duration-200"
       />
       <button
         type="button"
@@ -146,41 +146,41 @@ function AccountSettings({ isOpen, onClose, userProfile, onProfileUpdate }) {
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-filter backdrop-blur-sm overflow-y-auto h-full w-full z-50">
-      <div className="relative top-20 mx-auto p-6 border w-[800px] shadow-lg rounded-2xl bg-white bg-opacity-90">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold text-indigo-700 font-noto-sans-sc">设置</h3>
+      <div className="relative top-10 mx-auto p-6 border w-[800px] shadow-lg rounded-2xl bg-white bg-opacity-90 max-h-[calc(100vh-80px)] flex flex-col">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold text-indigo-700 font-noto-sans-sc">设置</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-500 transition-colors duration-200">
-            <XMarkIcon className="h-6 w-6" />
+            <XMarkIcon className="h-5 w-5" />
           </button>
         </div>
         
-        <div className="flex h-[470px]"> {/* 增加高度 */}
+        <div className="flex flex-grow overflow-hidden">
           {/* 左侧菜单 */}
-          <div className="w-1/4 pr-6 border-r border-gray-200">
+          <div className="w-1/4 pr-6 border-r border-gray-200 overflow-y-auto">
             <button
               onClick={() => setActiveTab('account')}
-              className={`flex items-center w-full py-2 px-4 mb-2 rounded-lg transition-colors duration-200 ${
-                activeTab === 'account' ? 'bg-indigo-100 text-indigo-700' : 'text-gray-600 hover:bg-gray-100'
+              className={`flex items-center w-full py-2 px-3 mb-2 rounded-lg transition-colors duration-200 ${
+                activeTab === 'account' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <UserCircleIcon className="h-5 w-5 mr-2" />
-              <span className="font-noto-sans-sc">我的账户</span>
+              <UserCircleIcon className="h-5 w-5 mr-3" />
+              <span className="font-noto-sans-sc text-sm">我的账户</span>
             </button>
             <button
               onClick={() => setActiveTab('password')}
-              className={`flex items-center w-full py-2 px-4 rounded-lg transition-colors duration-200 ${
-                activeTab === 'password' ? 'bg-indigo-100 text-indigo-700' : 'text-gray-600 hover:bg-gray-100'
+              className={`flex items-center w-full py-2 px-3 rounded-lg transition-colors duration-200 ${
+                activeTab === 'password' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <KeyIcon className="h-5 w-5 mr-2" />
-              <span className="font-noto-sans-sc">重置密码</span>
+              <KeyIcon className="h-5 w-5 mr-3" />
+              <span className="font-noto-sans-sc text-sm">重置密码</span>
             </button>
           </div>
 
           {/* 右侧内容 */}
           <div className="w-3/4 pl-6 pr-4 overflow-y-auto">
             {activeTab === 'account' && (
-              <form onSubmit={handleSaveAccount} className="space-y-6">
+              <form onSubmit={handleSaveAccount} className="space-y-4">
                 <div>
                   <p className="text-sm text-gray-600 mb-2 font-noto-sans-sc">头像</p>
                   <div 
@@ -204,7 +204,7 @@ function AccountSettings({ isOpen, onClose, userProfile, onProfileUpdate }) {
                     type="text" 
                     value={name} 
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full p-2 font-tech bg-gray-100 border border-gray-200 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all duration-200" 
+                    className="w-full p-1.5 text-sm bg-gray-100 border border-gray-200 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all duration-200" 
                     placeholder="输入用户名"
                   />
                   {nameError && (
@@ -221,12 +221,12 @@ function AccountSettings({ isOpen, onClose, userProfile, onProfileUpdate }) {
                     type="email" 
                     value={userProfile?.email || ''} 
                     readOnly 
-                    className="w-full p-2 font-tech bg-gray-200 border border-gray-300 rounded-md text-gray-600 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition-all duration-200" 
+                    className="w-full p-1.5 text-sm bg-gray-200 border border-gray-300 rounded-md text-gray-600 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition-all duration-200" 
                   />
                 </div>
 
                 {errors.account && (
-                  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative text-sm" role="alert">
                     <span className="block sm:inline">{errors.account}</span>
                   </div>
                 )}
@@ -234,12 +234,12 @@ function AccountSettings({ isOpen, onClose, userProfile, onProfileUpdate }) {
                 <div className="flex justify-end space-x-4 pt-4">
                   <button 
                     type="submit" 
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors duration-200 font-noto-sans-sc flex items-center"
+                    className="px-3 py-1.5 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 transition-colors duration-200 font-noto-sans-sc flex items-center"
                     disabled={isSaving}
                   >
                     {isSaving ? (
                       <>
-                        <ArrowPathIcon className="animate-spin h-5 w-5 mr-2" />
+                        <ArrowPathIcon className="animate-spin h-4 w-4 mr-2" />
                         保存中...
                       </>
                     ) : '保存'}
@@ -249,14 +249,14 @@ function AccountSettings({ isOpen, onClose, userProfile, onProfileUpdate }) {
             )}
 
             {activeTab === 'password' && (
-              <form onSubmit={handleResetPassword} className="space-y-6">
-                <h4 className="text-lg font-semibold text-indigo-700 font-noto-sans-sc">重置密码</h4>
+              <form onSubmit={handleResetPassword} className="space-y-4">
+                <h4 className="text-base font-semibold text-gray-800 font-noto-sans-sc mb-4">重置密码</h4>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 font-noto-sans-sc">原密码 <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium text-gray-600 mb-1 font-noto-sans-sc">原密码 <span className="text-red-500">*</span></label>
                   {renderPasswordInput(oldPassword, (e) => setOldPassword(e.target.value), showOldPassword, setShowOldPassword, "输入原密码")}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 font-noto-sans-sc">新密码 <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium text-gray-600 mb-1 font-noto-sans-sc">新密码 <span className="text-red-500">*</span></label>
                   {renderPasswordInput(newPassword, (e) => setNewPassword(e.target.value), showNewPassword, setShowNewPassword, "输入新密码")}
                   {passwordError && (
                     <p className="mt-1 text-xs text-red-500 flex items-center">
@@ -266,29 +266,29 @@ function AccountSettings({ isOpen, onClose, userProfile, onProfileUpdate }) {
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 font-noto-sans-sc">确认密码 <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium text-gray-600 mb-1 font-noto-sans-sc">确认密码 <span className="text-red-500">*</span></label>
                   {renderPasswordInput(confirmPassword, (e) => setConfirmPassword(e.target.value), showConfirmPassword, setShowConfirmPassword, "再次输入新密码")}
                 </div>
                 <p className="text-xs text-gray-500 font-noto-sans-sc">密码必须包含字母和数字，且长度不小于8位</p>
 
                 {errors.password && (
-                  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative text-sm" role="alert">
                     <span className="block sm:inline">{errors.password}</span>
                   </div>
                 )}
 
                 <div className="flex justify-end space-x-4 pt-4">
-                  <button type="button" onClick={() => setActiveTab('account')} className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors duration-200 font-noto-sans-sc">
+                  <button type="button" onClick={() => setActiveTab('account')} className="px-3 py-1.5 bg-gray-200 text-gray-700 text-sm rounded-md hover:bg-gray-300 transition-colors duration-200 font-noto-sans-sc">
                     取消
                   </button>
                   <button 
                     type="submit" 
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors duration-200 font-noto-sans-sc flex items-center"
+                    className="px-3 py-1.5 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 transition-colors duration-200 font-noto-sans-sc flex items-center"
                     disabled={isResettingPassword}
                   >
                     {isResettingPassword ? (
                       <>
-                        <ArrowPathIcon className="animate-spin h-5 w-5 mr-2" />
+                        <ArrowPathIcon className="animate-spin h-4 w-4 mr-2" />
                         重置中...
                       </>
                     ) : '确认'}
@@ -298,7 +298,6 @@ function AccountSettings({ isOpen, onClose, userProfile, onProfileUpdate }) {
             )}
           </div>
         </div>
-        <div className="h-1"></div> {/* 底部padding */}
       </div>
       {showAvatarSelector && (
         <AvatarSelector onSelect={handleAvatarChange} onClose={() => setShowAvatarSelector(false)} />

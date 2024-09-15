@@ -257,7 +257,7 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
       {/* Header */}
       <header className="flex items-center justify-between px-6">
         <div className="flex items-end space-x-4">
-          <h2 className="text-2xl font-semibold text-indigo-700 font-noto-sans-sc">知识库</h2>
+          <h2 className="text-xl font-bold text-indigo-700 font-noto-sans-sc">知识库</h2>
         </div>
         <div className="flex items-center space-x-4">
           <TagSelector tags={tags} selectedTag={selectedTag} setSelectedTag={setSelectedTag} />

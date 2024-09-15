@@ -1,56 +1,76 @@
 import React from 'react';
-import { XMarkIcon, ExclamationTriangleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { Dialog, Transition } from '@headlessui/react';
+import { Fragment } from 'react';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 function DeleteConfirmationModal({ isOpen, onClose, onConfirm, itemType, itemName, isLoading }) {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-filter backdrop-blur-sm overflow-y-auto h-full w-full z-50 flex items-start justify-center pt-20">
-      <div className="relative p-8 border w-full max-w-md shadow-lg rounded-2xl bg-white bg-opacity-90 backdrop-filter backdrop-blur-lg">
-        <div className="mb-6">
-          <div className="flex items-center justify-center mb-4">
-            <ExclamationTriangleIcon className="h-10 w-10 text-yellow-500 mr-3" />
-            <h3 className="text-2xl font-bold text-indigo-800 font-noto-sans-sc">删除确认</h3>
-          </div>
-          <p className="text-gray-600 font-noto-sans-sc text-center">
-            您确定要删除{itemType} <span className="font-semibold">"{itemName}"</span> 吗？
-          </p>
-          <p className="text-gray-500 font-noto-sans-sc text-sm text-center mt-2">
-            此操作无法撤销。
-          </p>
-        </div>
-        <div className="flex justify-center space-x-4">
-          <button
-            onClick={onClose}
-            className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-noto-sans-sc focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50"
-            disabled={isLoading}
-          >
-            取消
-          </button>
-          <button
-            onClick={onConfirm}
-            className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200 font-noto-sans-sc focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-50 flex items-center justify-center"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <ArrowPathIcon className="animate-spin h-5 w-5 mr-2" />
-                删除中...
-              </>
-            ) : (
-              '删除'
-            )}
-          </button>
-        </div>
-        <button 
-          onClick={onClose} 
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors duration-200"
-          disabled={isLoading}
+    <Transition appear show={isOpen} as={Fragment}>
+      <Dialog as="div" className="relative z-50" onClose={onClose}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
         >
-          <XMarkIcon className="h-6 w-6" />
-        </button>
-      </div>
-    </div>
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-filter backdrop-blur-sm" />
+        </Transition.Child>
+
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex items-start justify-center p-4 text-center">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all mt-20">
+                <div className="flex items-center justify-center mb-4">
+                  <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                    <ExclamationTriangleIcon className="h-6 w-6 text-red-600" aria-hidden="true" />
+                  </div>
+                </div>
+                <Dialog.Title
+                  as="h3"
+                  className="text-lg font-medium leading-6 text-gray-900 text-center font-noto-sans-sc mb-2"
+                >
+                  确认删除{itemType}
+                </Dialog.Title>
+                <div className="mt-2">
+                  <p className="text-sm text-gray-500 text-center font-noto-sans-sc">
+                    您确定要删除{itemType} "{itemName}" 吗？此操作无法撤销。
+                  </p>
+                </div>
+
+                <div className="mt-6 flex justify-center space-x-4">
+                  <button
+                    type="button"
+                    className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition-colors duration-200 font-noto-sans-sc"
+                    onClick={onClose}
+                  >
+                    取消
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 transition-colors duration-200 font-noto-sans-sc"
+                    onClick={onConfirm}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? '删除中...' : '确认删除'}
+                  </button>
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition>
   );
 }
 
