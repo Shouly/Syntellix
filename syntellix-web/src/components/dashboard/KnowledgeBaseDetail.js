@@ -210,7 +210,7 @@ function KnowledgeBaseDetail({ id, onBack }) {
             <nav className="text-lg font-semibold text-gray-800 font-noto-sans-sc mb-1">
               <span>文档</span>
             </nav>
-            <p className="text-xs text-gray-500 font-noto-sans-sc">
+            <p className="text-sm text-gray-500 font-noto-sans-sc">
               知识库的所有文件都在这里显示，整个知识库文档都可以被AI智能体引用。
             </p>
           </div>

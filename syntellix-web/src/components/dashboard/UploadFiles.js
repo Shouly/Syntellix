@@ -158,7 +158,7 @@ function UploadFiles({ onUploadComplete, onBack }) {
                     >
                         <div className="text-center">
                             <CloudArrowUpIcon className={`w-16 h-16 mx-auto mb-4 ${dragActive ? 'text-indigo-500' : 'text-gray-400'}`} />
-                            <p className="text-gray-600 mb-2 font-noto-sans-sc">
+                            <p className="text-sm text-gray-600 mb-2 font-noto-sans-sc">
                                 点击或拖拽文件至此区域即可上传
                             </p>
                             <p className="text-xs text-gray-500 font-noto-sans-sc">
