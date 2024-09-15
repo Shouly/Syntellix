@@ -1,5 +1,16 @@
-import { CloudArrowUpIcon, CodeBracketIcon, PhotoIcon, TableCellsIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { ArchiveBoxIcon, ArrowPathIcon, BookOpenIcon, CloudIcon, DocumentTextIcon, ExclamationCircleIcon, PlusIcon, XCircleIcon, ArrowLeftIcon } from '@heroicons/react/24/solid';
+import { CloudArrowUpIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ArchiveBoxIcon, ArrowLeftIcon, ArrowPathIcon, BookOpenIcon, CloudIcon, DocumentTextIcon, ExclamationCircleIcon, PlusIcon, XCircleIcon } from '@heroicons/react/24/solid';
+import {
+    mdiFile,
+    mdiFileDelimited,
+    mdiFileDocumentOutline,
+    mdiFileExcelBox,
+    mdiFilePdfBox,
+    mdiFileWordBox,
+    mdiLanguageHtml5,
+    mdiLanguageMarkdown
+} from '@mdi/js';
+import Icon from '@mdi/react';
 import axios from 'axios'; // 确保已安装 axios
 import React, { useRef, useState } from 'react';
 import { useToast } from '../../components/Toast';
@@ -85,25 +96,27 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
 
     const getFileIcon = (fileName) => {
         const extension = fileName.split('.').pop().toLowerCase();
+        const baseProps = { size: 1, className: "w-5 h-5" };
+
         switch (extension) {
             case 'pdf':
-                return <DocumentTextIcon className="w-5 h-5 text-red-500" />;
+                return <Icon path={mdiFilePdfBox} {...baseProps} className="w-5 h-5 text-red-500" />;
             case 'doc':
             case 'docx':
-                return <DocumentTextIcon className="w-5 h-5 text-blue-500" />;
+                return <Icon path={mdiFileWordBox} {...baseProps} className="w-5 h-5 text-blue-500" />;
             case 'txt':
-                return <DocumentTextIcon className="w-5 h-5 text-gray-500" />;
+                return <Icon path={mdiFileDocumentOutline} {...baseProps} className="w-5 h-5 text-gray-500" />;
             case 'xls':
             case 'xlsx':
-                return <TableCellsIcon className="w-5 h-5 text-green-500" />;
+                return <Icon path={mdiFileExcelBox} {...baseProps} className="w-5 h-5 text-green-500" />;
             case 'csv':
-                return <TableCellsIcon className="w-5 h-5 text-teal-500" />;
+                return <Icon path={mdiFileDelimited} {...baseProps} className="w-5 h-5 text-teal-500" />;
             case 'html':
-                return <CodeBracketIcon className="w-5 h-5 text-orange-500" />;
+                return <Icon path={mdiLanguageHtml5} {...baseProps} className="w-5 h-5 text-orange-500" />;
             case 'md':
-                return <CodeBracketIcon className="w-5 h-5 text-purple-500" />;
+                return <Icon path={mdiLanguageMarkdown} {...baseProps} className="w-5 h-5 text-purple-500" />;
             default:
-                return <PhotoIcon className="w-5 h-5 text-gray-500" />;
+                return <Icon path={mdiFile} {...baseProps} className="w-5 h-5 text-gray-500" />;
         }
     };
 
@@ -162,7 +175,7 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
                     </span>
                     <span className="font-noto-sans-sc text-lg font-semibold">知识库列表</span>
                 </button>
-                
+
                 <ol className="space-y-4 relative">
                     <div className="absolute left-3 top-6 bottom-0 w-0.5 bg-gray-200"></div>
                     <StepItem number={1} text="选数据源" active />
