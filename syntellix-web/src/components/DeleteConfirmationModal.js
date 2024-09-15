@@ -30,25 +30,22 @@ function DeleteConfirmationModal({ isOpen, onClose, onConfirm, itemType, itemNam
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all mt-20">
-                <div className="flex items-center justify-center mb-4">
-                  <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
-                    <ExclamationTriangleIcon className="h-6 w-6 text-red-600" aria-hidden="true" />
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all mt-10">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="flex-shrink-0 flex items-center justify-center h-10 w-10 rounded-full bg-red-100">
+                    <ExclamationTriangleIcon className="h-5 w-5 text-red-600" aria-hidden="true" />
                   </div>
+                  <Dialog.Title
+                    as="h3"
+                    className="text-lg font-medium leading-6 text-gray-900 font-noto-sans-sc"
+                  >
+                    确认删除{itemType}
+                  </Dialog.Title>
                 </div>
-                <Dialog.Title
-                  as="h3"
-                  className="text-lg font-medium leading-6 text-gray-900 text-center font-noto-sans-sc mb-2"
-                >
-                  确认删除{itemType}
-                </Dialog.Title>
-                <div className="mt-2">
-                  <p className="text-sm text-gray-500 text-center font-noto-sans-sc">
-                    您确定要删除{itemType} "{itemName}" 吗？此操作无法撤销。
-                  </p>
-                </div>
-
-                <div className="mt-6 flex justify-center space-x-4">
+                <p className="text-sm text-gray-500 mb-6 font-noto-sans-sc">
+                  您确定要删除{itemType} <span className="font-semibold text-gray-700">"{itemName}"</span> 吗？此操作无法撤销。
+                </p>
+                <div className="flex justify-end space-x-3">
                   <button
                     type="button"
                     className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition-colors duration-200 font-noto-sans-sc"
