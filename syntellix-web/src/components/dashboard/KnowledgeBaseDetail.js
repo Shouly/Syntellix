@@ -1,5 +1,5 @@
 import { Menu, Transition } from '@headlessui/react';
-import { AdjustmentsHorizontalIcon, AdjustmentsHorizontalIcon as AdjustmentsHorizontalIconOutline, ArrowLeftIcon, Cog6ToothIcon, DocumentTextIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { AdjustmentsHorizontalIcon, AdjustmentsHorizontalIcon as AdjustmentsHorizontalIconOutline, ArrowLeftIcon, Cog6ToothIcon, DocumentTextIcon, ExclamationCircleIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { ChevronLeftIcon, ChevronRightIcon, EllipsisHorizontalIcon, PlusIcon } from '@heroicons/react/24/solid';
 import { mdiFileDelimited, mdiFileDocumentOutline, mdiFileExcelBox, mdiFilePdfBox, mdiFileWordBox } from '@mdi/js';
 import Icon from '@mdi/react';
@@ -7,7 +7,6 @@ import axios from 'axios';
 import React, { Fragment, useEffect, useState } from 'react';
 import { useToast } from '../../components/Toast';
 import UploadFiles from './UploadFiles';
-import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
 
 function KnowledgeBaseDetail({ id, onBack }) {
   const { showToast } = useToast();
