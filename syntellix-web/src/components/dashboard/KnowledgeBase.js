@@ -147,7 +147,7 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
   const formatRelativeTime = (dateString) => {
     const date = new Date(dateString);
     const distance = formatDistanceToNow(date, { locale: zhCN });
-    return distance.replace(/约 /, '') // 移除"约"字
+    return distance.replace(/大约 /, '') // 移除"大约"字
       .replace(/ 天/, '天')
       .replace(/ 个?小时/, '小时')
       .replace(/ 分钟/, '分钟')

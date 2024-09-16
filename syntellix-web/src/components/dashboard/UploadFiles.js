@@ -322,7 +322,7 @@ function UploadFiles({ onUploadComplete, onBack }) {
                                 onClick={handleNextStep}
                                 className={`text-sm font-semibold py-2 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 ${
                                     files.length > 0 && files.every(file => file.uploaded)
-                                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                                        ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
                                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                 }`}
                                 disabled={files.length === 0 || !files.every(file => file.uploaded)}
@@ -340,10 +340,10 @@ function UploadFiles({ onUploadComplete, onBack }) {
 // 修改 StepItem 组件
 function StepItem({ number, text, active = false, completed = false }) {
     return (
-        <li className={`flex items-center ${active ? 'text-indigo-600' : completed ? 'text-green-600' : 'text-gray-500'}`}>
+        <li className={`flex items-center ${active ? 'text-indigo-600' : completed ? 'text-indigo-600' : 'text-gray-500'}`}>
             <span className={`w-6 h-6 flex items-center justify-center rounded-full mr-3 z-10 ${
                 active ? 'bg-indigo-100 text-indigo-600 font-semibold' : 
-                completed ? 'bg-green-100 text-green-600' : 'bg-gray-100'
+                completed ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100'
             }`}>
                 {completed ? (
                     <CheckIcon className="w-4 h-4" />

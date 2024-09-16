@@ -17,7 +17,7 @@ function ProcessingStatus({ onBackToDocuments, onPreviousStep }) {
             <h3 className="text-lg font-semibold text-gray-800 font-noto-sans-sc">处理状态</h3>
             <div>
                 {status === 'processing' ? (
-                    <p className="text-blue-600">正在处理文件...</p>
+                    <p className="text-indigo-600">正在处理文件...</p>
                 ) : (
                     <p className="text-green-600">处理完成！</p>
                 )}
@@ -32,7 +32,7 @@ function ProcessingStatus({ onBackToDocuments, onPreviousStep }) {
                 {status === 'completed' && (
                     <button
                         onClick={onBackToDocuments}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
                     >
                         回到文档
                     </button>
