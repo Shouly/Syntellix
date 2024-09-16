@@ -1,8 +1,13 @@
 # Syntellix
-``` /sɪnˈtelɪks/ ```
+
+*Pronunciation: `/sɪnˈtelɪks/`*
+
+## Etymology
 
 Synergy + Intelligence + Matrix
 
-Synergizing Intelligence, Amplifying Success
+## Tagline
 
-协同智能，放大成功
+**Synergizing Intelligence, Amplifying Success**
+
+**协同智能，放大成功**
