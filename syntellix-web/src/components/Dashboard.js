@@ -123,6 +123,13 @@ function Dashboard({ setIsAuthenticated }) {
     setIsCreatingKnowledgeBase(false);
   };
 
+  const handleUploadComplete = (uploadedFiles) => {
+    setIsUploadingFiles(false);
+    // Here you can add logic to refresh the document list or update the knowledge base
+    // For now, we'll just go back to the KnowledgeBaseDetail view
+    setSelectedKnowledgeBaseId(selectedKnowledgeBaseId);
+  };
+
   const menuItems = [
     { name: 'Chat', displayName: '对话', icon: ChatBubbleLeftRightIconSolid, outlineIcon: ChatBubbleLeftRightIcon },
     { name: 'Agent', displayName: '智能体', icon: BeakerIconSolid, outlineIcon: BeakerIcon },
@@ -144,7 +151,7 @@ function Dashboard({ setIsAuthenticated }) {
               onBack={handleBackToKnowledgeBase}
               onCreated={(newKnowledgeBase) => {
                 setIsCreatingKnowledgeBase(false);
-                // 这里可以添加逻辑来更新知识库列表
+                // Add logic to update knowledge base list
               }}
             />
           );
@@ -160,10 +167,7 @@ function Dashboard({ setIsAuthenticated }) {
           return (
             <UploadFiles
               onBack={() => setIsUploadingFiles(false)}
-              onUploadComplete={() => {
-                setIsUploadingFiles(false);
-                // 可以在这里添加刷新文档列表的逻辑
-              }}
+              onUploadComplete={handleUploadComplete}
             />
           );
         } else {
