@@ -5,8 +5,5 @@ bp = Blueprint("console", __name__, url_prefix="/console/api")
 api = ExternalApi(bp)
 
 # Import other controllers
-from . import sys_init_api
-from . import login_api
-from . import account_api
-
-from .datasets import knowledge_base_api
+from . import account_api, login_api, sys_init_api
+from .datasets import file_api, knowledge_base_api

@@ -170,3 +170,30 @@ class KnowledgeBasePermission(db.Model):
         nullable=False,
         server_default=db.text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
     )
+
+class UploadFile(db.Model):
+    __tablename__ = "t_sys_upload_files"
+    __table_args__ = (
+        db.Index("idx_upload_file_tenant_id", "tenant_id"),
+    )
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    tenant_id = db.Column(db.Integer, nullable=False)
+    storage_type = db.Column(db.String(255), nullable=False)
+    key = db.Column(db.String(255), nullable=False)
+    name = db.Column(db.String(255), nullable=False)
+    size = db.Column(db.Integer, nullable=False)
+    extension = db.Column(db.String(255), nullable=False)
+    mime_type = db.Column(db.String(255), nullable=True)
+    created_by_role = db.Column(db.String(255), nullable=False, server_default="account")
+    created_by = db.Column(db.Integer, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, server_default=db.func.current_timestamp())
+    used = db.Column(TINYINT(1), nullable=False, server_default="0")
+    used_by = db.Column(db.Integer, nullable=True)
+    used_at = db.Column(db.DateTime, nullable=True)
+    hash = db.Column(db.String(255), nullable=True)
+    updated_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        server_default=db.text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
+    )

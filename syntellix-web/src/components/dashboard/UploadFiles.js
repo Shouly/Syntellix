@@ -1,4 +1,4 @@
-import { BookOpenIcon, CloudArrowUpIcon, ExclamationCircleIcon, XCircleIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, ArrowPathIcon, CheckCircleIcon, CloudArrowUpIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 import {
     mdiFile,
     mdiFileDelimited,
@@ -10,12 +10,16 @@ import {
     mdiLanguageMarkdown
 } from '@mdi/js';
 import Icon from '@mdi/react';
+import axios from 'axios';
 import React, { useRef, useState } from 'react';
 
 function UploadFiles({ onUploadComplete, onBack }) {
     const [dragActive, setDragActive] = useState(false);
     const [files, setFiles] = useState([]);
     const [errors, setErrors] = useState([]);
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [currentlyUploading, setCurrentlyUploading] = useState(null);
     const fileInputRef = useRef(null);
 
     const handleDrag = (e) => {
@@ -47,13 +51,13 @@ function UploadFiles({ onUploadComplete, onBack }) {
         }
     };
 
-    const handleFiles = (uploadedFiles) => {
+    const handleFiles = async (uploadedFiles) => {
         const newValidFiles = [];
         const newErrors = [];
         const validTypes = ['txt', 'md', 'pdf', 'html', 'xlsx', 'xls', 'docx', 'csv'];
         const maxSize = 15 * 1024 * 1024; // 15MB in bytes
 
-        Array.from(uploadedFiles).forEach(file => {
+        for (let file of Array.from(uploadedFiles)) {
             const fileType = file.name.split('.').pop().toLowerCase();
             const isValidType = validTypes.includes(fileType);
             const isValidSize = file.size <= maxSize;
@@ -63,19 +67,37 @@ function UploadFiles({ onUploadComplete, onBack }) {
             } else if (!isValidSize) {
                 newErrors.push(`文件大小超过15MB: ${file.name}`);
             } else {
-                newValidFiles.push(file);
+                newValidFiles.push({
+                    name: file.name,
+                    size: formatFileSize(file.size),
+                    file: file
+                });
             }
-        });
+        }
 
-        setFiles(prevFiles => [
-            ...prevFiles,
-            ...newValidFiles.map(file => ({
-                name: file.name,
-                size: formatFileSize(file.size),
-                file: file
-            }))
-        ]);
         setErrors(prevErrors => [...prevErrors, ...newErrors]);
+
+        for (let file of newValidFiles) {
+            setCurrentlyUploading(file.name);
+            setIsUploading(true);
+            try {
+                const result = await uploadSingleFile(file);
+                setFiles(prevFiles => [...prevFiles, { ...file, uploaded: true, result }]);
+            } catch (error) {
+                setErrors(prev => [...prev, `上传文件失败 ${file.name}: ${error.response?.data?.message || error.message}`]);
+                setFiles(prevFiles => [...prevFiles, { ...file, uploaded: false }]);
+            }
+            setIsUploading(false);
+            setCurrentlyUploading(null);
+        }
+    };
+
+    const handleNextStep = () => {
+        const uploadedFiles = files.filter(file => file.uploaded).map(file => file.result);
+        if (onUploadComplete) {
+            onUploadComplete(uploadedFiles);
+        }
+        // 这里可以添加其他需要在点击"下一步"时执行的功能
     };
 
     const formatFileSize = (bytes) => {
@@ -116,10 +138,27 @@ function UploadFiles({ onUploadComplete, onBack }) {
         setFiles(files.filter((_, index) => index !== indexToDelete));
     };
 
-    const handleUpload = async () => {
-        // 实现文件上传逻辑
-        // 上传完成后调用 onUploadComplete
-        onUploadComplete();
+    const uploadSingleFile = async (file) => {
+        const formData = new FormData();
+        formData.append('file', file.file);
+
+        try {
+            const response = await axios.post('/console/api/files/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                },
+                onUploadProgress: (progressEvent) => {
+                    const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                    setUploadProgress(percentCompleted);
+                }
+            });
+
+            console.log('File uploaded successfully:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            throw error;
+        }
     };
 
     return (
@@ -147,9 +186,8 @@ function UploadFiles({ onUploadComplete, onBack }) {
                 <div className="bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm rounded-lg shadow-sm p-6 space-y-6">
                     <h3 className="text-lg font-semibold text-gray-800 font-noto-sans-sc">上传文本文件</h3>
                     <div
-                        className={`bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm rounded-lg p-8 border-2 border-dashed transition-colors duration-200 cursor-pointer ${
-                            dragActive ? 'border-indigo-400 bg-indigo-50' : 'border-gray-300 hover:border-indigo-300'
-                        }`}
+                        className={`bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm rounded-lg p-8 border-2 border-dashed transition-colors duration-200 cursor-pointer ${dragActive ? 'border-indigo-400 bg-indigo-50' : 'border-gray-300 hover:border-indigo-300'
+                            }`}
                         onDragEnter={handleDrag}
                         onDragLeave={handleDrag}
                         onDragOver={handleDrag}
@@ -180,7 +218,9 @@ function UploadFiles({ onUploadComplete, onBack }) {
                         {files.map((file, index) => (
                             <li
                                 key={index}
-                                className="flex items-center text-sm text-gray-600 bg-white/50 backdrop-blur-sm rounded-lg p-3 shadow-sm hover:bg-white/80 transition-colors duration-200 group"
+                                className={`flex items-center text-sm text-gray-600 bg-white/50 backdrop-blur-sm rounded-lg p-3 shadow-sm transition-colors duration-200 group ${
+                                    file.uploaded ? 'bg-green-50' : (file.name === currentlyUploading ? 'bg-yellow-50' : '')
+                                }`}
                             >
                                 {getFileIcon(file.name)}
                                 <div className="flex-1 ml-3 overflow-hidden">
@@ -189,15 +229,19 @@ function UploadFiles({ onUploadComplete, onBack }) {
                                         <span className="text-gray-600 text-xs whitespace-nowrap">{file.size}</span>
                                     </div>
                                 </div>
-                                <button
-                                    onClick={() => handleDeleteFile(index)}
-                                    className="ml-2 text-gray-400 hover:text-red-500 transition-colors duration-200 opacity-0 group-hover:opacity-100"
-                                >
-                                    <XCircleIcon className="w-5 h-5" />
-                                </button>
+                                {file.uploaded && <CheckCircleIcon className="w-5 h-5 text-green-500" />}
+                                {file.name === currentlyUploading && (
+                                    <ArrowPathIcon className="w-5 h-5 text-yellow-500 animate-spin" />
+                                )}
                             </li>
                         ))}
                     </ul>
+                )}
+
+                {isUploading && (
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mt-4">
+                        <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${uploadProgress}%` }}></div>
+                    </div>
                 )}
 
                 {errors.length > 0 && (
@@ -218,16 +262,17 @@ function UploadFiles({ onUploadComplete, onBack }) {
                     </div>
                 )}
 
+                {/* 下一步按钮 */}
                 <div className="space-y-4">
                     <div className="flex justify-between items-center">
                         <button
+                            onClick={handleNextStep}
                             className={`text-sm font-semibold py-2.5 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 ${
-                                files.length > 0
+                                files.length > 0 && files.every(file => file.uploaded)
                                     ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
                                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                             }`}
-                            disabled={files.length === 0}
-                            onClick={handleUpload}
+                            disabled={files.length === 0 || !files.every(file => file.uploaded)}
                         >
                             <span className="font-noto-sans-sc">下一步</span>
                         </button>

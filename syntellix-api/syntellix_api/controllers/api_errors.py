@@ -59,3 +59,27 @@ class KnowledgeBaseNameDuplicateError(BaseHTTPException):
     error_code = "knowledge_base_name_duplicate"
     description = "知识库名称已存在"
     code = 403
+
+
+class NoFileUploadedError(BaseHTTPException):
+    error_code = "no_file_uploaded"
+    description = "请上传文件"
+    code = 400
+
+
+class TooManyFilesError(BaseHTTPException):
+    error_code = "too_many_files"
+    description = "每次最多只能上传5个文件"
+    code = 400
+
+
+class FileTooLargeError(BaseHTTPException):
+    error_code = "file_too_large"
+    description = "文件大小超出限制. {message}"
+    code = 413
+
+
+class UnsupportedFileTypeError(BaseHTTPException):
+    error_code = "unsupported_file_type"
+    description = "文件类型不支持"
+    code = 415
