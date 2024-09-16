@@ -7,6 +7,7 @@ import axios from 'axios';
 import React, { Fragment, useEffect, useState } from 'react';
 import { useToast } from '../../components/Toast';
 import UploadFiles from './UploadFiles';
+import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
 
 function KnowledgeBaseDetail({ id, onBack }) {
   const { showToast } = useToast();
@@ -37,7 +38,6 @@ function KnowledgeBaseDetail({ id, onBack }) {
     } catch (error) {
       console.error('Error fetching knowledge base details:', error);
       setError('获取知识库详情失败');
-      showToast('获取知识库详情失败', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -161,7 +161,23 @@ function KnowledgeBaseDetail({ id, onBack }) {
   }
 
   if (error) {
-    return <div className="text-red-500 text-center">{error}</div>;
+    return (
+      <div className="flex-1 px-6 mt-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="col-span-full flex flex-col items-center justify-center h-64 bg-red-50 bg-opacity-50 backdrop-filter backdrop-blur-sm rounded-xl p-6">
+            <ExclamationCircleIcon className="w-12 h-12 text-red-500 mb-4" />
+            <div className="text-red-600 font-semibold text-lg mb-2">获取知识库详情失败</div>
+            <div className="text-red-500 text-sm mb-4">{error}</div>
+            <button
+              onClick={fetchKnowledgeBaseDetails}
+              className="px-4 py-2 bg-red-100 bg-opacity-50 text-red-600 rounded-md hover:bg-opacity-70 transition-colors duration-200"
+            >
+              重试
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (isUploadingFiles) {
