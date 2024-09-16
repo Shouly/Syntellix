@@ -14,7 +14,7 @@ class AccountStatus(str, enum.Enum):
 
 
 class Account(UserMixin, db.Model):
-    __tablename__ = "t_sys_accounts"
+    __tablename__ = "t_sys_account"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(255), nullable=False)
@@ -160,7 +160,7 @@ class TenantAccountRole(str, enum.Enum):
 
 
 class Tenant(db.Model):
-    __tablename__ = "t_sys_tenants"
+    __tablename__ = "t_sys_tenant"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(255), nullable=False, unique=True)

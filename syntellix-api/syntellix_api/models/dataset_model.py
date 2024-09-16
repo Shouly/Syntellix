@@ -148,7 +148,7 @@ class KnowledgeBase(db.Model):
 
 
 class KnowledgeBasePermission(db.Model):
-    __tablename__ = "t_sys_knowledge_base_permissions"
+    __tablename__ = "t_sys_knowledge_base_permission"
     __table_args__ = (
         db.Index(
             "idx_knowledge_base_permissions_knowledge_base_id", "knowledge_base_id"
@@ -171,11 +171,10 @@ class KnowledgeBasePermission(db.Model):
         server_default=db.text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
     )
 
+
 class UploadFile(db.Model):
-    __tablename__ = "t_sys_upload_files"
-    __table_args__ = (
-        db.Index("idx_upload_file_tenant_id", "tenant_id"),
-    )
+    __tablename__ = "t_sys_upload_file"
+    __table_args__ = (db.Index("idx_upload_file_tenant_id", "tenant_id"),)
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     tenant_id = db.Column(db.Integer, nullable=False)
@@ -185,13 +184,80 @@ class UploadFile(db.Model):
     size = db.Column(db.Integer, nullable=False)
     extension = db.Column(db.String(255), nullable=False)
     mime_type = db.Column(db.String(255), nullable=True)
-    created_by_role = db.Column(db.String(255), nullable=False, server_default="account")
+    created_by_role = db.Column(
+        db.String(255), nullable=False, server_default="account"
+    )
     created_by = db.Column(db.Integer, nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, server_default=db.func.current_timestamp())
+    created_at = db.Column(
+        db.DateTime, nullable=False, server_default=db.func.current_timestamp()
+    )
     used = db.Column(TINYINT(1), nullable=False, server_default="0")
     used_by = db.Column(db.Integer, nullable=True)
     used_at = db.Column(db.DateTime, nullable=True)
     hash = db.Column(db.String(255), nullable=True)
+    updated_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        server_default=db.text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
+    )
+
+
+class DocumentParserTypeEnum(str, enum.Enum):
+    PRESENTATION = "presentation"
+    LAWS = "laws"
+    MANUAL = "manual"
+    PAPER = "paper"
+    RESUME = "resume"
+    BOOK = "book"
+    QA = "qa"
+    TABLE = "table"
+    NAIVE = "naive"
+    PICTURE = "picture"
+    ONE = "one"
+    AUDIO = "audio"
+    EMAIL = "email"
+    KG = "knowledge_graph"
+
+
+class Document(db.Model):
+    __tablename__ = "t_sys_document"
+    __table_args__ = (db.Index("idx_document_knowledge_base_id", "knowledge_base_id"),)
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    tenant_id = db.Column(db.Integer, nullable=False)
+    knowledge_base_id = db.Column(db.Integer, nullable=False)
+    parser_type = db.Column(
+        db.Enum(DocumentParserTypeEnum),
+        nullable=False,
+        default=DocumentParserTypeEnum.NAIVE,
+    )
+    parser_config = db.Column(
+        db.JSON, nullable=False, default={"pages": [[1, 1000000]]}
+    )
+    source_type = db.Column(
+        db.String(128),
+        nullable=False,
+        default="local",
+    )
+    extension = db.Column(db.String(255), nullable=False)
+    name = db.Column(db.String(255), nullable=False)
+    location = db.Column(db.String(255), nullable=False)
+    size = db.Column(db.Integer, default=0)
+    token_num = db.Column(db.Integer, default=0)
+    chunk_num = db.Column(db.Integer, default=0)
+    progress = db.Column(db.Float, default=0)
+    progress_msg = db.Column(db.Text, nullable=True, default="")
+    process_begin_at = db.Column(db.DateTime, nullable=True)
+    process_duation = db.Column(db.Float, default=0)
+    status = db.Column(
+        TINYINT(1),
+        nullable=False,
+        default=KnowledgeBaseStatus.VALID.value,
+    )
+    created_by = db.Column(db.Integer, nullable=False)
+    created_at = db.Column(
+        db.DateTime, nullable=False, server_default=db.func.current_timestamp()
+    )
     updated_at = db.Column(
         db.DateTime,
         nullable=False,
