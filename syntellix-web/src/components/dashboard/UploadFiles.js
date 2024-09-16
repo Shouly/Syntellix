@@ -1,4 +1,4 @@
-import { ArrowLeftIcon, ArrowPathIcon, CheckCircleIcon, CloudArrowUpIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, ArrowPathIcon, CheckCircleIcon, CloudArrowUpIcon, ExclamationCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
 import {
     mdiFile,
     mdiFileDelimited,
@@ -134,8 +134,20 @@ function UploadFiles({ onUploadComplete, onBack }) {
         }
     };
 
-    const handleDeleteFile = (indexToDelete) => {
-        setFiles(files.filter((_, index) => index !== indexToDelete));
+    const handleDeleteFile = async (indexToDelete) => {
+        const fileToDelete = files[indexToDelete];
+        if (fileToDelete.result && fileToDelete.result.id) {
+            try {
+                await axios.delete(`/console/api/files/${fileToDelete.result.id}`);
+                setFiles(files.filter((_, index) => index !== indexToDelete));
+            } catch (error) {
+                console.error('Error deleting file:', error);
+                setErrors(prev => [...prev, `删除文件失败 ${fileToDelete.name}: ${error.response?.data?.message || error.message}`]);
+            }
+        } else {
+            // If the file hasn't been uploaded to the server, just remove it from the local state
+            setFiles(files.filter((_, index) => index !== indexToDelete));
+        }
     };
 
     const uploadSingleFile = async (file) => {
@@ -233,6 +245,10 @@ function UploadFiles({ onUploadComplete, onBack }) {
                                 {file.name === currentlyUploading && (
                                     <ArrowPathIcon className="w-5 h-5 text-yellow-500 animate-spin" />
                                 )}
+                                <TrashIcon 
+                                    className="w-5 h-5 text-red-500 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-200 ml-2" 
+                                    onClick={() => handleDeleteFile(index)}
+                                />
                             </li>
                         ))}
                     </ul>

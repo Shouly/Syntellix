@@ -52,6 +52,11 @@ class FileApi(Resource):
 
         return upload_file, 201
 
+    @login_required
+    def delete(self, file_id):
+        FileService.delete_file(file_id)
+        return {"message": "File deleted successfully"}, 200
+
 
 # class FilePreviewApi(Resource):
 #     @login_required
@@ -68,5 +73,5 @@ class FileSupportTypeApi(Resource):
         return {"allowed_extensions": allowed_extensions}
 
 
-api.add_resource(FileApi, "/files/upload")
+api.add_resource(FileApi, "/files/upload", "/files/<int:file_id>")
 api.add_resource(FileSupportTypeApi, "/files/support-type")

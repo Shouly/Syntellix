@@ -121,6 +121,19 @@ class FileService:
         return upload_file
 
     @staticmethod
+    def delete_file(file_id: int):
+        upload_file = (
+            db.session.query(UploadFile).filter(UploadFile.id == file_id).first()
+        )
+        if not upload_file:
+            raise NotFound("File not found")
+
+        storage.delete(upload_file.key)
+
+        db.session.delete(upload_file)
+        db.session.commit()
+
+    @staticmethod
     def upload_text(text: str, text_name: str) -> UploadFile:
         if len(text_name) > 200:
             text_name = text_name[:200]
