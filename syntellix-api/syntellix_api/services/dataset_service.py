@@ -11,15 +11,18 @@ from sqlalchemy import func
 from syntellix_api.extensions.ext_database import db
 from syntellix_api.models.account_model import Account, TenantAccountRole
 from syntellix_api.models.dataset_model import (
+    Document,
     KnowledgeBase,
     KnowledgeBasePermission,
     KnowledgeBasePermissionEnum,
+    UploadFile,
 )
 from syntellix_api.services.errors.account import NoPermissionError
 from syntellix_api.services.errors.dataset import (
     DatasetInUseError,
     DatasetNameDuplicateError,
 )
+from syntellix_api.services.errors.file import FileNotExistsError
 
 
 class KonwledgeBaseService:
@@ -295,3 +298,66 @@ class KnowledgeBasePermissionService:
         except Exception as e:
             db.session.rollback()
             raise e
+
+
+class DocumentService:
+
+    @staticmethod
+    def save_documents(konwledge_base, args, user):
+
+        documents = []
+        data_source_type = args["data_source"]["type"]
+
+        if data_source_type == "upload_file":
+            upload_file_list = args["file_ids"]
+            for file_id in upload_file_list:
+                file = (
+                    db.session.query(UploadFile)
+                    .filter(
+                        UploadFile.tenant_id == konwledge_base.tenant_id,
+                        UploadFile.id == file_id,
+                    )
+                    .first()
+                )
+
+                if not file:
+                    raise FileNotExistsError()
+
+                file_name = file.name
+                file_extension = file.extension
+                file_size = file.size
+                document = Document.query.filter_by(
+                    knowledge_base_id=konwledge_base.id,
+                    tenant_id=current_user.current_tenant_id,
+                    source_type="upload_file",
+                    status=0,
+                    name=file_name,
+                    extension=file_extension,
+                    size=file_size,
+                ).first()
+
+                if document:
+                    document.updated_at = datetime.datetime.now()
+                    document.parser_type = args["parser_type"]
+                    document.parser_config = args["parser_config"]
+
+                    db.session.add(document)
+                    documents.append(document)
+                    continue
+
+                document = Document(
+                    knowledge_base_id=konwledge_base.id,
+                    tenant_id=current_user.current_tenant_id,
+                    source_type="upload_file",
+                    status=0,
+                    name=file_name,
+                    extension=file_extension,
+                    size=file_size,
+                )
+                db.session.add(document)
+                db.session.flush()
+                documents.append(document)
+
+        db.session.commit()
+
+        return documents, 0

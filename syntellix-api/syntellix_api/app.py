@@ -14,6 +14,7 @@ from syntellix_api.extensions import (
     ext_migrate,
     ext_redis,
     ext_storage,
+    ext_celery,
 )
 from syntellix_api.extensions.ext_database import db
 from syntellix_api.extensions.ext_login import login_manager
@@ -90,6 +91,7 @@ def initialize_extensions(app):
     ext_compress.init_app(app)
     ext_database.init_app(app)
     ext_migrate.init(app, db)
+    ext_celery.init_app(app)
     ext_redis.init_app(app)
     ext_storage.init_app(app)
     ext_login.init_app(app)

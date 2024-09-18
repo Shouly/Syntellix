@@ -47,9 +47,106 @@ const CustomSlider = styled(Slider)(({ theme }) => ({
   },
 }));
 
+// 在组件外部或使用 useMemo 创建这个对象以优化性能
+const methodDescriptions = {
+    NAIVE: {
+        title: '"通用"分块方法说明',
+        formats: 'DOCX、EXCEL、PPT、IMAGE、PDF、TXT、MD、JSON、EML、HTML',
+        steps: [
+            '使用视觉检测模型将文本智能分割为多个语义片段。',
+            '将这些片段合并成不超过设定"Token数"的连续块。'
+        ]
+    },
+    QA: {
+        title: '"问答"分块方法说明',
+        formats: 'EXCEL、CSV、TXT',
+        rules: [
+            'Excel 文件：需要两列（无标题），第一列为问题，第二列为答案。可接受多个工作表。',
+            'CSV/TXT 文件：使用分隔符区分问题和答案。',
+            '不符合规则的文本行将被忽略。',
+            '每个问答对被视为一个独立的部分。'
+        ]
+    },
+    RESUME: {
+        title: '"简历"分块方法说明',
+        formats: 'DOCX、PDF、TXT',
+        description: [
+            '简历有多种格式，就像一个人的个性一样，但我们经常必须将它们组织成结构化数据，以便于搜索。',
+            '我们不是将简历分块，而是将简历解析为结构化数据。',
+            "作为HR，你可以扔掉所有的简历，您只需与'RAGFlow'交谈即可列出所有符合资格的候选人。"
+        ]
+    },
+    MANUAL: {
+        title: '"手册"分块方法说明',
+        formats: 'PDF',
+        description: [
+            '我们假设手册具有分层部分结构。',
+            '我们使用最低的部分标题作为对文档进行切片的枢轴。',
+            '因此，同一部分中的图和表不会被分割，并且块大小可能会很大。'
+        ]
+    },
+    TABLE: {
+        title: '"表格"分块方法说明',
+        formats: 'EXCEL、CSV、TXT',
+        rules: [
+            '对于 csv 或 txt 文件，列之间的分隔符为 TAB。',
+            '第一行必须是列标题。',
+            '列标题必须是有意义的术语，以便我们的大语言模型能够理解。',
+            "列举同义词时最好使用斜杠'/'来分隔，甚至更好使用方括号枚举值，例如 'gender/sex(male,female)'。",
+            '表中的每一行都将被视为一个块。'
+        ],
+        examples: [
+            "供应商/供货商'TAB'颜色（黄色、红色、棕色）'TAB'性别（男、女）'TAB'尺码（M、L、XL、XXL）",
+            "姓名/名字'TAB'电话/手机/微信'TAB'最高学历（高中，职高，硕士，本科，博士，初中，中技，中专，专科，专升本，MPA，MBA，EMBA）"
+        ]
+    },
+    PAPER: {
+        title: '"论文"分块方法说明',
+        formats: 'PDF',
+        description: [
+            '仅支持PDF文件。',
+            '如果我们的模型运行良好，论文将按其部分进行切片，例如摘要、1.1、1.2等。',
+            '这样做的好处是LLM可以更好的概括论文中相关章节的内容，产生更全面的答案，帮助读者更好地理解论文。',
+            "缺点是它增加了 LLM 对话的背景并增加了计算成本，所以在对话过程中，你可以考虑减少'topN'的设置。"
+        ]
+    },
+    BOOK: {
+        title: '"书籍"分块方法说明',
+        formats: 'DOCX、PDF、TXT',
+        description: [
+            '由于一本书很长，并不是所有部分都有用，如果是 PDF，请为每本书设置页面范围，以消除负面影响并节省分析计算时间。'
+        ]
+    },
+    LAWS: {
+        title: '"法律"分块方法说明',
+        formats: 'DOCX、PDF、TXT',
+        description: [
+            '法律文件有非常严格的书写格式。我们使用文本特征来检测分割点。',
+            "chunk的粒度与'ARTICLE'一致，所有上层文本都会包含在chunk中。"
+        ]
+    },
+    PRESENTATION: {
+        title: '"演示文稿"分块方法说明',
+        formats: 'PDF、PPTX',
+        description: [
+            '每个页面都将被视为一个块。并且每个页面的缩略图都会被存储。',
+            '您上传的所有PPT文件都会使用此方法自动分块，无需为每个PPT文件进行设置。'
+        ]
+    },
+    ONE: {
+        title: '"整体"分块方法说明',
+        formats: 'DOCX、EXCEL、PDF、TXT',
+        description: [
+            '对于一个文档，它将被视为一个完整的块，根本不会被分割。',
+            '如果你要总结的东西需要一篇文章的全部上下文，并且所选LLM的上下文长度覆盖了文档长度，你可以尝试这种方法。'
+        ]
+    },
+    // 为其他方法添加描述...
+};
+
 function TextSplitting({ onNextStep, onPreviousStep }) {
     const [splitConfig, setSplitConfig] = useState({
-        method: 'General',
+        method: 'NAIVE', // 默认设置为 'NAIVE'，对应"通用"
         chunkSize: 512,
         separator: '\\n!?。；！？',
         layoutAware: true
@@ -64,7 +161,16 @@ function TextSplitting({ onNextStep, onPreviousStep }) {
     };
 
     const methods = [
-        'General', 'Q&A', 'Resume', 'Manual', 'Table', 'Paper', 'Book', 'Laws'
+        { name: '通用', value: 'NAIVE' },
+        { name: '表格', value: 'TABLE' },
+        { name: '问答', value: 'QA' },
+        { name: '简历', value: 'RESUME' },
+        { name: '手册', value: 'MANUAL' },
+        { name: '论文', value: 'PAPER' },
+        { name: '书籍', value: 'BOOK' },
+        { name: '法律', value: 'LAWS' },
+        { name: '演示文稿', value: 'PRESENTATION' },
+        { name: '整体', value: 'ONE' },
     ];
 
     return (
@@ -81,7 +187,9 @@ function TextSplitting({ onNextStep, onPreviousStep }) {
                                         onClick={() => setIsMethodDropdownOpen(!isMethodDropdownOpen)}
                                         className="w-full bg-white border border-gray-300 rounded-lg py-2 px-4 text-left focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                     >
-                                        <span className="block truncate">{splitConfig.method}</span>
+                                        <span className="block truncate">
+                                            {methods.find(m => m.value === splitConfig.method)?.name || '通用'}
+                                        </span>
                                         <span className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
                                             <ChevronDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
                                         </span>
@@ -90,19 +198,19 @@ function TextSplitting({ onNextStep, onPreviousStep }) {
                                         <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
                                             {methods.map((method) => (
                                                 <div
-                                                    key={method}
+                                                    key={method.value}
                                                     className={`${
-                                                        method === splitConfig.method ? 'bg-indigo-100 text-indigo-900' : 'text-gray-900'
+                                                        method.value === splitConfig.method ? 'bg-indigo-100 text-indigo-900' : 'text-gray-900'
                                                     } cursor-default select-none relative py-2 pl-3 pr-9 hover:bg-indigo-50`}
                                                     onClick={() => {
-                                                        handleConfigChange('method', method);
+                                                        handleConfigChange('method', method.value);
                                                         setIsMethodDropdownOpen(false);
                                                     }}
                                                 >
-                                                    <span className={`${method === splitConfig.method ? 'font-semibold' : 'font-normal'} block truncate`}>
-                                                        {method}
+                                                    <span className={`${method.value === splitConfig.method ? 'font-semibold' : 'font-normal'} block truncate`}>
+                                                        {method.name}
                                                     </span>
-                                                    {method === splitConfig.method && (
+                                                    {method.value === splitConfig.method && (
                                                         <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-indigo-600">
                                                             <CheckIcon className="h-5 w-5" aria-hidden="true" />
                                                         </span>
@@ -113,85 +221,114 @@ function TextSplitting({ onNextStep, onPreviousStep }) {
                                     )}
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2 font-noto-sans-sc">块Token数</label>
-                                <div className="flex items-center space-x-4">
-                                    <CustomSlider
-                                        value={splitConfig.chunkSize}
-                                        onChange={(_, newValue) => handleConfigChange('chunkSize', newValue)}
-                                        aria-labelledby="chunk-size-slider"
-                                        valueLabelDisplay="auto"
-                                        step={1}
-                                        marks
-                                        min={0}
-                                        max={2048}
-                                    />
-                                    <input
-                                        type="number"
-                                        name="chunkSize"
-                                        value={splitConfig.chunkSize}
-                                        onChange={(e) => handleConfigChange('chunkSize', e.target.value)}
-                                        className="w-20 px-3 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm font-noto-sans-sc"
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2 font-noto-sans-sc">分段标识符</label>
-                                <input
-                                    type="text"
-                                    name="separator"
-                                    value={splitConfig.separator}
-                                    onChange={(e) => handleConfigChange('separator', e.target.value)}
-                                    className="block w-full px-3 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm font-noto-sans-sc"
-                                />
-                            </div>
-                            <div>
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="text-sm font-semibold text-gray-700 font-noto-sans-sc flex items-center">
-                                        布局识别
-                                        <div className="relative group ml-1">
-                                            <QuestionMarkCircleIcon className="h-5 w-5 text-gray-400 cursor-help" aria-hidden="true" />
-                                            <div className="absolute z-10 w-64 p-2 bg-white rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 text-xs text-gray-600 left-1/2 -translate-x-1/2 top-6">
-                                                启用此选项可以更好地保留文档的原始布局结构
-                                            </div>
+                            {splitConfig.method === 'NAIVE' && (
+                                <>
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2 font-noto-sans-sc">块Token数</label>
+                                        <div className="flex items-center space-x-4">
+                                            <CustomSlider
+                                                value={splitConfig.chunkSize}
+                                                onChange={(_, newValue) => handleConfigChange('chunkSize', newValue)}
+                                                aria-labelledby="chunk-size-slider"
+                                                valueLabelDisplay="auto"
+                                                step={1}
+                                                marks
+                                                min={0}
+                                                max={2048}
+                                            />
+                                            <input
+                                                type="number"
+                                                name="chunkSize"
+                                                value={splitConfig.chunkSize}
+                                                onChange={(e) => handleConfigChange('chunkSize', e.target.value)}
+                                                className="w-20 px-3 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm font-noto-sans-sc"
+                                            />
                                         </div>
-                                    </span>
-                                </div>
-                                <label className="flex items-center space-x-3 cursor-pointer mb-2">
-                                    <div className="relative">
-                                        <input
-                                            type="checkbox"
-                                            name="layoutAware"
-                                            checked={splitConfig.layoutAware}
-                                            onChange={(e) => handleConfigChange('layoutAware', e.target.checked)}
-                                            className="sr-only"
-                                        />
-                                        <div className={`block w-10 h-6 rounded-full transition-colors duration-200 ease-in-out ${
-                                            splitConfig.layoutAware ? 'bg-indigo-600' : 'bg-gray-300'
-                                        }`}></div>
-                                        <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 ease-in-out ${
-                                            splitConfig.layoutAware ? 'transform translate-x-4' : ''
-                                        }`}></div>
                                     </div>
-                                    <span className="text-sm text-gray-600 font-noto-sans-sc">
-                                        {splitConfig.layoutAware ? '已启用' : '未启用'}
-                                    </span>
-                                </label>
-                            </div>
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2 font-noto-sans-sc">分段标识符</label>
+                                        <input
+                                            type="text"
+                                            name="separator"
+                                            value={splitConfig.separator}
+                                            onChange={(e) => handleConfigChange('separator', e.target.value)}
+                                            className="block w-full px-3 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm font-noto-sans-sc"
+                                        />
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-sm font-semibold text-gray-700 font-noto-sans-sc flex items-center">
+                                                布局识别
+                                                <div className="relative group ml-1">
+                                                    <QuestionMarkCircleIcon className="h-5 w-5 text-gray-400 cursor-help" aria-hidden="true" />
+                                                    <div className="absolute z-10 w-64 p-2 bg-white rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 text-xs text-gray-600 left-1/2 -translate-x-1/2 top-6">
+                                                        启用此选项可以更好地保留文档的原始布局结构
+                                                    </div>
+                                                </div>
+                                            </span>
+                                        </div>
+                                        <label className="flex items-center space-x-3 cursor-pointer mb-2">
+                                            <div className="relative">
+                                                <input
+                                                    type="checkbox"
+                                                    name="layoutAware"
+                                                    checked={splitConfig.layoutAware}
+                                                    onChange={(e) => handleConfigChange('layoutAware', e.target.checked)}
+                                                    className="sr-only"
+                                                />
+                                                <div className={`block w-10 h-6 rounded-full transition-colors duration-200 ease-in-out ${
+                                                    splitConfig.layoutAware ? 'bg-indigo-600' : 'bg-gray-300'
+                                                }`}></div>
+                                                <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 ease-in-out ${
+                                                    splitConfig.layoutAware ? 'transform translate-x-4' : ''
+                                                }`}></div>
+                                            </div>
+                                            <span className="text-sm text-gray-600 font-noto-sans-sc">
+                                                {splitConfig.layoutAware ? '已启用' : '未启用'}
+                                            </span>
+                                        </label>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                     <div className="w-2/3 pl-8">
-                        <h4 className="text-lg font-semibold text-gray-800 mb-4 font-noto-sans-sc"><span className="font-tech font-semibold">General</span> 分块方法说明</h4>
+                        <h4 className="text-lg font-semibold text-gray-800 mb-4 font-noto-sans-sc">
+                            {methodDescriptions[splitConfig.method]?.title || '方法说明'}
+                        </h4>
                         <p className="text-sm text-gray-700 mb-4 font-noto-sans-sc">
-                            支持的文件格式：<span className="font-bold font-tech">DOCX、EXCEL、PPT、IMAGE、PDF、TXT、MD、JSON、EML、HTML</span>
+                            支持的文件格式：
+                            <span className="font-bold font-tech">
+                                {methodDescriptions[splitConfig.method]?.formats || ''}
+                            </span>
                         </p>
-                        <p className="text-sm text-gray-700 mb-4 font-noto-sans-sc">
-                            此方法采用以下步骤处理文件：
-                        </p>
-                        <ul className="list-disc pl-5 space-y-2 text-sm text-gray-700 font-noto-sans-sc">
-                            <li>使用视觉检测模型将文本智能分割为多个语义片段。</li>
-                            <li>将这些片段合并成不超过设定"Token数"的连续块。</li>
-                        </ul>
+                        {methodDescriptions[splitConfig.method]?.description && (
+                            <div className="mb-4">
+                                {methodDescriptions[splitConfig.method].description.map((item, index) => (
+                                    <p key={index} className="text-sm text-gray-700 mb-2 font-noto-sans-sc">{item}</p>
+                                ))}
+                            </div>
+                        )}
+                        {(methodDescriptions[splitConfig.method]?.steps || methodDescriptions[splitConfig.method]?.rules) && (
+                            <>
+                                <p className="text-sm text-gray-700 mb-4 font-noto-sans-sc">
+                                    {splitConfig.method === 'NAIVE' ? '此方法采用以下步骤处理文件：' : '此方法采用以下规则处理文件：'}
+                                </p>
+                                <ul className="list-disc pl-5 space-y-2 text-sm text-gray-700 font-noto-sans-sc">
+                                    {(methodDescriptions[splitConfig.method]?.steps || methodDescriptions[splitConfig.method]?.rules || []).map((item, index) => (
+                                        <li key={index}>{item}</li>
+                                    ))}
+                                </ul>
+                            </>
+                        )}
+                        {methodDescriptions[splitConfig.method]?.examples && (
+                            <div className="mt-4">
+                                <p className="text-sm font-semibold text-gray-700 mb-2 font-noto-sans-sc">标题行示例：</p>
+                                {methodDescriptions[splitConfig.method].examples.map((example, index) => (
+                                    <p key={index} className="text-sm text-gray-600 mb-1 font-mono">{example}</p>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -206,7 +343,7 @@ function TextSplitting({ onNextStep, onPreviousStep }) {
                     onClick={onNextStep}
                     className="text-sm font-semibold py-2 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 bg-indigo-600 hover:bg-indigo-700 text-white"
                 >
-                    <span className="font-noto-sans-sc">保存配置</span>
+                    <span className="font-noto-sans-sc">保存并处理</span>
                 </button>
             </div>
         </div>
