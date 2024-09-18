@@ -14,15 +14,18 @@
 #  limitations under the License.
 #
 
-from typing import Annotated, Literal
-from abc import ABC
-import httpx
-import ormsgpack
-from pydantic import BaseModel, conint
-from rag.utils import num_tokens_from_string
 import json
 import re
 import time
+from abc import ABC
+from typing import Annotated, Literal
+
+import httpx
+import ormsgpack
+from pydantic import BaseModel, conint
+from syntellix_api.rag.utils.parser_utils import num_tokens_from_string
+
+
 class ServeReferenceAudio(BaseModel):
     audio: bytes
     text: str
@@ -52,9 +55,9 @@ class Base(ABC):
 
     def tts(self, audio):
         pass
-    
+
     def normalize_text(self, text):
-        return re.sub(r'(\*\*|##\d+\$\$|#)', '', text)
+        return re.sub(r"(\*\*|##\d+\$\$|#)", "", text)
 
 
 class FishAudioTTS(Base):
@@ -101,19 +104,24 @@ class FishAudioTTS(Base):
 class QwenTTS(Base):
     def __init__(self, key, model_name, base_url=""):
         import dashscope
-        
+
         self.model_name = model_name
         dashscope.api_key = key
 
     def tts(self, text):
-        from dashscope.api_entities.dashscope_response import SpeechSynthesisResponse
-        from dashscope.audio.tts import ResultCallback, SpeechSynthesizer, SpeechSynthesisResult
         from collections import deque
-        
+
+        from dashscope.api_entities.dashscope_response import SpeechSynthesisResponse
+        from dashscope.audio.tts import (
+            ResultCallback,
+            SpeechSynthesisResult,
+            SpeechSynthesizer,
+        )
+
         class Callback(ResultCallback):
             def __init__(self) -> None:
                 self.dque = deque()
-                   
+
             def _run(self):
                 while True:
                     if not self.dque:
@@ -143,14 +151,13 @@ class QwenTTS(Base):
 
         text = self.normalize_text(text)
         callback = Callback()
-        SpeechSynthesizer.call(model=self.model_name,
-                                text=text,
-                                callback=callback,
-                                format="mp3")
+        SpeechSynthesizer.call(
+            model=self.model_name, text=text, callback=callback, format="mp3"
+        )
         try:
             for data in callback._run():
                 yield data
             yield num_tokens_from_string(text)
-            
+
         except Exception as e:
             raise RuntimeError(f"**ERROR**: {e}")

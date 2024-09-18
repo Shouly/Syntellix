@@ -70,6 +70,10 @@ class KnowledgeBase(db.Model):
     def created_by_account(self):
         return db.session.get(Account, self.created_by)
 
+    @staticmethod
+    def gen_collection_name_by_id(knowledge_base_id: int) -> str:
+        return f"Vector_index_{knowledge_base_id}_Node"
+
     # @property
     # def app_count(self):
     #     return (
@@ -219,6 +223,19 @@ class DocumentParserTypeEnum(str, enum.Enum):
     KG = "knowledge_graph"
 
 
+class DocumentParseStatusEnum(str, enum.Enum):
+    PENDING = "pending"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class DocumentStatusEnum(str, enum.Enum):
+    VALID = 0
+    ARCHIVED = 1
+    DELETED = 2
+
+
 class Document(db.Model):
     __tablename__ = "t_sys_document"
     __table_args__ = (db.Index("idx_document_knowledge_base_id", "knowledge_base_id"),)
@@ -226,6 +243,7 @@ class Document(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     tenant_id = db.Column(db.Integer, nullable=False)
     knowledge_base_id = db.Column(db.Integer, nullable=False)
+    upload_file_id = db.Column(db.Integer, nullable=False)
     parser_type = db.Column(
         db.Enum(DocumentParserTypeEnum),
         nullable=False,
@@ -249,12 +267,16 @@ class Document(db.Model):
     progress_msg = db.Column(db.Text, nullable=True, default="")
     process_begin_at = db.Column(db.DateTime, nullable=True)
     process_duation = db.Column(db.Float, default=0)
+    parse_status = db.Column(
+        db.Enum(DocumentParseStatusEnum),
+        nullable=False,
+        default=DocumentParseStatusEnum.PENDING,
+    )
     status = db.Column(
         TINYINT(1),
         nullable=False,
-        default=KnowledgeBaseStatus.VALID.value,
+        default=DocumentStatusEnum.VALID.value,
     )
-    created_by = db.Column(db.Integer, nullable=False)
     created_at = db.Column(
         db.DateTime, nullable=False, server_default=db.func.current_timestamp()
     )

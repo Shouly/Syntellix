@@ -4,6 +4,7 @@ from urllib.parse import quote_plus
 from syntellix_api.configs.middleware.cache.redis_config import RedisConfig   
 from syntellix_api.configs.middleware.storage.aliyun_oss_config import AliyunOSSConfig
 from syntellix_api.configs.middleware.vector_db.qdrant_config import QdrantConfig
+from syntellix_api.configs.middleware.vector_db.elasticsearch_config import ElasticsearchConfig
 from pydantic import Field, NonNegativeInt, PositiveInt, computed_field
 from pydantic_settings import BaseSettings
 
@@ -140,5 +141,6 @@ class MiddlewareConfig(
     AliyunOSSConfig,
     VectorStoreConfig,
     QdrantConfig,
+    ElasticsearchConfig,
 ):
     pass

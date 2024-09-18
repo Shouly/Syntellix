@@ -23,7 +23,7 @@ from syntellix_api.services.errors.dataset import (
     DatasetNameDuplicateError,
 )
 from syntellix_api.services.errors.file import FileNotExistsError
-
+from syntellix_api.tasks.document_chunck_task import process_document_chunk
 
 class KonwledgeBaseService:
 
@@ -303,61 +303,72 @@ class KnowledgeBasePermissionService:
 class DocumentService:
 
     @staticmethod
-    def save_documents(konwledge_base, args, user):
-
+    def save_documents(knowledge_base, args, user):
         documents = []
         data_source_type = args["data_source"]["type"]
 
         if data_source_type == "upload_file":
-            upload_file_list = args["file_ids"]
-            for file_id in upload_file_list:
-                file = (
-                    db.session.query(UploadFile)
-                    .filter(
-                        UploadFile.tenant_id == konwledge_base.tenant_id,
-                        UploadFile.id == file_id,
+            file_ids = args["file_ids"]
+            
+            # 批量查询 UploadFile
+            files = UploadFile.query.filter(
+                UploadFile.tenant_id == knowledge_base.tenant_id,
+                UploadFile.id.in_(file_ids)
+            ).all()
+            
+            if len(files) != len(file_ids):
+                raise FileNotExistsError()
+            
+            # 创建一个集合来存储所有文件的唯一标识
+            file_identifiers = {(file.name, file.extension, file.size) for file in files}
+            
+            # 批量查询可能存在的 Document
+            existing_documents = Document.query.filter(
+                Document.knowledge_base_id == knowledge_base.id,
+                Document.tenant_id == user.current_tenant_id,
+                Document.source_type == "upload_file",
+                Document.status == 0,
+                db.tuple_(Document.name, Document.extension, Document.size).in_(file_identifiers)
+            ).all()
+            
+            # 创建一个字典来快速查找已存在的 Document
+            existing_doc_map = {(doc.name, doc.extension, doc.size): doc for doc in existing_documents}
+            
+            new_documents = []
+            for file in files:
+                file_key = (file.name, file.extension, file.size)
+                if file_key in existing_doc_map:
+                    doc = existing_doc_map[file_key]
+                    doc.updated_at = datetime.datetime.now()
+                    doc.parser_type = args["parser_type"]
+                    doc.parser_config = args["parser_config"]
+                    doc.location = file.key
+                    doc.upload_file_id = file.id
+                    documents.append(doc)
+                else:
+                    new_doc = Document(
+                        knowledge_base_id=knowledge_base.id,
+                        tenant_id=user.current_tenant_id,
+                        upload_file_id=file.id,
+                        source_type="upload_file",
+                        status=0,
+                        name=file.name,
+                        extension=file.extension,
+                        size=file.size,
+                        parser_type=args["parser_type"],
+                        parser_config=args["parser_config"],
+                        location=file.key,
                     )
-                    .first()
-                )
-
-                if not file:
-                    raise FileNotExistsError()
-
-                file_name = file.name
-                file_extension = file.extension
-                file_size = file.size
-                document = Document.query.filter_by(
-                    knowledge_base_id=konwledge_base.id,
-                    tenant_id=current_user.current_tenant_id,
-                    source_type="upload_file",
-                    status=0,
-                    name=file_name,
-                    extension=file_extension,
-                    size=file_size,
-                ).first()
-
-                if document:
-                    document.updated_at = datetime.datetime.now()
-                    document.parser_type = args["parser_type"]
-                    document.parser_config = args["parser_config"]
-
-                    db.session.add(document)
-                    documents.append(document)
-                    continue
-
-                document = Document(
-                    knowledge_base_id=konwledge_base.id,
-                    tenant_id=current_user.current_tenant_id,
-                    source_type="upload_file",
-                    status=0,
-                    name=file_name,
-                    extension=file_extension,
-                    size=file_size,
-                )
-                db.session.add(document)
-                db.session.flush()
-                documents.append(document)
-
+                    new_documents.append(new_doc)
+                    documents.append(new_doc)
+            
+            if new_documents:
+                db.session.bulk_save_objects(new_documents)
+        
         db.session.commit()
+
+        # 为每个文档发送 Celery 任务
+        for document in documents:
+            process_document_chunk.delay(document.id)
 
         return documents, 0
