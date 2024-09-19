@@ -7,9 +7,9 @@ from syntellix_api.libs.login import login_required
 from syntellix_api.models.dataset_model import KnowledgeBasePermissionEnum
 from syntellix_api.response.knowledge_base_response import knowledge_base_detail_fields
 from syntellix_api.services.dataset_service import (
+    DocumentService,
     KnowledgeBasePermissionService,
     KonwledgeBaseService,
-    DocumentService,
 )
 from syntellix_api.services.errors.account import NoPermissionError
 from syntellix_api.services.errors.dataset import (
@@ -106,11 +106,11 @@ class DatasetDocumentListApi(Resource):
 
     @login_required
     # @marshal_with(documents_and_batch_fields)
-    def post(self, konwledge_base_id):
+    def post(self, knowledge_base_id):
 
-        konwledge_base = KonwledgeBaseService.get_knowledge_base(konwledge_base_id)
+        knowledge_base = KonwledgeBaseService.get_knowledge_base(knowledge_base_id)
 
-        if not konwledge_base:
+        if not knowledge_base:
             raise NotFound("Knowledge base not found.")
 
         # The role of the current user in the ta table must be admin, owner, or editor
@@ -119,7 +119,7 @@ class DatasetDocumentListApi(Resource):
 
         try:
             KonwledgeBaseService.check_knowledge_base_permission(
-                konwledge_base, current_user
+                knowledge_base, current_user
             )
         except NoPermissionError as e:
             raise Forbidden(str(e))
@@ -132,19 +132,11 @@ class DatasetDocumentListApi(Resource):
         parser.add_argument("parser_type", type=str, required=True, location="json")
         parser.add_argument("parser_config", type=dict, required=False, location="json")
         args = parser.parse_args()
-
-        try:
-            documents, batch = DocumentService.save_documents(
-                konwledge_base, args, current_user
-            )
-        except ProviderTokenNotInitError as ex:
-            raise ProviderNotInitializeError(ex.description)
-        except QuotaExceededError:
-            raise ProviderQuotaExceededError()
-        except ModelCurrentlyNotSupportError:
-            raise ProviderModelCurrentlyNotSupportError()
+        documents, batch = DocumentService.save_documents(
+            knowledge_base, args, current_user
+        )
 
         return {"documents": documents, "batch": batch}
 
 
-api.add_resource(DatasetDocumentListApi, "/datasets/<int:dataset_id>/documents")
+api.add_resource(DatasetDocumentListApi, "/knowledge-bases/<int:knowledge_base_id>/documents")

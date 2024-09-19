@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Slider } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { QuestionMarkCircleIcon, ChevronDownIcon, CheckIcon } from '@heroicons/react/24/outline';
+import axios from 'axios'; // 确保已安装并导入 axios
 
 // 自定义 Slider 样式
 const CustomSlider = styled(Slider)(({ theme }) => ({
@@ -144,7 +145,7 @@ const methodDescriptions = {
     // 为其他方法添加描述...
 };
 
-function TextSplitting({ onNextStep, onPreviousStep }) {
+function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds }) {
     const [splitConfig, setSplitConfig] = useState({
         method: 'NAIVE', // 默认设置为 'NAIVE'，对应"通用"
         chunkSize: 512,
@@ -172,6 +173,32 @@ function TextSplitting({ onNextStep, onPreviousStep }) {
         { name: '演示文稿', value: 'PRESENTATION' },
         { name: '整体', value: 'ONE' },
     ];
+
+    const handleSaveAndProcess = async () => {
+        try {
+            const response = await axios.post(`/console/api/knowledge-bases/${knowledgeBaseId}/documents`, {
+                data_source: {
+                    type: 'upload_file',
+                },
+                file_ids: fileIds,
+                parser_type: splitConfig.method,
+                parser_config: {
+                    chunk_size: splitConfig.chunkSize,
+                    separator: splitConfig.separator,
+                    layout_aware: splitConfig.layoutAware
+                }
+            });
+
+            // 处理响应
+            console.log('Documents processed:', response.data);
+
+            // 调用 onNextStep 进入下一步
+            onNextStep();
+        } catch (error) {
+            console.error('Error processing documents:', error);
+            // 在这里处理错误，例如显示一个错误消息给用户
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -340,7 +367,7 @@ function TextSplitting({ onNextStep, onPreviousStep }) {
                     <span className="font-noto-sans-sc">上一步</span>
                 </button>
                 <button
-                    onClick={onNextStep}
+                    onClick={handleSaveAndProcess}
                     className="text-sm font-semibold py-2 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 bg-indigo-600 hover:bg-indigo-700 text-white"
                 >
                     <span className="font-noto-sans-sc">保存并处理</span>

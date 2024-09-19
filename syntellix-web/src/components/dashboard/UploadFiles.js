@@ -15,7 +15,7 @@ import React, { useRef, useState } from 'react';
 import TextSplitting from './TextSplitting';
 import ProcessingStatus from './ProcessingStatus';
 
-function UploadFiles({ onUploadComplete, onBack }) {
+function UploadFiles({ onUploadComplete, onBack, knowledgeBaseId }) {
     const [dragActive, setDragActive] = useState(false);
     const [files, setFiles] = useState([]);
     const [errors, setErrors] = useState([]);
@@ -27,6 +27,7 @@ function UploadFiles({ onUploadComplete, onBack }) {
     const [currentStep, setCurrentStep] = useState(1);
     const [uploadedFiles, setUploadedFiles] = useState([]);
     const [completedSteps, setCompletedSteps] = useState([]);
+    const [uploadedFileIds, setUploadedFileIds] = useState([]);
 
     const handleDrag = (e) => {
         e.preventDefault();
@@ -89,6 +90,7 @@ function UploadFiles({ onUploadComplete, onBack }) {
             try {
                 const result = await uploadSingleFile(file);
                 setFiles(prevFiles => [...prevFiles, { ...file, uploaded: true, result }]);
+                setUploadedFileIds(prevIds => [...prevIds, result.id]);
             } catch (error) {
                 setErrors(prev => [...prev, `上传文件失败 ${file.name}: ${error.response?.data?.message || error.message}`]);
                 setFiles(prevFiles => [...prevFiles, { ...file, uploaded: false }]);
@@ -308,7 +310,12 @@ function UploadFiles({ onUploadComplete, onBack }) {
                     </>
                 )}
                 {currentStep === 2 && (
-                    <TextSplitting onNextStep={handleNextStep} onPreviousStep={handlePreviousStep} />
+                    <TextSplitting 
+                        onNextStep={handleNextStep} 
+                        onPreviousStep={handlePreviousStep}
+                        knowledgeBaseId={knowledgeBaseId}
+                        fileIds={uploadedFileIds}
+                    />
                 )}
                 {currentStep === 3 && (
                     <ProcessingStatus onBackToDocuments={handleBackToDocuments} onPreviousStep={handlePreviousStep} />

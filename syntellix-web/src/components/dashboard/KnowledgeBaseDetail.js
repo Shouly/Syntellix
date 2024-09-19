@@ -187,6 +187,7 @@ function KnowledgeBaseDetail({ id, onBack }) {
           setIsUploadingFiles(false);
           fetchKnowledgeBaseDetails();
         }}
+        knowledgeBaseId={id} // Add this line
       />
     );
   }
