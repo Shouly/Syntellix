@@ -138,7 +138,7 @@ class DatabaseConfig(BaseSettings):
 class CeleryConfig(DatabaseConfig):
     CELERY_BACKEND: str = Field(
         description="Celery backend, available values are `database`, `redis`",
-        default="database",
+        default="redis",
     )
 
     CELERY_BROKER_URL: Optional[str] = Field(

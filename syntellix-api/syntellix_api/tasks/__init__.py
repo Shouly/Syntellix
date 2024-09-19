@@ -1,0 +1,1 @@
+from .document_chunck_task import process_document_chunk

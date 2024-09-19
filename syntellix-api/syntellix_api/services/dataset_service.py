@@ -345,7 +345,6 @@ class DocumentService:
                 (doc.name, doc.extension, doc.size): doc for doc in existing_documents
             }
 
-            new_documents = []
             for file in files:
                 file_key = (file.name, file.extension, file.size)
                 if file_key in existing_doc_map:
@@ -372,16 +371,27 @@ class DocumentService:
                         location=file.key,
                         parse_status=DocumentParseStatusEnum.PENDING,
                     )
-                    new_documents.append(new_doc)
+                    db.session.add(new_doc)  # 直接添加到 session
                     documents.append(new_doc)
 
-            if new_documents:
-                db.session.bulk_save_objects(new_documents)
+        try:
+            db.session.commit()
+            logger.info(f"Committed {len(documents)} documents to the database.")
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Failed to commit documents: {str(e)}")
+            raise
 
-        db.session.commit()
+        # 确保所有文档都有 ID
+        documents_with_id = []
+        for document in documents:
+            if document.id is None:
+                logger.error(f"Document still has no ID after commit: {document}")
+                continue
+            documents_with_id.append(document)
 
         # 为每个文档发送 Celery 任务
-        for document in documents:
+        for document in documents_with_id:
             try:
                 task = process_document_chunk.delay(document_id=document.id)
                 logger.info(
@@ -392,5 +402,5 @@ class DocumentService:
                     f"Failed to send Celery task for document {document.id}: {str(e)}"
                 )
 
-        logger.info(f"All tasks sent. Returning {len(documents)} documents.")
-        return documents, len(documents)
+        logger.info(f"All tasks sent. Returning {len(documents_with_id)} documents.")
+        return documents_with_id, len(documents_with_id)

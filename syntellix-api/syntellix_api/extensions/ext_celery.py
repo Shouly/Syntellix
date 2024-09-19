@@ -19,7 +19,7 @@ def init_app(app: Flask) -> Celery:
                 "socket_timeout": app.config.get("CELERY_SENTINEL_SOCKET_TIMEOUT", 0.1),
             },
         }
-
+    
     celery_app = Celery(
         app.name,
         task_cls=FlaskTask,
