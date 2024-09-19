@@ -4,7 +4,7 @@ import time
 
 import click
 from celery import shared_task
-from syntellix_api.extensions import db
+from syntellix_api.extensions.ext_database import db
 from syntellix_api.models.dataset_model import Document, DocumentParserTypeEnum, DocumentParseStatusEnum
 from syntellix_api.rag.app import (
     audio,
