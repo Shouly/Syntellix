@@ -51,7 +51,7 @@ const CustomSlider = styled(Slider)(({ theme }) => ({
 
 // 在组件外部或使用 useMemo 创建这个对象以优化性能
 const methodDescriptions = {
-    NAIVE: {
+    naive: {
         title: '"通用"分块方法说明',
         formats: 'DOCX、EXCEL、PPT、IMAGE、PDF、TXT、MD、JSON、EML、HTML',
         steps: [
@@ -59,7 +59,7 @@ const methodDescriptions = {
             '将这些片段合并成不超过设定"Token数"的连续块。'
         ]
     },
-    QA: {
+    qa: {
         title: '"问答"分块方法说明',
         formats: 'EXCEL、CSV、TXT',
         rules: [
@@ -69,7 +69,7 @@ const methodDescriptions = {
             '每个问答对被视为一个独立的部分。'
         ]
     },
-    RESUME: {
+    resume: {
         title: '"简历"分块方法说明',
         formats: 'DOCX、PDF、TXT',
         description: [
@@ -78,7 +78,7 @@ const methodDescriptions = {
             "作为HR，你可以扔掉所有的简历，您只需与'RAGFlow'交谈即可列出所有符合资格的候选人。"
         ]
     },
-    MANUAL: {
+    manual: {
         title: '"手册"分块方法说明',
         formats: 'PDF',
         description: [
@@ -87,7 +87,7 @@ const methodDescriptions = {
             '因此，同一部分中的图和表不会被分割，并且块大小可能会很大。'
         ]
     },
-    TABLE: {
+    table: {
         title: '"表格"分块方法说明',
         formats: 'EXCEL、CSV、TXT',
         rules: [
@@ -102,7 +102,7 @@ const methodDescriptions = {
             "姓名/名字'TAB'电话/手机/微信'TAB'最高学历（高中，职高，硕士，本科，博士，初中，中技，中专，专科，专升本，MPA，MBA，EMBA）"
         ]
     },
-    PAPER: {
+    paper: {
         title: '"论文"分块方法说明',
         formats: 'PDF',
         description: [
@@ -112,14 +112,14 @@ const methodDescriptions = {
             "缺点是它增加了 LLM 对话的背景并增加了计算成本，所以在对话过程中，你可以考虑减少'topN'的设置。"
         ]
     },
-    BOOK: {
+    book: {
         title: '"书籍"分块方法说明',
         formats: 'DOCX、PDF、TXT',
         description: [
             '由于一本书很长，并不是所有部分都有用，如果是 PDF，请为每本书设置页面范围，以消除负面影响并节省分析计算时间。'
         ]
     },
-    LAWS: {
+    laws: {
         title: '"法律"分块方法说明',
         formats: 'DOCX、PDF、TXT',
         description: [
@@ -127,7 +127,7 @@ const methodDescriptions = {
             "chunk的粒度与'ARTICLE'一致，所有上层文本都会包含在chunk中。"
         ]
     },
-    PRESENTATION: {
+    presentation: {
         title: '"演示文稿"分块方法说明',
         formats: 'PDF、PPTX',
         description: [
@@ -135,7 +135,7 @@ const methodDescriptions = {
             '您上传的所有PPT文件都会使用此方法自动分块，无需为每个PPT文件进行设置。'
         ]
     },
-    ONE: {
+    one: {
         title: '"整体"分块方法说明',
         formats: 'DOCX、EXCEL、PDF、TXT',
         description: [
@@ -143,12 +143,48 @@ const methodDescriptions = {
             '如果你要总结的东西需要一篇文章的全部上下文，并且所选LLM的上下文长度覆盖了文档长度，你可以尝试这种方法。'
         ]
     },
+    picture: {
+        title: '"图片"分块方法说明',
+        formats: 'IMAGE',
+        description: [
+            '图片分块方法用于处理图片文件。',
+            '它将图片分割成多个块，每个块包含图片的一部分。',
+            '这样做可以提高图片处理的效率和准确性。'
+        ]
+    },
+    audio: {
+        title: '"音频"分块方法说明',
+        formats: 'MP3、WAV、OGG',
+        description: [
+            '音频分块方法用于处理音频文件。',
+            '它将音频分割成多个块，每个块包含音频的一部分。',
+            '这样做可以提高音频处理的效率和准确性。'
+        ]
+    },
+    email: {
+        title: '"邮件"分块方法说明',
+        formats: 'EML',
+        description: [
+            '邮件分块方法用于处理邮件文件。',
+            '它将邮件分割成多个块，每个块包含邮件的一部分。',
+            '这样做可以提高邮件处理的效率和准确性。'
+        ]
+    },
+    knowledge_graph: {
+        title: '"知识图谱"分块方法说明',
+        formats: 'JSON',
+        description: [
+            '知识图谱分块方法用于处理知识图谱文件。',
+            '它将知识图谱分割成多个块，每个块包含知识图谱的一部分。',
+            '这样做可以提高知识图谱处理的效率和准确性。'
+        ]
+    },
     // 为其他方法添加描述...
 };
 
 function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds }) {
     const [splitConfig, setSplitConfig] = useState({
-        method: 'NAIVE', // 默认设置为 'NAIVE'，对应"通用"
+        method: 'naive', // 默认设置为 'naive'，对应"通用"
         chunkSize: 512,
         separator: '\\n!?。；！？',
         layoutAware: true
@@ -166,16 +202,20 @@ function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds })
     };
 
     const methods = [
-        { name: '通用', value: 'NAIVE' },
-        { name: '表格', value: 'TABLE' },
-        { name: '问答', value: 'QA' },
-        { name: '简历', value: 'RESUME' },
-        { name: '手册', value: 'MANUAL' },
-        { name: '论文', value: 'PAPER' },
-        { name: '书籍', value: 'BOOK' },
-        { name: '法律', value: 'LAWS' },
-        { name: '演示文稿', value: 'PRESENTATION' },
-        { name: '整体', value: 'ONE' },
+        { name: '通用', value: 'naive' },
+        { name: '表格', value: 'table' },
+        { name: '问答', value: 'qa' },
+        { name: '简历', value: 'resume' },
+        { name: '手册', value: 'manual' },
+        { name: '论文', value: 'paper' },
+        { name: '书籍', value: 'book' },
+        { name: '法律', value: 'laws' },
+        { name: '演示文稿', value: 'presentation' },
+        { name: '整体', value: 'one' },
+        { name: '图片', value: 'picture' },
+        { name: '音频', value: 'audio' },
+        { name: '邮件', value: 'email' },
+        { name: '知识图谱', value: 'knowledge_graph' },
     ];
 
     const handleSaveAndProcess = async () => {
@@ -255,7 +295,7 @@ function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds })
                                     )}
                                 </div>
                             </div>
-                            {splitConfig.method === 'NAIVE' && (
+                            {splitConfig.method === 'naive' && (
                                 <>
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-700 mb-2 font-noto-sans-sc">块Token数</label>
@@ -346,7 +386,7 @@ function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds })
                         {(methodDescriptions[splitConfig.method]?.steps || methodDescriptions[splitConfig.method]?.rules) && (
                             <>
                                 <p className="text-sm text-gray-700 mb-4 font-noto-sans-sc">
-                                    {splitConfig.method === 'NAIVE' ? '此方法采用以下步骤处理文件：' : '此方法采用以下规则处理文件：'}
+                                    {splitConfig.method === 'naive' ? '此方法采用以下步骤处理文件：' : '此方法采用以下规则处理文件：'}
                                 </p>
                                 <ul className="list-disc pl-5 space-y-2 text-sm text-gray-700 font-noto-sans-sc">
                                     {(methodDescriptions[splitConfig.method]?.steps || methodDescriptions[splitConfig.method]?.rules || []).map((item, index) => (

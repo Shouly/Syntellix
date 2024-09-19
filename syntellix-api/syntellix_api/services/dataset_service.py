@@ -12,10 +12,12 @@ from syntellix_api.extensions.ext_database import db
 from syntellix_api.models.account_model import Account, TenantAccountRole
 from syntellix_api.models.dataset_model import (
     Document,
+    DocumentParserTypeEnum,
     KnowledgeBase,
     KnowledgeBasePermission,
     KnowledgeBasePermissionEnum,
     UploadFile,
+    DocumentParseStatusEnum,
 )
 from syntellix_api.services.errors.account import NoPermissionError
 from syntellix_api.services.errors.dataset import (
@@ -26,6 +28,7 @@ from syntellix_api.services.errors.file import FileNotExistsError
 from syntellix_api.tasks.document_chunck_task import process_document_chunk
 
 logger = logging.getLogger(__name__)
+
 
 class KonwledgeBaseService:
 
@@ -311,41 +314,48 @@ class DocumentService:
 
         if data_source_type == "upload_file":
             file_ids = args["file_ids"]
-            
+
             # 批量查询 UploadFile
             files = UploadFile.query.filter(
                 UploadFile.tenant_id == knowledge_base.tenant_id,
-                UploadFile.id.in_(file_ids)
+                UploadFile.id.in_(file_ids),
             ).all()
-            
+
             if len(files) != len(file_ids):
                 raise FileNotExistsError()
-            
+
             # 创建一个集合来存储所有文件的唯一标识
-            file_identifiers = {(file.name, file.extension, file.size) for file in files}
-            
+            file_identifiers = {
+                (file.name, file.extension, file.size) for file in files
+            }
+
             # 批量查询可能存在的 Document
             existing_documents = Document.query.filter(
                 Document.knowledge_base_id == knowledge_base.id,
                 Document.tenant_id == user.current_tenant_id,
                 Document.source_type == "upload_file",
                 Document.status == 0,
-                db.tuple_(Document.name, Document.extension, Document.size).in_(file_identifiers)
+                db.tuple_(Document.name, Document.extension, Document.size).in_(
+                    file_identifiers
+                ),
             ).all()
-            
+
             # 创建一个字典来快速查找已存在的 Document
-            existing_doc_map = {(doc.name, doc.extension, doc.size): doc for doc in existing_documents}
-            
+            existing_doc_map = {
+                (doc.name, doc.extension, doc.size): doc for doc in existing_documents
+            }
+
             new_documents = []
             for file in files:
                 file_key = (file.name, file.extension, file.size)
                 if file_key in existing_doc_map:
                     doc = existing_doc_map[file_key]
                     doc.updated_at = datetime.datetime.now()
-                    doc.parser_type = args["parser_type"]
+                    doc.parser_type = DocumentParserTypeEnum(args["parser_type"])
                     doc.parser_config = args["parser_config"]
                     doc.location = file.key
                     doc.upload_file_id = file.id
+                    doc.parse_status = DocumentParseStatusEnum.PENDING
                     documents.append(doc)
                 else:
                     new_doc = Document(
@@ -357,25 +367,30 @@ class DocumentService:
                         name=file.name,
                         extension=file.extension,
                         size=file.size,
-                        parser_type=args["parser_type"],
+                        parser_type=DocumentParserTypeEnum(args["parser_type"]),
                         parser_config=args["parser_config"],
                         location=file.key,
+                        parse_status=DocumentParseStatusEnum.PENDING,
                     )
                     new_documents.append(new_doc)
                     documents.append(new_doc)
-            
+
             if new_documents:
                 db.session.bulk_save_objects(new_documents)
-        
+
         db.session.commit()
 
         # 为每个文档发送 Celery 任务
         for document in documents:
             try:
                 task = process_document_chunk.delay(document_id=document.id)
-                logger.info(f"Celery task sent for document {document.id}. Task ID: {task.id}")
+                logger.info(
+                    f"Celery task sent for document {document.id}. Task ID: {task.id}"
+                )
             except Exception as e:
-                logger.error(f"Failed to send Celery task for document {document.id}: {str(e)}")
+                logger.error(
+                    f"Failed to send Celery task for document {document.id}: {str(e)}"
+                )
 
         logger.info(f"All tasks sent. Returning {len(documents)} documents.")
         return documents, len(documents)

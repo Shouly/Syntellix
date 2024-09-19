@@ -1,12 +1,14 @@
 from typing import Any, Optional
 from urllib.parse import quote_plus
 
-from syntellix_api.configs.middleware.cache.redis_config import RedisConfig   
-from syntellix_api.configs.middleware.storage.aliyun_oss_config import AliyunOSSConfig
-from syntellix_api.configs.middleware.vector_db.qdrant_config import QdrantConfig
-from syntellix_api.configs.middleware.vector_db.elasticsearch_config import ElasticsearchConfig
-from pydantic import Field, NonNegativeInt, PositiveInt, computed_field
+from pydantic import Field, NonNegativeInt, PositiveFloat, PositiveInt, computed_field
 from pydantic_settings import BaseSettings
+from syntellix_api.configs.middleware.cache.redis_config import RedisConfig
+from syntellix_api.configs.middleware.storage.aliyun_oss_config import AliyunOSSConfig
+from syntellix_api.configs.middleware.vector_db.elasticsearch_config import (
+    ElasticsearchConfig,
+)
+from syntellix_api.configs.middleware.vector_db.qdrant_config import QdrantConfig
 
 
 class StorageConfig(BaseSettings):
@@ -133,7 +135,53 @@ class DatabaseConfig(BaseSettings):
         }
 
 
+class CeleryConfig(DatabaseConfig):
+    CELERY_BACKEND: str = Field(
+        description="Celery backend, available values are `database`, `redis`",
+        default="database",
+    )
+
+    CELERY_BROKER_URL: Optional[str] = Field(
+        description="CELERY_BROKER_URL",
+        default=None,
+    )
+
+    CELERY_USE_SENTINEL: Optional[bool] = Field(
+        description="Whether to use Redis Sentinel mode",
+        default=False,
+    )
+
+    CELERY_SENTINEL_MASTER_NAME: Optional[str] = Field(
+        description="Redis Sentinel master name",
+        default=None,
+    )
+
+    CELERY_SENTINEL_SOCKET_TIMEOUT: Optional[PositiveFloat] = Field(
+        description="Redis Sentinel socket timeout",
+        default=0.1,
+    )
+
+    @computed_field
+    @property
+    def CELERY_RESULT_BACKEND(self) -> str | None:
+        return (
+            "db+{}".format(self.SQLALCHEMY_DATABASE_URI)
+            if self.CELERY_BACKEND == "database"
+            else self.CELERY_BROKER_URL
+        )
+
+    @computed_field
+    @property
+    def BROKER_USE_SSL(self) -> bool:
+        return (
+            self.CELERY_BROKER_URL.startswith("rediss://")
+            if self.CELERY_BROKER_URL
+            else False
+        )
+
+
 class MiddlewareConfig(
+    CeleryConfig,
     DatabaseConfig,
     KeywordStoreConfig,
     RedisConfig,

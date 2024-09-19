@@ -1,11 +1,13 @@
 import datetime
 import logging
-import time
 
-import click
 from celery import shared_task
 from syntellix_api.extensions.ext_database import db
-from syntellix_api.models.dataset_model import Document, DocumentParserTypeEnum, DocumentParseStatusEnum
+from syntellix_api.models.dataset_model import (
+    Document,
+    DocumentParserTypeEnum,
+    DocumentParseStatusEnum,
+)
 from syntellix_api.rag.app import (
     audio,
     book,
@@ -22,6 +24,8 @@ from syntellix_api.rag.app import (
     resume,
     table,
 )
+
+logger = logging.getLogger(__name__)
 
 FACTORY = {
     DocumentParserTypeEnum.NAIVE.value: naive,
@@ -42,8 +46,10 @@ FACTORY = {
 
 
 @shared_task(queue="document_chunk")
-def process_document_chunk(self, document_id):
+def process_document_chunk(document_id):
     try:
+        logger.info(f"Processing document chunk {document_id}")
+
         document = Document.query.get(document_id)
         if not document:
             raise ValueError(f"Document with id {document_id} not found")
@@ -72,7 +78,6 @@ def process_document_chunk(self, document_id):
         )
 
         # Process chunks logic here
-        
 
         document.parse_status = DocumentParseStatusEnum.COMPLETED.value
         document.process_duation = (
@@ -81,10 +86,14 @@ def process_document_chunk(self, document_id):
         document.updated_at = datetime.datetime.now()
         db.session.commit()
 
-        return f"Document {document_id} processed successfully"
+        logger.info(f"Document {document_id} processed successfully")
+
     except Exception as e:
         document.parse_status = DocumentParseStatusEnum.FAILED.value
         document.progress_msg = str(e)
         document.updated_at = datetime.datetime.now()
         db.session.commit()
-        raise self.retry(exc=e, countdown=60, max_retries=3)
+        logger.error(f"Document {document_id} processing failed: {str(e)}")
+        raise process_document_chunk.retry(
+            exc=e, countdown=60, max_retries=3
+        )

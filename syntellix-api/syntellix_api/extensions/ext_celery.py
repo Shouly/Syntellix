@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from celery import Celery, Task
 from flask import Flask
-
+from celery.exceptions import OperationalError
 
 def init_app(app: Flask) -> Celery:
     class FlaskTask(Task):
@@ -49,6 +49,14 @@ def init_app(app: Flask) -> Celery:
 
     celery_app.set_default()
     app.extensions["celery"] = celery_app
+
+    # Check if Celery is created successfully
+    try:
+        celery_app.control.inspect().stats()
+        app.logger.info("Celery created successfully")
+    except OperationalError as e:
+        app.logger.error(f"Failed to create Celery: {str(e)}")
+        raise
 
     # imports = [
     #     "schedule.clean_embedding_cache_task",
