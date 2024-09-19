@@ -1,23 +1,24 @@
-import json
-import logging
-from typing import Any, Optional
-from urllib.parse import urlparse
+import asyncio
+import urllib.parse as urlparse
+import uuid
+from logging import getLogger
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union, cast
 
+import numpy as np
 import requests
 from elasticsearch import Elasticsearch
+from elasticsearch.helpers import BulkIndexError, async_bulk
 from flask import current_app
 from pydantic import BaseModel, model_validator
+from syntellix_api.rag.vector_database.vector_model import BaseNode
 
-from core.rag.datasource.entity.embedding import Embeddings
-from core.rag.datasource.vdb.field import Field
-from core.rag.datasource.vdb.vector_base import BaseVector
-from core.rag.datasource.vdb.vector_factory import AbstractVectorFactory
-from core.rag.datasource.vdb.vector_type import VectorType
-from core.rag.models.document import Document
-from extensions.ext_redis import redis_client
-from models.dataset import Dataset
+logger = getLogger(__name__)
 
-logger = logging.getLogger(__name__)
+DISTANCE_STRATEGIES = Literal[
+    "COSINE",
+    "DOT_PRODUCT",
+    "EUCLIDEAN_DISTANCE",
+]
 
 
 class ElasticSearchConfig(BaseModel):
@@ -40,13 +41,23 @@ class ElasticSearchConfig(BaseModel):
         return values
 
 
-class ElasticSearchVector(BaseVector):
-    def __init__(self, index_name: str, config: ElasticSearchConfig, attributes: list):
-        super().__init__(index_name.lower())
-        self._client = self._init_client(config)
-        self._version = self._get_version()
-        self._check_version()
-        self._attributes = attributes
+class ElasticSearchVector:
+
+    def __init__(
+        self,
+        index_name: str,
+        client_config: ElasticSearchConfig,
+        text_field: str = "content",
+        vector_field: str = "embedding",
+        batch_size: int = 200,
+        distance_strategy: Optional[DISTANCE_STRATEGIES] = "COSINE",
+    ) -> None:
+        self._index_name = index_name
+        self._client = self._init_client(client_config)
+        self._text_field = text_field
+        self._vector_field = vector_field
+        self._batch_size = batch_size
+        self._distance_strategy = distance_strategy
 
     def _init_client(self, config: ElasticSearchConfig) -> Elasticsearch:
         try:
@@ -63,152 +74,258 @@ class ElasticSearchVector(BaseVector):
                 max_retries=10000,
             )
         except requests.exceptions.ConnectionError:
-            raise ConnectionError("Vector database connection error")
+            raise ConnectionError("Elasticsearch connection error")
 
         return client
 
-    def _get_version(self) -> str:
-        info = self._client.info()
-        return info["version"]["number"]
-
-    def _check_version(self):
-        if self._version < "8.0.0":
-            raise ValueError("Elasticsearch vector database version must be greater than 8.0.0")
-
-    def get_type(self) -> str:
-        return "elasticsearch"
-
-    def add_texts(self, documents: list[Document], embeddings: list[list[float]], **kwargs):
-        uuids = self._get_uuids(documents)
-        for i in range(len(documents)):
-            self._client.index(
-                index=self._collection_name,
-                id=uuids[i],
-                document={
-                    Field.CONTENT_KEY.value: documents[i].page_content,
-                    Field.VECTOR.value: embeddings[i] if embeddings[i] else None,
-                    Field.METADATA_KEY.value: documents[i].metadata if documents[i].metadata else {},
-                },
-            )
-        self._client.indices.refresh(index=self._collection_name)
-        return uuids
-
-    def text_exists(self, id: str) -> bool:
-        return self._client.exists(index=self._collection_name, id=id).__bool__()
-
-    def delete_by_ids(self, ids: list[str]) -> None:
-        for id in ids:
-            self._client.delete(index=self._collection_name, id=id)
-
-    def delete_by_metadata_field(self, key: str, value: str) -> None:
-        query_str = {"query": {"match": {f"metadata.{key}": f"{value}"}}}
-        results = self._client.search(index=self._collection_name, body=query_str)
-        ids = [hit["_id"] for hit in results["hits"]["hits"]]
-        if ids:
-            self.delete_by_ids(ids)
-
-    def delete(self) -> None:
-        self._client.indices.delete(index=self._collection_name)
-
-    def search_by_vector(self, query_vector: list[float], **kwargs: Any) -> list[Document]:
-        top_k = kwargs.get("top_k", 10)
-        knn = {"field": Field.VECTOR.value, "query_vector": query_vector, "k": top_k}
-
-        results = self._client.search(index=self._collection_name, knn=knn, size=top_k)
-
-        docs_and_scores = []
-        for hit in results["hits"]["hits"]:
-            docs_and_scores.append(
-                (
-                    Document(
-                        page_content=hit["_source"][Field.CONTENT_KEY.value],
-                        vector=hit["_source"][Field.VECTOR.value],
-                        metadata=hit["_source"][Field.METADATA_KEY.value],
-                    ),
-                    hit["_score"],
+    def _create_index_if_not_exists(
+        self, index_name: str, dims_length: Optional[int] = None
+    ) -> None:
+        if self._client.indices.exists(index=index_name):
+            logger.debug(f"Index {index_name} already exists. Skipping creation.")
+        else:
+            if dims_length is None:
+                raise ValueError(
+                    "Cannot create index without specifying dims_length "
+                    "when the index doesn't already exist. We infer "
+                    "dims_length from the first embedding. Check that "
+                    "you have provided an embedding function."
                 )
-            )
 
-        docs = []
-        for doc, score in docs_and_scores:
-            score_threshold = kwargs.get("score_threshold", 0.0) if kwargs.get("score_threshold", 0.0) else 0.0
-            if score > score_threshold:
-                doc.metadata["score"] = score
-            docs.append(doc)
+            if self.distance_strategy == "COSINE":
+                similarityAlgo = "cosine"
+            elif self.distance_strategy == "EUCLIDEAN_DISTANCE":
+                similarityAlgo = "l2_norm"
+            elif self.distance_strategy == "DOT_PRODUCT":
+                similarityAlgo = "dot_product"
+            else:
+                raise ValueError(f"Similarity {self.distance_strategy} not supported.")
 
-        return docs
-
-    def search_by_full_text(self, query: str, **kwargs: Any) -> list[Document]:
-        query_str = {"match": {Field.CONTENT_KEY.value: query}}
-        results = self._client.search(index=self._collection_name, query=query_str)
-        docs = []
-        for hit in results["hits"]["hits"]:
-            docs.append(
-                Document(
-                    page_content=hit["_source"][Field.CONTENT_KEY.value],
-                    vector=hit["_source"][Field.VECTOR.value],
-                    metadata=hit["_source"][Field.METADATA_KEY.value],
-                )
-            )
-
-        return docs
-
-    def create(self, texts: list[Document], embeddings: list[list[float]], **kwargs):
-        metadatas = [d.metadata for d in texts]
-        self.create_collection(embeddings, metadatas)
-        self.add_texts(texts, embeddings, **kwargs)
-
-    def create_collection(
-        self, embeddings: list, metadatas: Optional[list[dict]] = None, index_params: Optional[dict] = None
-    ):
-        lock_name = f"vector_indexing_lock_{self._collection_name}"
-        with redis_client.lock(lock_name, timeout=20):
-            collection_exist_cache_key = f"vector_indexing_{self._collection_name}"
-            if redis_client.get(collection_exist_cache_key):
-                logger.info(f"Collection {self._collection_name} already exists.")
-                return
-
-            if not self._client.indices.exists(index=self._collection_name):
-                dim = len(embeddings[0])
-                mappings = {
+            index_settings = {
+                "mappings": {
                     "properties": {
-                        Field.CONTENT_KEY.value: {"type": "text"},
-                        Field.VECTOR.value: {  # Make sure the dimension is correct here
+                        self._vector_field: {
                             "type": "dense_vector",
-                            "dims": dim,
-                            "similarity": "cosine",
+                            "dims": dims_length,
+                            "index": True,
+                            "similarity": similarityAlgo,
                         },
-                        Field.METADATA_KEY.value: {
-                            "type": "object",
+                        self._text_field: {"type": "text"},
+                        "metadata": {
                             "properties": {
-                                "doc_id": {"type": "keyword"}  # Map doc_id to keyword type
-                            },
+                                "document_id": {"type": "keyword"},
+                                "knowledge_base_id": {"type": "keyword"},
+                            }
                         },
                     }
                 }
-                self._client.indices.create(index=self._collection_name, mappings=mappings)
+            }
 
-            redis_client.set(collection_exist_cache_key, 1, ex=3600)
+            logger.debug(
+                f"Creating index {index_name} with mappings {index_settings['mappings']}"
+            )
+            self._client.indices.create(index=index_name, **index_settings)
+
+    def add(
+        self,
+        nodes: List[BaseNode],
+        *,
+        create_index_if_not_exists: bool = True,
+        **add_kwargs: Any,
+    ) -> List[str]:
+        return asyncio.get_event_loop().run_until_complete(
+            self.async_add(nodes, create_index_if_not_exists=create_index_if_not_exists)
+        )
+
+    async def async_add(
+        self,
+        nodes: List[BaseNode],
+        *,
+        create_index_if_not_exists: bool = True,
+        **add_kwargs: Any,
+    ) -> List[str]:
+
+        if len(nodes) == 0:
+            return []
+
+        if create_index_if_not_exists:
+            dims_length = len(nodes[0].get_embedding())
+            await self._create_index_if_not_exists(
+                index_name=self._index_name, dims_length=dims_length
+            )
+
+        embeddings: List[List[float]] = []
+        texts: List[str] = []
+        metadatas: List[dict] = []
+        ids: List[str] = []
+        for node in nodes:
+            ids.append(node.node_id)
+            embeddings.append(node.get_embedding())
+            texts.append(node.get_content())
+            metadatas.append(node.get_metadata())
+
+        requests = []
+        return_ids = []
+
+        for i, text in enumerate(texts):
+            metadata = metadatas[i] if metadatas else {}
+            _id = ids[i] if ids else str(uuid.uuid4())
+            request = {
+                "_op_type": "index",
+                "_index": self._index_name,
+                self._vector_field: embeddings[i],
+                self._text_field: text,
+                "metadata": metadata,
+                "_id": _id,
+            }
+            requests.append(request)
+            return_ids.append(_id)
+
+        async with self._client as client:
+            await async_bulk(
+                client, requests, chunk_size=self._batch_size, refresh=True
+            )
+            try:
+                success, failed = await async_bulk(
+                    client, requests, stats_only=True, refresh=True
+                )
+                logger.debug(
+                    f"Added {success} and failed to add {failed} texts to index"
+                )
+                logger.debug(f"added texts {ids} to index")
+                return return_ids
+            except BulkIndexError as e:
+                logger.error(f"Error adding texts: {e}")
+                firstError = e.errors[0].get("index", {}).get("error", {})
+                logger.error(f"First error reason: {firstError.get('reason')}")
+                raise
+
+    def delete(self, ref_doc_id: str, **delete_kwargs: Any) -> None:
+        return asyncio.get_event_loop().run_until_complete(
+            self.async_delete(ref_doc_id, **delete_kwargs)
+        )
+
+    async def async_delete(self, ref_doc_id: str, **delete_kwargs: Any) -> None:
+        try:
+            async with self._client as client:
+                res = await client.delete_by_query(
+                    index=self._index_name,
+                    query={"term": {"metadata.ref_doc_id": ref_doc_id}},
+                    refresh=True,
+                    **delete_kwargs,
+                )
+            if res["deleted"] == 0:
+                logger.warning(f"Could not find text {ref_doc_id} to delete")
+            else:
+                logger.debug(f"Deleted text {ref_doc_id} from index")
+        except Exception:
+            logger.error(f"Error deleting text: {ref_doc_id}")
+            raise
+
+    def query(
+        self,
+        query: dict,
+        custom_query: Optional[Callable[[Dict, Union[dict, None]], Dict]] = None,
+        es_filter: Optional[List[Dict]] = None,
+        **kwargs: Any,
+    ) -> list[BaseNode]:
+        return asyncio.get_event_loop().run_until_complete(
+            self.async_query(query, custom_query, es_filter, **kwargs)
+        )
+
+    async def async_query(
+        self,
+        query: dict,
+        custom_query: Optional[Callable[[Dict, Union[dict, None]], Dict]] = None,
+        es_filter: Optional[List[Dict]] = None,
+        **kwargs: Any,
+    ) -> Tuple[List[BaseNode], List[str], List[float]]:
+
+        query_embedding = cast(List[float], query["query_embedding"])
+
+        es_query = {}
+
+        filter = es_filter or []
+
+        es_query["knn"] = {
+            "filter": filter,
+            "field": self._vector_field,
+            "query_vector": query_embedding,
+            "k": query["similarity_top_k"],
+            "num_candidates": query["similarity_top_k"] * 10,
+        }
+
+        es_query["query"] = {
+            "bool": {
+                "must": {"match": {self._text_field: {"query": query["query_str"]}}},
+                "filter": filter,
+            }
+        }
+
+        es_query["rank"] = {"rrf": {}}
+
+        if custom_query is not None:
+            es_query = custom_query(es_query, query)
+            logger.debug(f"Calling custom_query, Query body now: {es_query}")
+
+        async with self._client as client:
+            response = await client.search(
+                index=self.index_name,
+                **es_query,
+                size=query["similarity_top_k"],
+                _source={"excludes": [self._vector_field]},
+            )
+
+        top_k_nodes = []
+        top_k_ids = []
+        top_k_scores = []
+        hits = response["hits"]["hits"]
+        nodes = []
+        for hit in hits:
+            source = hit["_source"]
+            metadata = source.get("metadata", None)
+            text = source.get(self._text_field, None)
+            node_id = hit["_id"]
+
+            node = BaseNode(text=text, metadata=metadata, id_=node_id)
+
+            top_k_nodes.append(node)
+            top_k_ids.append(node_id)
+            top_k_scores.append(hit.get("_rank", hit["_score"]))
+
+            nodes.append(node)
+
+        total_rank = sum(top_k_scores)
+        top_k_scores = [total_rank - rank / total_rank for rank in top_k_scores]
+
+        return (nodes, top_k_ids, _to_llama_similarities(top_k_scores))
 
 
-class ElasticSearchVectorFactory(AbstractVectorFactory):
-    def init_vector(self, dataset: Dataset, attributes: list, embeddings: Embeddings) -> ElasticSearchVector:
-        if dataset.index_struct_dict:
-            class_prefix: str = dataset.index_struct_dict["vector_store"]["class_prefix"]
-            collection_name = class_prefix
-        else:
-            dataset_id = dataset.id
-            collection_name = Dataset.gen_collection_name_by_id(dataset_id)
-            dataset.index_struct = json.dumps(self.gen_index_struct_dict(VectorType.ELASTICSEARCH, collection_name))
+class ElasticSearchVectorFactory:
+
+    def init_vector(
+        self,
+        telent_id: int,
+    ) -> ElasticSearchVector:
+
+        index_name = f"idx_telent_{telent_id}_knowledge_base"
 
         config = current_app.config
+
         return ElasticSearchVector(
-            index_name=collection_name,
-            config=ElasticSearchConfig(
+            index_name=index_name,
+            client_config=ElasticSearchConfig(
                 host=config.get("ELASTICSEARCH_HOST"),
                 port=config.get("ELASTICSEARCH_PORT"),
                 username=config.get("ELASTICSEARCH_USERNAME"),
                 password=config.get("ELASTICSEARCH_PASSWORD"),
             ),
-            attributes=[],
         )
+
+
+def _to_llama_similarities(scores: List[float]) -> List[float]:
+    if scores is None or len(scores) == 0:
+        return []
+
+    scores_to_norm: np.ndarray = np.array(scores)
+    return np.exp(scores_to_norm - np.max(scores_to_norm)).tolist()

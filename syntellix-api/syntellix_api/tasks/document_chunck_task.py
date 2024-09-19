@@ -72,7 +72,7 @@ def process_document_chunk(self, document_id):
         )
 
         # Process chunks logic here
-        # ...
+        
 
         document.parse_status = DocumentParseStatusEnum.COMPLETED.value
         document.process_duation = (
