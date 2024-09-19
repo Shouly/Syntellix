@@ -1,6 +1,6 @@
 from flask import request
 from flask_login import current_user
-from flask_restful import Resource, marshal, reqparse
+from flask_restful import Resource, fields, marshal, marshal_with, reqparse
 from syntellix_api.controllers.api_errors import KnowledgeBaseNameDuplicateError
 from syntellix_api.controllers.console import api
 from syntellix_api.libs.login import login_required
@@ -17,7 +17,7 @@ from syntellix_api.services.errors.dataset import (
     DatasetNameDuplicateError,
 )
 from werkzeug.exceptions import Forbidden, NotFound
-
+from syntellix_api.response.document_response import document_fields
 
 class DatasetDocumentListApi(Resource):
     # @login_required
@@ -102,10 +102,13 @@ class DatasetDocumentListApi(Resource):
 
     #     return response
 
-    # documents_and_batch_fields = {"documents": fields.List(fields.Nested(document_fields)), "batch": fields.String}
+    documents_and_batch_fields = {
+        "documents": fields.List(fields.Nested(document_fields)),
+        "batch": fields.String,
+    }
 
     @login_required
-    # @marshal_with(documents_and_batch_fields)
+    @marshal_with(documents_and_batch_fields)
     def post(self, knowledge_base_id):
 
         knowledge_base = KonwledgeBaseService.get_knowledge_base(knowledge_base_id)
@@ -139,4 +142,6 @@ class DatasetDocumentListApi(Resource):
         return {"documents": documents, "batch": batch}
 
 
-api.add_resource(DatasetDocumentListApi, "/knowledge-bases/<int:knowledge_base_id>/documents")
+api.add_resource(
+    DatasetDocumentListApi, "/knowledge-bases/<int:knowledge_base_id>/documents"
+)

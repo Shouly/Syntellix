@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Slider } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { QuestionMarkCircleIcon, ChevronDownIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { QuestionMarkCircleIcon, ChevronDownIcon, CheckIcon, ArrowPathIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 import axios from 'axios'; // 确保已安装并导入 axios
+import { useToast } from '../Toast'; // 确保路径正确
 
 // 自定义 Slider 样式
 const CustomSlider = styled(Slider)(({ theme }) => ({
@@ -153,6 +154,9 @@ function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds })
         layoutAware: true
     });
     const [isMethodDropdownOpen, setIsMethodDropdownOpen] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [error, setError] = useState('');
+    const { showToast } = useToast();
 
     const handleConfigChange = (name, value) => {
         setSplitConfig(prevConfig => ({
@@ -175,6 +179,8 @@ function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds })
     ];
 
     const handleSaveAndProcess = async () => {
+        setError('');
+        setIsProcessing(true);
         try {
             const response = await axios.post(`/console/api/knowledge-bases/${knowledgeBaseId}/documents`, {
                 data_source: {
@@ -189,14 +195,15 @@ function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds })
                 }
             });
 
-            // 处理响应
             console.log('Documents processed:', response.data);
-
-            // 调用 onNextStep 进入下一步
+            showToast('文档处理成功', 'success');
             onNextStep();
         } catch (error) {
             console.error('Error processing documents:', error);
-            // 在这里处理错误，例如显示一个错误消息给用户
+            setError(error.response?.data?.message || '处理文档时发生错误，请重试。');
+            showToast('文档处理失败', 'error');
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -359,18 +366,32 @@ function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds })
                     </div>
                 </div>
             </div>
+            {error && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative text-sm" role="alert">
+                    <span className="block sm:inline">{error}</span>
+                </div>
+            )}
             <div className="flex items-center space-x-4">
                 <button
                     onClick={onPreviousStep}
                     className="text-sm font-semibold py-2 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 bg-gray-200 hover:bg-gray-300 text-gray-700"
+                    disabled={isProcessing}
                 >
                     <span className="font-noto-sans-sc">上一步</span>
                 </button>
                 <button
                     onClick={handleSaveAndProcess}
                     className="text-sm font-semibold py-2 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 bg-indigo-600 hover:bg-indigo-700 text-white"
+                    disabled={isProcessing}
                 >
-                    <span className="font-noto-sans-sc">保存并处理</span>
+                    {isProcessing ? (
+                        <>
+                            <ArrowPathIcon className="animate-spin h-4 w-4 mr-2" />
+                            <span className="font-noto-sans-sc">处理中...</span>
+                        </>
+                    ) : (
+                        <span className="font-noto-sans-sc">保存并处理</span>
+                    )}
                 </button>
             </div>
         </div>

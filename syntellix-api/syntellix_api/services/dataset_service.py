@@ -25,6 +25,8 @@ from syntellix_api.services.errors.dataset import (
 from syntellix_api.services.errors.file import FileNotExistsError
 from syntellix_api.tasks.document_chunck_task import process_document_chunk
 
+logger = logging.getLogger(__name__)
+
 class KonwledgeBaseService:
 
     @staticmethod
@@ -369,6 +371,11 @@ class DocumentService:
 
         # 为每个文档发送 Celery 任务
         for document in documents:
-            process_document_chunk.delay(document.id)
+            try:
+                task = process_document_chunk.delay(document_id=document.id)
+                logger.info(f"Celery task sent for document {document.id}. Task ID: {task.id}")
+            except Exception as e:
+                logger.error(f"Failed to send Celery task for document {document.id}: {str(e)}")
 
-        return documents, 0
+        logger.info(f"All tasks sent. Returning {len(documents)} documents.")
+        return documents, len(documents)
