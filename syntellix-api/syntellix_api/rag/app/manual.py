@@ -17,18 +17,18 @@
 import copy
 import re
 
-from api.db import ParserType
+from syntellix_api.models.dataset_model import DocumentParserTypeEnum
 from io import BytesIO
-from rag.nlp import rag_tokenizer, tokenize, tokenize_table, add_positions, bullets_category, title_frequency, tokenize_chunks, docx_question_level
-from deepdoc.parser import PdfParser, PlainParser
-from rag.utils import num_tokens_from_string
-from deepdoc.parser import PdfParser, ExcelParser, DocxParser
+from syntellix_api.rag.nlp import rag_tokenizer, tokenize, tokenize_table, add_positions, bullets_category, title_frequency, tokenize_chunks, docx_question_level
+from syntellix_api.rag.deepdoc.parser import PdfParser, PlainParser
+from syntellix_api.rag.utils.parser_utils import num_tokens_from_string
+from syntellix_api.rag.deepdoc.parser import PdfParser, ExcelParser, DocxParser
 from docx import Document
 from PIL import Image
 
 class Pdf(PdfParser):
     def __init__(self):
-        self.model_speciess = ParserType.MANUAL.value
+        self.model_speciess = DocumentParserTypeEnum.MANUAL.value
         super().__init__()
 
     def __call__(self, filename, binary=None, from_page=0,

@@ -39,7 +39,7 @@ from syntellix_api.rag.nlp import (
     tokenize_chunks_docx,
     tokenize_table,
 )
-from syntellix_api.rag.utils import num_tokens_from_string
+from syntellix_api.rag.utils.parser_utils import num_tokens_from_string
 from tika import parser
 
 logger = logging.getLogger(__name__)

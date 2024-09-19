@@ -11,7 +11,8 @@
 #  limitations under the License.
 #
 
-from syntellix_api.rag.nlp import find_codec,num_tokens_from_string
+from syntellix_api.rag.nlp import find_codec
+from syntellix_api.rag.utils.parser_utils import num_tokens_from_string
 import re
 
 class RAGFlowTxtParser:

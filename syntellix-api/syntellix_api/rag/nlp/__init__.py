@@ -17,7 +17,7 @@
 import random
 from collections import Counter
 
-from syntellix_api.rag.utils import num_tokens_from_string
+from syntellix_api.rag.utils.parser_utils import num_tokens_from_string
 from syntellix_api.rag.nlp import rag_tokenizer
 import re
 import copy
