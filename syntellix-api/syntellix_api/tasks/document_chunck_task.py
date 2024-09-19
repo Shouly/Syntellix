@@ -9,7 +9,7 @@ from syntellix_api.models.dataset_model import Document, DocumentParserTypeEnum,
 from syntellix_api.rag.app import (
     audio,
     book,
-    email,
+    email_app,
     knowledge_graph,
     laws,
     manual,
@@ -36,7 +36,7 @@ FACTORY = {
     DocumentParserTypeEnum.PICTURE.value: picture,
     DocumentParserTypeEnum.ONE.value: one,
     DocumentParserTypeEnum.AUDIO.value: audio,
-    DocumentParserTypeEnum.EMAIL.value: email,
+    DocumentParserTypeEnum.EMAIL.value: email_app,
     DocumentParserTypeEnum.KG.value: knowledge_graph,
 }
 

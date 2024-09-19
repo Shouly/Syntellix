@@ -19,9 +19,9 @@ sys.path.insert(
                 os.path.abspath(__file__)),
             '../../')))
 
-from deepdoc.vision.seeit import draw_box
-from deepdoc.vision import Recognizer, LayoutRecognizer, TableStructureRecognizer, OCR, init_in_out
-from api.utils.file_utils import get_project_base_directory
+from syntellix_api.rag.deepdoc.vision.seeit import draw_box
+from syntellix_api.rag.deepdoc.vision import Recognizer, LayoutRecognizer, TableStructureRecognizer, OCR, init_in_out
+from syntellix_api.rag.utils.file_utils import get_project_base_directory
 import argparse
 import re
 import numpy as np
