@@ -188,6 +188,7 @@ def register_blueprints(app):
 
 # create app
 app = create_flask_app()
+celery = app.extensions["celery"]
 
 if app.config.get("TESTING"):
     print("App is running in TESTING mode")
