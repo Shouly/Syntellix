@@ -7,6 +7,17 @@ import axios from 'axios';
 import React, { Fragment, useEffect, useState } from 'react';
 import { useToast } from '../../components/Toast';
 import UploadFiles from './UploadFiles';
+import { useQuery } from 'react-query';
+
+// 在表格中展示的列
+const columns = [
+  { header: '文档名称', key: 'name' },
+  { header: '大小', key: 'size' },
+  { header: '块数', key: 'chunk_num' },
+  { header: '进度', key: 'progress' },
+  { header: '状态', key: 'parse_status' },
+  { header: '创建时间', key: 'created_at' },
+];
 
 function KnowledgeBaseDetail({ id, onBack }) {
   const { showToast } = useToast();
@@ -18,11 +29,22 @@ function KnowledgeBaseDetail({ id, onBack }) {
   const [itemsPerPage] = useState(10);
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
 
-  // Mock data for documents
-  const mockDocuments = [
-    { name: '产品说明书.pdf', characterCount: 15000, recallCount: 23, uploadTime: '2023-05-15 14:30', status: '可用' },
-    { name: '用户反馈汇总.xlsx', characterCount: 8000, recallCount: 12, uploadTime: '2023-05-16 09:45', status: '可用' },
-  ];
+  const { data: documentsData, isLoading: isDocumentsLoading, error: documentsError } = useQuery(
+    ['knowledgeBaseDocuments', id, currentPage, itemsPerPage, searchTerm],
+    () => fetchDocuments(),
+    { keepPreviousData: true }
+  );
+
+  const fetchDocuments = async () => {
+    const response = await axios.get(`/console/api/knowledge-bases/${id}/documents`, {
+      params: {
+        page: currentPage,
+        limit: itemsPerPage,
+        keyword: searchTerm,
+      },
+    });
+    return response.data;
+  };
 
   useEffect(() => {
     fetchKnowledgeBaseDetails();
@@ -82,13 +104,47 @@ function KnowledgeBaseDetail({ id, onBack }) {
     }
   };
 
-  // Calculate pagination
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = mockDocuments.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(mockDocuments.length / itemsPerPage);
+  // 格式化文件大小
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
 
-  if (isLoading) {
+  // 格式化进度百分比
+  const formatProgress = (progress) => {
+    return `${(progress).toFixed(2)}%`;
+  };
+
+  // 格式化解析状态
+  const formatParseStatus = (status) => {
+    const statusMap = {
+      'pending': '待处理',
+      'processing': '处理中',
+      'completed': '已完成',
+      'failed': '失败'
+    };
+    return statusMap[status] || status;
+  };
+
+  const getStatusStyle = (status) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'processing':
+        return 'bg-blue-100 text-blue-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'failed':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  if (isLoading || isDocumentsLoading) {
     return (
       <div className="flex pt-4 h-full">
         {/* Left sidebar skeleton */}
@@ -159,14 +215,14 @@ function KnowledgeBaseDetail({ id, onBack }) {
     );
   }
 
-  if (error) {
+  if (error || documentsError) {
     return (
       <div className="flex-1 px-6 mt-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="col-span-full flex flex-col items-center justify-center h-64 bg-red-50 bg-opacity-50 backdrop-filter backdrop-blur-sm rounded-xl p-6">
             <ExclamationCircleIcon className="w-12 h-12 text-red-500 mb-4" />
             <div className="text-red-600 font-semibold text-lg mb-2">获取知识库详情失败</div>
-            <div className="text-red-500 text-sm mb-4">{error}</div>
+            <div className="text-red-500 text-sm mb-4">{error || documentsError}</div>
             <button
               onClick={fetchKnowledgeBaseDetails}
               className="px-4 py-2 bg-red-100 bg-opacity-50 text-red-600 rounded-md hover:bg-opacity-70 transition-colors duration-200"
@@ -187,10 +243,14 @@ function KnowledgeBaseDetail({ id, onBack }) {
           setIsUploadingFiles(false);
           fetchKnowledgeBaseDetails();
         }}
-        knowledgeBaseId={id} // Add this line
+        knowledgeBaseId={id}
       />
     );
   }
+
+  const documents = documentsData?.data || [];
+  const totalDocuments = documentsData?.total || 0;
+  const totalPages = Math.ceil(totalDocuments / itemsPerPage);
 
   return (
     <div className="flex pt-4 h-full">
@@ -254,32 +314,37 @@ function KnowledgeBaseDetail({ id, onBack }) {
           {/* Document List */}
           <div className="overflow-x-auto flex-grow" style={{ minHeight: '400px' }}>
             <table className="min-w-full divide-y divide-gray-200">
-              <thead>
+              <thead className="bg-gray-50">
                 <tr>
-                  {["文件名", "字符数", "召回次数", "上传时间", "状态", "操作"].map((header) => (
-                    <th key={header} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-noto-sans-sc">
-                      {header}
+                  {columns.map((column) => (
+                    <th key={column.key} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {column.header}
                     </th>
                   ))}
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    操作
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {currentItems.map((doc, index) => (
-                  <tr key={index} className="hover:bg-gray-50 transition-colors duration-200">
+                {documents.map((doc) => (
+                  <tr key={doc.id} className="hover:bg-gray-50 transition-colors duration-200">
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center">
                         {getFileIcon(doc.name)}
                         <span className="ml-2 text-sm text-gray-900 font-medium">{doc.name}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{doc.characterCount}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{doc.recallCount}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{doc.uploadTime}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{formatFileSize(doc.size)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{doc.chunk_num}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{formatProgress(doc.progress)}</td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${doc.status === '可用' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
-                        {doc.status}
+                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusStyle(doc.parse_status)}`}>
+                        {formatParseStatus(doc.parse_status)}
                       </span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(doc.created_at).toLocaleString()}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                       <Menu as="div" className="relative inline-block text-left">
@@ -345,28 +410,12 @@ function KnowledgeBaseDetail({ id, onBack }) {
 
           {/* Pagination */}
           <div className="mt-4 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
-            <div className="flex flex-1 justify-between sm:hidden">
-              <button
-                onClick={() => setCurrentPage(page => Math.max(page - 1, 1))}
-                disabled={currentPage === 1}
-                className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-                上一页
-              </button>
-              <button
-                onClick={() => setCurrentPage(page => Math.min(page + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-                下一页
-              </button>
-            </div>
             <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-gray-700">
-                  显示第 <span className="font-medium">{indexOfFirstItem + 1}</span> 到第{' '}
-                  <span className="font-medium">{Math.min(indexOfLastItem, mockDocuments.length)}</span> 条，
-                  共 <span className="font-medium">{mockDocuments.length}</span> 条结果
+                  显示第 <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> 到第{' '}
+                  <span className="font-medium">{Math.min(currentPage * itemsPerPage, totalDocuments)}</span> 条，
+                  共 <span className="font-medium">{totalDocuments}</span> 条结果
                 </p>
               </div>
               <div>

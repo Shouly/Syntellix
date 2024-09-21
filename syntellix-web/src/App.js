@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import axios from 'axios';
+import { QueryClient, QueryClientProvider } from 'react-query';  // 添加这行
 import { ToastProvider } from './components/Toast';
 import Login from './components/Login';
 import SystemInit from './components/SystemInit';
 import Dashboard from './components/Dashboard';
 import LoadingSpinner from './components/LoadingSpinner'; // 导入 LoadingSpinner 组件
+
+const queryClient = new QueryClient();  // 添加这行
 
 function App() {
   const [isInitialized, setIsInitialized] = useState(null);
@@ -47,25 +50,27 @@ function App() {
   }
 
   return (
-    <Router>
-      <ToastProvider>
-        <div className="App">
-          <Routes>
-            <Route path="/system-init" element={
-              isInitialized ? <Navigate to="/" /> : <SystemInit setIsInitialized={setIsInitialized} />
-            } />
-            <Route path="/" element={
-              isInitialized ? (
-                isAuthenticated ? <Navigate to="/dashboard" /> : <Login setIsAuthenticated={setIsAuthenticated} />
-              ) : <Navigate to="/system-init" />
-            } />
-            <Route path="/dashboard" element={
-              isAuthenticated ? <Dashboard setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/" />
-            } />
-          </Routes>
-        </div>
-      </ToastProvider>
-    </Router>
+    <QueryClientProvider client={queryClient}>  {/* 添加这行 */}
+      <Router>
+        <ToastProvider>
+          <div className="App">
+            <Routes>
+              <Route path="/system-init" element={
+                isInitialized ? <Navigate to="/" /> : <SystemInit setIsInitialized={setIsInitialized} />
+              } />
+              <Route path="/" element={
+                isInitialized ? (
+                  isAuthenticated ? <Navigate to="/dashboard" /> : <Login setIsAuthenticated={setIsAuthenticated} />
+                ) : <Navigate to="/system-init" />
+              } />
+              <Route path="/dashboard" element={
+                isAuthenticated ? <Dashboard setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/" />
+              } />
+            </Routes>
+          </div>
+        </ToastProvider>
+      </Router>
+    </QueryClientProvider>
   );
 }
 
