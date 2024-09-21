@@ -24,6 +24,8 @@ from syntellix_api.rag.app import (
     resume,
     table,
 )
+from syntellix_api.rag.vector_database.vector_service import VectorService
+from syntellix_api.services.file_service import FileService
 
 logger = logging.getLogger(__name__)
 
@@ -63,37 +65,48 @@ def process_document_chunk(document_id):
         parser = FACTORY[parser_type]
 
         def progress_callback(progress, message):
-            document.progress = progress * 100  # Convert to percentage
-            document.progress_msg = message
-            document.updated_at = datetime.datetime.now()
-            db.session.commit()
+            document.update_parse_status(
+                DocumentParseStatusEnum.PROCESSING, progress * 100, message
+            )
 
         document.process_begin_at = datetime.datetime.now()
-        document.parse_status = DocumentParseStatusEnum.PROCESSING.value
-        document.updated_at = datetime.datetime.now()
+        document.update_parse_status(DocumentParseStatusEnum.PROCESSING)
         db.session.commit()
 
+        file_binary = FileService.read_file_binary(document.location)
+
         chunks = parser.chunk(
-            document.location, parser_config, callback=progress_callback
+            document.name,
+            binary=file_binary,
+            from_page=0,
+            to_page=100000,
+            callback=progress_callback,
+            parser_config=parser_config,
         )
 
-        # Process chunks logic here
+        vector_service = VectorService(
+            document.tenant_id, document.knowledge_base_id, document.id
+        )
+        vector_service.add_nodes(chunks)
 
-        document.parse_status = DocumentParseStatusEnum.COMPLETED.value
+        document.update_parse_status(DocumentParseStatusEnum.COMPLETED, 100)
+        document.chunk_num = len(chunks)
+        document.process_end_at = datetime.datetime.now()
         document.process_duation = (
-            datetime.datetime.now() - document.process_begin_at
+            document.process_end_at - document.process_begin_at
         ).total_seconds()
-        document.updated_at = datetime.datetime.now()
         db.session.commit()
 
         logger.info(f"Document {document_id} processed successfully")
 
-    except Exception as e:
-        document.parse_status = DocumentParseStatusEnum.FAILED.value
-        document.progress_msg = str(e)
-        document.updated_at = datetime.datetime.now()
-        db.session.commit()
-        logger.error(f"Document {document_id} processing failed: {str(e)}")
-        raise process_document_chunk.retry(
-            exc=e, countdown=60, max_retries=3
+    except FileNotFoundError as e:
+        logger.error(f"File not found: {str(e)}")
+        document.update_parse_status(
+            DocumentParseStatusEnum.FAILED, progress_msg=str(e)
         )
+    except Exception as e:
+        document.update_parse_status(
+            DocumentParseStatusEnum.FAILED, progress_msg=str(e)
+        )
+        logger.error(f"Document {document_id} processing failed: {str(e)}")
+        raise process_document_chunk.retry(exc=e, countdown=60, max_retries=3)

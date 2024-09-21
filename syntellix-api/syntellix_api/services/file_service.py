@@ -1,5 +1,6 @@
 import datetime
 import hashlib
+import os
 import uuid
 from collections.abc import Generator
 from typing import Union
@@ -140,7 +141,11 @@ class FileService:
         # user uuid as file name
         file_uuid = str(uuid.uuid4())
         file_key = (
-            "upload_files/" + str(current_user.current_tenant_id) + "/" + file_uuid + ".txt"
+            "upload_files/"
+            + str(current_user.current_tenant_id)
+            + "/"
+            + file_uuid
+            + ".txt"
         )
 
         # save file to storage
@@ -229,3 +234,13 @@ class FileService:
         generator = storage.load(upload_file.key)
 
         return generator, upload_file.mime_type
+
+    @staticmethod
+    def read_file_binary(file_key: str) -> bytes:
+        try:
+            file_content = storage.load(file_key)
+            if file_content is None:
+                raise FileNotFoundError(f"File not found in storage: {file_key}")
+            return file_content
+        except Exception as e:
+            raise IOError(f"Error reading file from storage {file_key}: {str(e)}")

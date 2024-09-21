@@ -1,5 +1,5 @@
+import datetime
 import enum
-import json
 
 from sqlalchemy import func
 from sqlalchemy.dialects.mysql import JSON, TINYINT
@@ -285,3 +285,20 @@ class Document(db.Model):
         nullable=False,
         server_default=db.text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
     )
+
+    def update_parse_status(
+        self,
+        status: DocumentParseStatusEnum,
+        progress: float = None,
+        progress_msg: str = None,
+    ):
+        self.parse_status = status.value
+        self.updated_at = datetime.datetime.now()
+
+        if progress is not None:
+            self.progress = progress
+
+        if progress_msg is not None:
+            self.progress_msg = progress_msg
+
+        db.session.commit()

@@ -24,8 +24,6 @@ def init_app(app: Flask) -> Celery:
         app.name,
         task_cls=FlaskTask,
         broker=app.config.get("CELERY_BROKER_URL"),
-        backend=app.config.get("CELERY_BACKEND"),
-        task_ignore_result=True,
     )
 
     # Add SSL options to the Celery configuration
@@ -40,6 +38,7 @@ def init_app(app: Flask) -> Celery:
         result_backend=app.config.get("CELERY_RESULT_BACKEND"),
         broker_transport_options=broker_transport_options,
         broker_connection_retry_on_startup=True,
+        task_ignore_result=False,
     )
 
     if app.config.get("BROKER_USE_SSL"):

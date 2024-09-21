@@ -51,9 +51,10 @@ class ElasticSearchVector:
         vector_field: str = "embedding",
         batch_size: int = 200,
         distance_strategy: Optional[DISTANCE_STRATEGIES] = "COSINE",
+        client: Optional[Elasticsearch] = None,
     ) -> None:
         self._index_name = index_name
-        self._client = self._init_client(client_config)
+        self._client = client or self._init_client(client_config)
         self._text_field = text_field
         self._vector_field = vector_field
         self._batch_size = batch_size
@@ -115,6 +116,8 @@ class ElasticSearchVector:
                             "properties": {
                                 "document_id": {"type": "keyword"},
                                 "knowledge_base_id": {"type": "keyword"},
+                                "created_at": {"type": "date"},
+                                "file_name": {"type": "keyword"},
                             }
                         },
                     }
@@ -302,15 +305,20 @@ class ElasticSearchVector:
 
 
 class ElasticSearchVectorFactory:
+    _instance = None
+    _es_client = None
 
-    def init_vector(
-        self,
-        telent_id: int,
-    ) -> ElasticSearchVector:
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(ElasticSearchVectorFactory, cls).__new__(cls)
+        return cls._instance
 
-        index_name = f"idx_telent_{telent_id}_knowledge_base"
-
+    def init_vector(self, tenant_id: int) -> ElasticSearchVector:
+        index_name = f"idx_telent_{tenant_id}_knowledge_base"
         config = current_app.config
+
+        if self._es_client is None:
+            self._es_client = self._init_client(config)
 
         return ElasticSearchVector(
             index_name=index_name,
@@ -320,6 +328,17 @@ class ElasticSearchVectorFactory:
                 username=config.get("ELASTICSEARCH_USERNAME"),
                 password=config.get("ELASTICSEARCH_PASSWORD"),
             ),
+            client=self._es_client
+        )
+
+    @staticmethod
+    def _init_client(config):
+        return Elasticsearch(
+            hosts=f"http://{config.get('ELASTICSEARCH_HOST')}:{config.get('ELASTICSEARCH_PORT')}",
+            basic_auth=(config.get("ELASTICSEARCH_USERNAME"), config.get("ELASTICSEARCH_PASSWORD")),
+            request_timeout=100000,
+            retry_on_timeout=True,
+            max_retries=10000,
         )
 
 

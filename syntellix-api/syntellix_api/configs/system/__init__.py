@@ -288,6 +288,26 @@ class ImageFormatConfig(BaseSettings):
         default="base64",
     )
 
+class EmbeddingConfig(BaseSettings):
+    EMBEDDING_MODEL: str = Field(
+        description="embedding model",
+        default="default",
+    )
+
+    EMBEDDING_KEY: str = Field(
+        description="embedding key",
+        default="your_embedding_key_here",
+    )
+
+    EMBEDDING_MODEL_NAME: str = Field(
+        description="embedding model name",
+        default="BAAI/bge-large-zh-v1.5",
+    )
+
+    EMBEDDING_BASE_URL: str = Field(
+        description="embedding base url",
+        default="https://api.openai.com/v1",
+    )
 
 class SystemConfig(
     AppExecutionConfig,
@@ -302,5 +322,6 @@ class SystemConfig(
     ModelLoadBalanceConfig,
     OAuthConfig,
     SecurityConfig,
+    EmbeddingConfig,
 ):
     pass
