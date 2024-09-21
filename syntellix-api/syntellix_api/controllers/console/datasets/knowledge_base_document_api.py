@@ -1,106 +1,62 @@
+import json
+
 from flask import request
 from flask_login import current_user
 from flask_restful import Resource, fields, marshal, marshal_with, reqparse
-from syntellix_api.controllers.api_errors import KnowledgeBaseNameDuplicateError
+from sqlalchemy import asc, desc
 from syntellix_api.controllers.console import api
 from syntellix_api.libs.login import login_required
-from syntellix_api.models.dataset_model import KnowledgeBasePermissionEnum
-from syntellix_api.response.knowledge_base_response import knowledge_base_detail_fields
-from syntellix_api.services.dataset_service import (
-    DocumentService,
-    KnowledgeBasePermissionService,
-    KonwledgeBaseService,
-)
-from syntellix_api.services.errors.account import NoPermissionError
-from syntellix_api.services.errors.dataset import (
-    DatasetInUseError,
-    DatasetNameDuplicateError,
-)
-from werkzeug.exceptions import Forbidden, NotFound
+from syntellix_api.models.dataset_model import Document
 from syntellix_api.response.document_response import document_fields
+from syntellix_api.services.dataset_service import DocumentService, KonwledgeBaseService
+from syntellix_api.services.errors.account import NoPermissionError
+from werkzeug.exceptions import Forbidden, NotFound
 
-class DatasetDocumentListApi(Resource):
-    # @login_required
-    # def get(self, dataset_id):
-    #     dataset_id = str(dataset_id)
-    #     page = request.args.get("page", default=1, type=int)
-    #     limit = request.args.get("limit", default=20, type=int)
-    #     search = request.args.get("keyword", default=None, type=str)
-    #     sort = request.args.get("sort", default="-created_at", type=str)
-    #     # "yes", "true", "t", "y", "1" convert to True, while others convert to False.
-    #     try:
-    #         fetch = string_to_bool(request.args.get("fetch", default="false"))
-    #     except (ArgumentTypeError, ValueError, Exception) as e:
-    #         fetch = False
-    #     dataset = DatasetService.get_dataset(dataset_id)
-    #     if not dataset:
-    #         raise NotFound("Dataset not found.")
 
-    #     try:
-    #         DatasetService.check_dataset_permission(dataset, current_user)
-    #     except services.errors.account.NoPermissionError as e:
-    #         raise Forbidden(str(e))
+class KnowledgeBaseDocumentListApi(Resource):
+    @login_required
+    def get(self, knowledge_base_id):
+        page = request.args.get("page", default=1, type=int)
+        limit = request.args.get("limit", default=20, type=int)
+        search = request.args.get("keyword", default=None, type=str)
 
-    #     query = Document.query.filter_by(dataset_id=str(dataset_id), tenant_id=current_user.current_tenant_id)
+        knowledge_base = KonwledgeBaseService.get_knowledge_base(knowledge_base_id)
+        if not knowledge_base:
+            raise NotFound("Knowledge base not found.")
 
-    #     if search:
-    #         search = f"%{search}%"
-    #         query = query.filter(Document.name.like(search))
+        try:
+            KonwledgeBaseService.check_knowledge_base_permission(
+                knowledge_base, current_user
+            )
+        except NoPermissionError as e:
+            raise Forbidden(str(e))
 
-    #     if sort.startswith("-"):
-    #         sort_logic = desc
-    #         sort = sort[1:]
-    #     else:
-    #         sort_logic = asc
+        query = Document.query.filter_by(
+            knowledge_base_id=knowledge_base_id,
+            tenant_id=current_user.current_tenant_id,
+        )
 
-    #     if sort == "hit_count":
-    #         sub_query = (
-    #             db.select(DocumentSegment.document_id, db.func.sum(DocumentSegment.hit_count).label("total_hit_count"))
-    #             .group_by(DocumentSegment.document_id)
-    #             .subquery()
-    #         )
+        if search:
+            query = query.filter(Document.name.ilike(f"%{search}%"))
 
-    #         query = query.outerjoin(sub_query, sub_query.c.document_id == Document.id).order_by(
-    #             sort_logic(db.func.coalesce(sub_query.c.total_hit_count, 0)),
-    #             sort_logic(Document.position),
-    #         )
-    #     elif sort == "created_at":
-    #         query = query.order_by(
-    #             sort_logic(Document.created_at),
-    #             sort_logic(Document.position),
-    #         )
-    #     else:
-    #         query = query.order_by(
-    #             desc(Document.created_at),
-    #             desc(Document.position),
-    #         )
+        query = query.order_by(
+            desc(Document.created_at),
+        )
 
-    #     paginated_documents = query.paginate(page=page, per_page=limit, max_per_page=100, error_out=False)
-    #     documents = paginated_documents.items
-    #     if fetch:
-    #         for document in documents:
-    #             completed_segments = DocumentSegment.query.filter(
-    #                 DocumentSegment.completed_at.isnot(None),
-    #                 DocumentSegment.document_id == str(document.id),
-    #                 DocumentSegment.status != "re_segment",
-    #             ).count()
-    #             total_segments = DocumentSegment.query.filter(
-    #                 DocumentSegment.document_id == str(document.id), DocumentSegment.status != "re_segment"
-    #             ).count()
-    #             document.completed_segments = completed_segments
-    #             document.total_segments = total_segments
-    #         data = marshal(documents, document_with_segments_fields)
-    #     else:
-    #         data = marshal(documents, document_fields)
-    #     response = {
-    #         "data": data,
-    #         "has_more": len(documents) == limit,
-    #         "limit": limit,
-    #         "total": paginated_documents.total,
-    #         "page": page,
-    #     }
+        paginated_documents = query.paginate(
+            page=page, per_page=limit, max_per_page=100, error_out=False
+        )
+        documents = paginated_documents.items
+        data = marshal(documents, document_fields)
+        response = {
+            "data": data,
+            "has_more": len(documents) == limit,
+            "limit": limit,
+            "total": paginated_documents.total,
+            "page": page,
+        }
 
-    #     return response
+        return response
 
     documents_and_batch_fields = {
         "documents": fields.List(fields.Nested(document_fields)),
@@ -142,6 +98,31 @@ class DatasetDocumentListApi(Resource):
         return {"documents": documents, "batch": batch}
 
 
+class KnowledgeBaseDocumentProgressApi(Resource):
+    @login_required
+    def get(self, knowledge_base_id):
+        parser = reqparse.RequestParser()
+        parser.add_argument("file_ids", type=str, required=True, location="args")
+        args = parser.parse_args()
+
+        file_ids = json.loads(args["file_ids"])
+
+        knowledge_base = KonwledgeBaseService.get_knowledge_base(knowledge_base_id)
+        if not knowledge_base:
+            raise NotFound("Knowledge base not found.")
+
+        documents = DocumentService.get_documents_progress(knowledge_base_id, file_ids)
+
+        if not documents:
+            raise NotFound("No documents found for the given file IDs.")
+
+        return {"knowledge_base_id": knowledge_base_id, "documents": documents}, 200
+
+
 api.add_resource(
-    DatasetDocumentListApi, "/knowledge-bases/<int:knowledge_base_id>/documents"
+    KnowledgeBaseDocumentListApi, "/knowledge-bases/<int:knowledge_base_id>/documents"
+)
+api.add_resource(
+    KnowledgeBaseDocumentProgressApi,
+    "/knowledge-bases/<int:knowledge_base_id>/documents/progress",
 )

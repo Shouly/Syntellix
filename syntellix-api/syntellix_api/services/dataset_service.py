@@ -1,29 +1,20 @@
 import datetime
-import json
 import logging
-import random
-import time
-import uuid
 from typing import Optional
 
-from flask_login import current_user
-from sqlalchemy import func
 from syntellix_api.extensions.ext_database import db
 from syntellix_api.models.account_model import Account, TenantAccountRole
 from syntellix_api.models.dataset_model import (
     Document,
     DocumentParserTypeEnum,
+    DocumentParseStatusEnum,
     KnowledgeBase,
     KnowledgeBasePermission,
     KnowledgeBasePermissionEnum,
     UploadFile,
-    DocumentParseStatusEnum,
 )
 from syntellix_api.services.errors.account import NoPermissionError
-from syntellix_api.services.errors.dataset import (
-    DatasetInUseError,
-    DatasetNameDuplicateError,
-)
+from syntellix_api.services.errors.dataset import DatasetNameDuplicateError
 from syntellix_api.services.errors.file import FileNotExistsError
 from syntellix_api.tasks.document_chunck_task import process_document_chunk
 
@@ -404,3 +395,28 @@ class DocumentService:
 
         logger.info(f"All tasks sent. Returning {len(documents_with_id)} documents.")
         return documents_with_id, len(documents_with_id)
+
+    @staticmethod
+    def get_documents_progress(knowledge_base_id, file_ids):
+        documents = Document.query.filter(
+            Document.knowledge_base_id == knowledge_base_id,
+            Document.upload_file_id.in_(file_ids),
+        ).all()
+
+        progress_data = []
+        for doc in documents:
+            progress_data.append(
+                {
+                    "id": doc.id,
+                    "name": doc.name,
+                    "progress": doc.progress,
+                    "message": doc.progress_msg,
+                    "process_begin_at": doc.process_begin_at,
+                    "process_duation": doc.process_duation,
+                    "parse_status": doc.parse_status,
+                    "parser_type": doc.parser_type,
+                    "parser_config": doc.parser_config,
+                }
+            )
+
+        return progress_data
