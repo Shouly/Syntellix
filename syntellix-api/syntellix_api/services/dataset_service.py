@@ -416,17 +416,19 @@ class DocumentService:
                     from_page=0,
                     to_page=100000,
                     parser_config=parser_config,
+                    callback=lambda x,y: print(x,y),
                 )
-
+                print(chunks[0])
                 try:
                     vector_service = VectorService(
                         user.current_tenant_id,
                         knowledge_base.id,
                         document_id,
                     )
-                    vector_service.add_nodes(text_chunks=chunks)
+                    vector_service.add_nodes(text_chunks=[chunk["content_with_weight"] for chunk in chunks])
                 except Exception as e:
                     logger.error(f"Error adding nodes to vector service: {str(e)}")
+                    # Handle error as needed
         try:
             db.session.commit()
             logger.info(f"Committed {len(documents)} documents to the database.")

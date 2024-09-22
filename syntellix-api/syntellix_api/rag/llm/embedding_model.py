@@ -18,7 +18,7 @@ import os
 import re
 import threading
 from abc import ABC
-from typing import Optional
+from typing import List, Optional, cast
 
 import dashscope
 import numpy as np
@@ -28,9 +28,10 @@ from FlagEmbedding import FlagModel
 from huggingface_hub import snapshot_download
 from openai import OpenAI
 from openai.lib.azure import AzureOpenAI
+from sentence_transformers import SentenceTransformer
 from syntellix_api.rag.utils.file_utils import get_home_cache_dir
 from syntellix_api.rag.utils.parser_utils import num_tokens_from_string, truncate
-from sentence_transformers import SentenceTransformer
+
 logger = logging.getLogger(__name__)
 
 
@@ -50,12 +51,18 @@ class DefaultEmbedding(Base):
         self.key = key
         self.model_name = model_name
         self.kwargs = kwargs
-        self._model = self._load_model()
+        self._model = None
+
+    def _ensure_model_loaded(self):
+        if self._model is None:
+            self._model = self._load_model()
 
     def _load_model(self):
         try:
             logger.info(f"Attempting to load model: {self.model_name}")
-            model = SentenceTransformer(model_name_or_path="moka-ai/m3e-base", device='cpu')
+            model = SentenceTransformer(
+                model_name_or_path="moka-ai/m3e-base", device="cpu"
+            )
             logger.info("Model loaded successfully")
             return model
         except Exception as e:
@@ -71,32 +78,44 @@ class DefaultEmbedding(Base):
                     local_dir_use_symlinks=False,
                 )
                 logger.info(f"Model downloaded to: {model_dir}")
-                model = SentenceTransformer(model_name_or_path=model_dir, device='cpu')
+                model = SentenceTransformer(model_name_or_path=model_dir, device="cpu")
                 logger.info("Model loaded successfully after download")
                 return model
             except Exception as download_error:
                 logger.error(f"Error downloading model: {str(download_error)}")
                 raise
 
-    def encode(self, texts: list, batch_size=32):
-        texts = [truncate(t, 2048) for t in texts]
-        token_count = 0
-        for t in texts:
-            token_count += num_tokens_from_string(t)
-        res = []
-        for i in range(0, len(texts), batch_size):
-            batch = texts[i : i + batch_size]
-            try:
-                batch_embeddings = self._model.encode(batch, show_progress_bar=False)
-                res.extend(batch_embeddings.tolist())
-            except Exception as e:
-                logger.error(f"Error encoding batch: {str(e)}")
-                logger.error(f"Problematic batch: {batch[:5]}...")  # Log part of the batch
-                # You might want to add some placeholder embeddings here
-                res.extend([[0] * self._model.get_sentence_embedding_dimension()] * len(batch))
-        return np.array(res), token_count
+    def encode(self, texts: list, batch_size=8):
+        self._ensure_model_loaded()
+        return cast(List[float], self._model.encode(texts))
+        # self._ensure_model_loaded()
+        # logger.debug(f"Encoding {len(texts)} texts with batch size {batch_size}")
+
+        # try:
+        #     texts = [truncate(t, 2048) for t in texts]
+        #     token_count = sum(num_tokens_from_string(t) for t in texts)
+        #     logger.debug(f"Total tokens: {token_count}")
+        #     res = []
+        #     for i in range(0, len(texts), batch_size):
+        #         batch = texts[i : i + batch_size]
+        #         try:
+        #             batch_embeddings = self._model.encode(batch, show_progress_bar=False)
+        #             res.extend(batch_embeddings.tolist())
+        #         except Exception as batch_error:
+        #             logger.error(f"Error encoding batch {i // batch_size + 1}: {str(batch_error)}")
+        #             logger.debug(f"Problematic batch (first 100 chars): {batch[0][:100]}...")
+        #             # Add placeholder embeddings for the failed batch
+        #             placeholder = [0] * self._model.get_sentence_embedding_dimension()
+        #             res.extend([placeholder] * len(batch))
+
+        #     return np.array(res), token_count
+
+        # except Exception as e:
+        #     logger.error(f"Error in encode method: {str(e)}")
+        #     return np.array([]), 0
 
     def encode_queries(self, text: str):
+        self._ensure_model_loaded()
         token_count = num_tokens_from_string(text)
         try:
             return self._model.encode([text], show_progress_bar=False)[0], token_count

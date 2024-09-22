@@ -7,7 +7,7 @@ from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union, c
 import numpy as np
 import requests
 from elasticsearch import Elasticsearch
-from elasticsearch.helpers import BulkIndexError, async_bulk
+from elasticsearch.helpers import async_bulk, bulk
 from flask import current_app
 from pydantic import BaseModel, model_validator
 from syntellix_api.rag.vector_database.vector_model import BaseNode
@@ -79,10 +79,11 @@ class ElasticSearchVector:
 
         return client
 
-    def _create_index_if_not_exists(
+    async def _create_index_if_not_exists(
         self, index_name: str, dims_length: Optional[int] = None
     ) -> None:
-        if self._client.indices.exists(index=index_name):
+        exists = await asyncio.to_thread(self._client.indices.exists, index=index_name)
+        if exists:
             logger.debug(f"Index {index_name} already exists. Skipping creation.")
         else:
             if dims_length is None:
@@ -93,14 +94,14 @@ class ElasticSearchVector:
                     "you have provided an embedding function."
                 )
 
-            if self.distance_strategy == "COSINE":
+            if self._distance_strategy == "COSINE":
                 similarityAlgo = "cosine"
-            elif self.distance_strategy == "EUCLIDEAN_DISTANCE":
+            elif self._distance_strategy == "EUCLIDEAN_DISTANCE":
                 similarityAlgo = "l2_norm"
-            elif self.distance_strategy == "DOT_PRODUCT":
+            elif self._distance_strategy == "DOT_PRODUCT":
                 similarityAlgo = "dot_product"
             else:
-                raise ValueError(f"Similarity {self.distance_strategy} not supported.")
+                raise ValueError(f"Similarity {self._distance_strategy} not supported.")
 
             index_settings = {
                 "mappings": {
@@ -117,7 +118,6 @@ class ElasticSearchVector:
                                 "document_id": {"type": "keyword"},
                                 "knowledge_base_id": {"type": "keyword"},
                                 "created_at": {"type": "date"},
-                                "file_name": {"type": "keyword"},
                             }
                         },
                     }
@@ -127,18 +127,7 @@ class ElasticSearchVector:
             logger.debug(
                 f"Creating index {index_name} with mappings {index_settings['mappings']}"
             )
-            self._client.indices.create(index=index_name, **index_settings)
-
-    def add(
-        self,
-        nodes: List[BaseNode],
-        *,
-        create_index_if_not_exists: bool = True,
-        **add_kwargs: Any,
-    ) -> List[str]:
-        return asyncio.get_event_loop().run_until_complete(
-            self.async_add(nodes, create_index_if_not_exists=create_index_if_not_exists)
-        )
+            await asyncio.to_thread(self._client.indices.create, index=index_name, **index_settings)
 
     async def async_add(
         self,
@@ -147,7 +136,6 @@ class ElasticSearchVector:
         create_index_if_not_exists: bool = True,
         **add_kwargs: Any,
     ) -> List[str]:
-
         if len(nodes) == 0:
             return []
 
@@ -157,51 +145,40 @@ class ElasticSearchVector:
                 index_name=self._index_name, dims_length=dims_length
             )
 
-        embeddings: List[List[float]] = []
-        texts: List[str] = []
-        metadatas: List[dict] = []
-        ids: List[str] = []
-        for node in nodes:
-            ids.append(node.node_id)
-            embeddings.append(node.get_embedding())
-            texts.append(node.get_content())
-            metadatas.append(node.get_metadata())
+        # 将批量添加操作包装在 asyncio.to_thread 中
+        return await asyncio.to_thread(self._bulk_add, nodes, **add_kwargs)
 
+    def _bulk_add(self, nodes: List[BaseNode], **add_kwargs: Any) -> List[str]:
         requests = []
         return_ids = []
 
-        for i, text in enumerate(texts):
-            metadata = metadatas[i] if metadatas else {}
-            _id = ids[i] if ids else str(uuid.uuid4())
+        for node in nodes:
+            _id = node.node_id or str(uuid.uuid4())
             request = {
                 "_op_type": "index",
                 "_index": self._index_name,
-                self._vector_field: embeddings[i],
-                self._text_field: text,
-                "metadata": metadata,
                 "_id": _id,
+                "_source": {
+                    self._vector_field: node.get_embedding(),
+                    self._text_field: node.get_content(),
+                    "metadata": node.get_metadata(),
+                }
             }
             requests.append(request)
             return_ids.append(_id)
 
-        async with self._client as client:
-            await async_bulk(
-                client, requests, chunk_size=self._batch_size, refresh=True
-            )
-            try:
-                success, failed = await async_bulk(
-                    client, requests, stats_only=True, refresh=True
-                )
-                logger.debug(
-                    f"Added {success} and failed to add {failed} texts to index"
-                )
-                logger.debug(f"added texts {ids} to index")
-                return return_ids
-            except BulkIndexError as e:
-                logger.error(f"Error adding texts: {e}")
+        try:
+            success, failed = bulk(self._client, requests, refresh=True)
+            logger.debug(f"Successfully added {success} documents to index")
+            if failed:
+                logger.warning(f"Failed to add {len(failed)} documents to index")
+            return return_ids
+        except Exception as e:
+            logger.error(f"Error adding texts: {e}")
+            if e.errors:
                 firstError = e.errors[0].get("index", {}).get("error", {})
                 logger.error(f"First error reason: {firstError.get('reason')}")
-                raise
+            raise
 
     def delete(self, ref_doc_id: str, **delete_kwargs: Any) -> None:
         return asyncio.get_event_loop().run_until_complete(
@@ -210,13 +187,12 @@ class ElasticSearchVector:
 
     async def async_delete(self, ref_doc_id: str, **delete_kwargs: Any) -> None:
         try:
-            async with self._client as client:
-                res = await client.delete_by_query(
-                    index=self._index_name,
-                    query={"term": {"metadata.ref_doc_id": ref_doc_id}},
-                    refresh=True,
-                    **delete_kwargs,
-                )
+            res = self._client.delete_by_query(
+                index=self._index_name,
+                body={"term": {"metadata.ref_doc_id": ref_doc_id}},
+                refresh=True,
+                **delete_kwargs,
+            )
             if res["deleted"] == 0:
                 logger.warning(f"Could not find text {ref_doc_id} to delete")
             else:
@@ -271,13 +247,12 @@ class ElasticSearchVector:
             es_query = custom_query(es_query, query)
             logger.debug(f"Calling custom_query, Query body now: {es_query}")
 
-        async with self._client as client:
-            response = await client.search(
-                index=self.index_name,
-                **es_query,
-                size=query["similarity_top_k"],
-                _source={"excludes": [self._vector_field]},
-            )
+        response = self._client.search(
+            index=self._index_name,
+            body=es_query,
+            size=query["similarity_top_k"],
+            _source={"excludes": [self._vector_field]},
+        )
 
         top_k_nodes = []
         top_k_ids = []
@@ -314,7 +289,7 @@ class ElasticSearchVectorFactory:
         return cls._instance
 
     def init_vector(self, tenant_id: int) -> ElasticSearchVector:
-        index_name = f"idx_telent_{tenant_id}_knowledge_base"
+        index_name = f"syntellix_telent_{tenant_id}_knowledge_base"
         config = current_app.config
 
         if self._es_client is None:
