@@ -1,7 +1,6 @@
 import datetime
 import logging
 
-from celery import shared_task
 from syntellix_api.extensions.ext_database import db
 from syntellix_api.models.dataset_model import (
     Document,
@@ -9,25 +8,22 @@ from syntellix_api.models.dataset_model import (
     DocumentParseStatusEnum,
 )
 from syntellix_api.rag.app import (
-    audio,
-    book,
-    email_app,
-    knowledge_graph,
-    laws,
-    manual,
-    naive,
-    one,
-    paper,
-    picture,
-    presentation,
-    qa,
-    resume,
-    table,
+    audio, book, email_app, knowledge_graph, laws, manual, naive, one,
+    paper, picture, presentation, qa, resume, table,
 )
 from syntellix_api.rag.vector_database.vector_service import VectorService
 from syntellix_api.services.file_service import FileService
+from syntellix_api.rag.llm import EmbeddingModel
+from syntellix_api.configs import syntellix_config
 
 logger = logging.getLogger(__name__)
+
+# 在主进程中初始化模型
+embedding_model = EmbeddingModel[syntellix_config.EMBEDDING_MODEL](
+    key=syntellix_config.EMBEDDING_KEY,
+    model_name=syntellix_config.EMBEDDING_MODEL_NAME,
+    base_url=syntellix_config.EMBEDDING_BASE_URL,
+)
 
 FACTORY = {
     DocumentParserTypeEnum.NAIVE.value: naive,
@@ -46,8 +42,6 @@ FACTORY = {
     DocumentParserTypeEnum.KG.value: knowledge_graph,
 }
 
-
-@shared_task(queue="document_chunk")
 def process_document_chunk(document_id):
     try:
         logger.info(f"Processing document chunk {document_id}")
@@ -86,7 +80,10 @@ def process_document_chunk(document_id):
 
         try:
             vector_service = VectorService(
-                document.tenant_id, document.knowledge_base_id, document.id
+                document.tenant_id, 
+                document.knowledge_base_id, 
+                document.id,
+                embedding_model=embedding_model
             )
             vector_service.add_nodes(chunks)
         except Exception as e:
@@ -117,4 +114,4 @@ def process_document_chunk(document_id):
             DocumentParseStatusEnum.FAILED, progress_msg=str(e)
         )
         logger.error(f"Document {document_id} processing failed: {str(e)}")
-        raise process_document_chunk.retry(exc=e, countdown=60, max_retries=3)
+        raise

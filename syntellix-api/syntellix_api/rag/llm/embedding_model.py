@@ -30,7 +30,7 @@ from openai import OpenAI
 from openai.lib.azure import AzureOpenAI
 from syntellix_api.rag.utils.file_utils import get_home_cache_dir
 from syntellix_api.rag.utils.parser_utils import num_tokens_from_string, truncate
-
+from sentence_transformers import SentenceTransformer
 logger = logging.getLogger(__name__)
 
 
@@ -46,60 +46,37 @@ class Base(ABC):
 
 
 class DefaultEmbedding(Base):
-    _model = None
-    _model_lock = threading.Lock()
-
     def __init__(self, key, model_name, **kwargs):
-        """
-        If you have trouble downloading HuggingFace models, -_^ this might help!!
+        self.key = key
+        self.model_name = model_name
+        self.kwargs = kwargs
+        self._model = self._load_model()
 
-        For Linux:
-        export HF_ENDPOINT=https://hf-mirror.com
-
-        For Windows:
-        Good luck
-        ^_-
-
-        """
-        if not DefaultEmbedding._model:
-            with DefaultEmbedding._model_lock:
-                if not DefaultEmbedding._model:
-                    try:
-                        logger.info(f"Attempting to load model: {model_name}")
-                        DefaultEmbedding._model = FlagModel(
-                            os.path.join(
-                                get_home_cache_dir(),
-                                re.sub(r"^[a-zA-Z]+/", "", model_name),
-                            ),
-                            query_instruction_for_retrieval="为这个句子生成表示以用于检索相关文章：",
-                            use_fp16=torch.cuda.is_available(),
-                        )
-                        logger.info("Model loaded successfully")
-                    except Exception as e:
-                        logger.error(f"Error loading model: {str(e)}")
-                        try:
-                            logger.info("Attempting to download model")
-                            model_dir = snapshot_download(
-                                repo_id="BAAI/bge-large-zh-v1.5",
-                                local_dir=os.path.join(
-                                    get_home_cache_dir(),
-                                    re.sub(r"^[a-zA-Z]+/", "", model_name),
-                                ),
-                                local_dir_use_symlinks=False,
-                            )
-                            logger.info(f"Model downloaded to: {model_dir}")
-                            DefaultEmbedding._model = FlagModel(
-                                model_dir,
-                                query_instruction_for_retrieval="为这个句子生成表示以用于检索相关文章：",
-                                use_fp16=torch.cuda.is_available(),
-                            )
-                            logger.info("Model loaded successfully after download")
-                        except Exception as download_error:
-                            logger.error(
-                                f"Error downloading model: {str(download_error)}"
-                            )
-                            raise
-        self._model = DefaultEmbedding._model
+    def _load_model(self):
+        try:
+            logger.info(f"Attempting to load model: {self.model_name}")
+            model = SentenceTransformer(model_name_or_path="moka-ai/m3e-base", device='cpu')
+            logger.info("Model loaded successfully")
+            return model
+        except Exception as e:
+            logger.error(f"Error loading model: {str(e)}")
+            try:
+                logger.info("Attempting to download model")
+                model_dir = snapshot_download(
+                    repo_id="BAAI/bge-large-zh-v1.5",
+                    local_dir=os.path.join(
+                        get_home_cache_dir(),
+                        re.sub(r"^[a-zA-Z]+/", "", self.model_name),
+                    ),
+                    local_dir_use_symlinks=False,
+                )
+                logger.info(f"Model downloaded to: {model_dir}")
+                model = SentenceTransformer(model_name_or_path=model_dir, device='cpu')
+                logger.info("Model loaded successfully after download")
+                return model
+            except Exception as download_error:
+                logger.error(f"Error downloading model: {str(download_error)}")
+                raise
 
     def encode(self, texts: list, batch_size=32):
         texts = [truncate(t, 2048) for t in texts]
@@ -108,12 +85,25 @@ class DefaultEmbedding(Base):
             token_count += num_tokens_from_string(t)
         res = []
         for i in range(0, len(texts), batch_size):
-            res.extend(self._model.encode(texts[i : i + batch_size]).tolist())
+            batch = texts[i : i + batch_size]
+            try:
+                batch_embeddings = self._model.encode(batch, show_progress_bar=False)
+                res.extend(batch_embeddings.tolist())
+            except Exception as e:
+                logger.error(f"Error encoding batch: {str(e)}")
+                logger.error(f"Problematic batch: {batch[:5]}...")  # Log part of the batch
+                # You might want to add some placeholder embeddings here
+                res.extend([[0] * self._model.get_sentence_embedding_dimension()] * len(batch))
         return np.array(res), token_count
 
     def encode_queries(self, text: str):
         token_count = num_tokens_from_string(text)
-        return self._model.encode_queries([text]).tolist()[0], token_count
+        try:
+            return self._model.encode([text], show_progress_bar=False)[0], token_count
+        except Exception as e:
+            logger.error(f"Error encoding query: {str(e)}")
+            logger.error(f"Problematic query: {text[:100]}...")  # Log part of the query
+            return np.zeros(self._model.get_sentence_embedding_dimension()), token_count
 
 
 class OpenAIEmbed(Base):
@@ -242,42 +232,6 @@ class XinferenceEmbed(Base):
     def encode_queries(self, text):
         res = self.client.embeddings.create(input=[text], model=self.model_name)
         return np.array(res.data[0].embedding), res.usage.total_tokens
-
-
-class YoudaoEmbed(Base):
-    _client = None
-
-    def __init__(
-        self, key=None, model_name="maidalun1020/bce-embedding-base_v1", **kwargs
-    ):
-        from BCEmbedding import EmbeddingModel as qanthing
-
-        if not YoudaoEmbed._client:
-            try:
-                print("LOADING BCE...")
-                YoudaoEmbed._client = qanthing(
-                    model_name_or_path=os.path.join(
-                        get_home_cache_dir(), "bce-embedding-base_v1"
-                    )
-                )
-            except Exception as e:
-                YoudaoEmbed._client = qanthing(
-                    model_name_or_path=model_name.replace("maidalun1020", "InfiniFlow")
-                )
-
-    def encode(self, texts: list, batch_size=10):
-        res = []
-        token_count = 0
-        for t in texts:
-            token_count += num_tokens_from_string(t)
-        for i in range(0, len(texts), batch_size):
-            embds = YoudaoEmbed._client.encode(texts[i : i + batch_size])
-            res.extend(embds)
-        return np.array(res), token_count
-
-    def encode_queries(self, text):
-        embds = YoudaoEmbed._client.encode([text])
-        return np.array(embds[0]), num_tokens_from_string(text)
 
 
 class JinaEmbed(Base):

@@ -26,7 +26,6 @@ EmbeddingModel = {
     "Azure-OpenAI": AzureEmbed,
     "Xinference": XinferenceEmbed,
     "Tongyi-Qianwen": QWenEmbed,
-    "Youdao": YoudaoEmbed,
     "BaiChuan": BaiChuanEmbed,
     "Jina": JinaEmbed,
     "BAAI": DefaultEmbedding,
@@ -76,7 +75,6 @@ ChatModel = {
 RerankModel = {
     "BAAI": DefaultRerank,
     "Jina": JinaRerank,
-    "Youdao": YoudaoRerank,
     "Xinference": XInferenceRerank,
     "NVIDIA": NvidiaRerank,
     "LM-Studio": LmStudioRerank,

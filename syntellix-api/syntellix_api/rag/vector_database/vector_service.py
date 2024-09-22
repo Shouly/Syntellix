@@ -1,5 +1,7 @@
 from datetime import datetime
 import logging
+from rq import Queue
+from redis import Redis
 
 logger = logging.getLogger(__name__)
 
@@ -12,67 +14,44 @@ from syntellix_api.rag.vector_database.elasticsearch.elasticsearch_vector import
 )
 from syntellix_api.rag.vector_database.vector_model import BaseNode
 
-
 class VectorService:
-
-    def __init__(self, tenant_id: int, konwledge_base_id: int, document_id: int):
+    def __init__(self, tenant_id: int, konwledge_base_id: int, document_id: int, embedding_model=None):
         self._tenant_id = tenant_id
         self._konwledge_base_id = konwledge_base_id
         self._document_id = document_id
-        self._embeddings = self._get_embeddings()
+        self._embeddings = embedding_model if embedding_model else self._get_embeddings()
         self._vector_processor = self._init_vector()
+        self._queue = Queue(connection=Redis.from_url(syntellix_config.RQ_REDIS_URL))
 
     def _init_vector(self) -> ElasticSearchVector:
         return ElasticSearchVectorFactory().init_vector(self._tenant_id)
 
     def add_nodes(self, text_chunks: list = None, **kwargs):
         if text_chunks:
-            nodes = []
             for text_chunk in text_chunks:
-                content = text_chunk["content_with_weight"]
-                node = BaseNode(content=content)
-                try:
-                    node.embedding = self._embeddings.encode([node.content])
-                except Exception as e:
-                    logger.error(f"Error encoding content: {str(e)}")
-                    # You might want to skip this node or use a fallback method
-                    continue
-                node.metadata = {
-                    "document_id": self._document_id,
-                    "knowledge_base_id": self._konwledge_base_id,
-                    "created_at": datetime.now(),
-                }
-                nodes.append(node)
-            if nodes:
-                try:
-                    self._vector_processor.add(nodes=nodes, **kwargs)
-                except Exception as e:
-                    logger.error(f"Error adding nodes to vector processor: {str(e)}")
-                    # Handle the error appropriately (e.g., retry, skip, or raise)
-            else:
-                logger.warning("No valid nodes to add to vector processor")
+                self._queue.enqueue(self._process_chunk, text_chunk, **kwargs)
 
-    # def delete_by_ids(self, ids: list[str]) -> None:
-    #     self._vector_processor.delete_by_ids(ids)
+    def _process_chunk(self, text_chunk, **kwargs):
+        content = text_chunk["content_with_weight"]
+        node = BaseNode(content=content)
+        try:
+            embeddings, _ = self._embeddings.encode([node.content])
+            node.embedding = embeddings[0]
+        except Exception as e:
+            logger.error(f"Error encoding content: {str(e)}")
+            logger.error(f"Problematic content: {content[:100]}...")
+            return
 
-    # def delete_by_metadata_field(self, key: str, value: str) -> None:
-    #     self._vector_processor.delete_by_metadata_field(key, value)
+        node.metadata = {
+            "document_id": self._document_id,
+            "knowledge_base_id": self._konwledge_base_id,
+            "created_at": datetime.now(),
+        }
 
-    # def search_by_vector(self, query: str, **kwargs: Any) -> list[Document]:
-    #     query_vector = self._embeddings.embed_query(query)
-    #     return self._vector_processor.search_by_vector(query_vector, **kwargs)
-
-    # def search_by_full_text(self, query: str, **kwargs: Any) -> list[Document]:
-    #     return self._vector_processor.search_by_full_text(query, **kwargs)
-
-    # def delete(self) -> None:
-    #     self._vector_processor.delete()
-    #     # delete collection redis cache
-    #     if self._vector_processor.collection_name:
-    #         collection_exist_cache_key = "vector_indexing_{}".format(
-    #             self._vector_processor.collection_name
-    #         )
-    #         redis_client.delete(collection_exist_cache_key)
+        try:
+            self._vector_processor.add(nodes=[node], **kwargs)
+        except Exception as e:
+            logger.error(f"Error adding node to vector processor: {str(e)}")
 
     def _get_embeddings(self) -> Base:
         embedding_model = EmbeddingModel[syntellix_config.EMBEDDING_MODEL]

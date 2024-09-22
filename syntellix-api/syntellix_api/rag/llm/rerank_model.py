@@ -128,53 +128,6 @@ class JinaRerank(Base):
         )
 
 
-class YoudaoRerank(DefaultRerank):
-    _model = None
-    _model_lock = threading.Lock()
-
-    def __init__(
-        self, key=None, model_name="maidalun1020/bce-reranker-base_v1", **kwargs
-    ):
-        from BCEmbedding import RerankerModel
-
-        if not YoudaoRerank._model:
-            with YoudaoRerank._model_lock:
-                if not YoudaoRerank._model:
-                    try:
-                        print("LOADING BCE...")
-                        YoudaoRerank._model = RerankerModel(
-                            model_name_or_path=os.path.join(
-                                get_home_cache_dir(),
-                                re.sub(r"^[a-zA-Z]+/", "", model_name),
-                            )
-                        )
-                    except Exception as e:
-                        YoudaoRerank._model = RerankerModel(
-                            model_name_or_path=model_name.replace(
-                                "maidalun1020", "InfiniFlow"
-                            )
-                        )
-
-        self._model = YoudaoRerank._model
-
-    def similarity(self, query: str, texts: list):
-        pairs = [(query, truncate(t, self._model.max_length)) for t in texts]
-        token_count = 0
-        for _, t in pairs:
-            token_count += num_tokens_from_string(t)
-        batch_size = 32
-        res = []
-        for i in range(0, len(pairs), batch_size):
-            scores = self._model.compute_score(
-                pairs[i : i + batch_size], max_length=self._model.max_length
-            )
-            scores = sigmoid(np.array(scores)).tolist()
-            if isinstance(scores, float):
-                res.append(scores)
-            else:
-                res.extend(scores)
-        return np.array(res), token_count
-
 
 class XInferenceRerank(Base):
     def __init__(self, key="xxxxxxx", model_name="", base_url=""):

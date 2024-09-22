@@ -2,6 +2,9 @@ import datetime
 import logging
 from typing import Optional
 
+from redis import Redis
+from rq import Queue
+from syntellix_api.configs import syntellix_config
 from syntellix_api.extensions.ext_database import db
 from syntellix_api.models.account_model import Account, TenantAccountRole
 from syntellix_api.models.dataset_model import (
@@ -381,16 +384,19 @@ class DocumentService:
                 continue
             documents_with_id.append(document)
 
-        # 为每个文档发送 Celery 任务
+        # 初始化 RQ 队列
+        queue = Queue(connection=Redis.from_url(syntellix_config.RQ_REDIS_URL))
+
+        # 为每个文档发送 RQ 任务
         for document in documents_with_id:
             try:
-                task = process_document_chunk.delay(document_id=document.id)
+                job = queue.enqueue(process_document_chunk, document.id)
                 logger.info(
-                    f"Celery task sent for document {document.id}. Task ID: {task.id}"
+                    f"RQ task sent for document {document.id}. Job ID: {job.id}"
                 )
             except Exception as e:
                 logger.error(
-                    f"Failed to send Celery task for document {document.id}: {str(e)}"
+                    f"Failed to send RQ task for document {document.id}: {str(e)}"
                 )
 
         logger.info(f"All tasks sent. Returning {len(documents_with_id)} documents.")
@@ -411,7 +417,11 @@ class DocumentService:
                     "name": doc.name,
                     "progress": doc.progress,
                     "message": doc.progress_msg,
-                    "process_begin_at": doc.process_begin_at.isoformat() if doc.process_begin_at else None,
+                    "process_begin_at": (
+                        doc.process_begin_at.isoformat()
+                        if doc.process_begin_at
+                        else None
+                    ),
                     "process_duation": doc.process_duation,
                     "parse_status": doc.parse_status,
                     "parser_type": doc.parser_type,
