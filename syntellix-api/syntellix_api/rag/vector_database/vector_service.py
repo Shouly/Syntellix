@@ -1,7 +1,5 @@
-from datetime import datetime
 import logging
-from rq import Queue
-from redis import Redis
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -14,46 +12,44 @@ from syntellix_api.rag.vector_database.elasticsearch.elasticsearch_vector import
 )
 from syntellix_api.rag.vector_database.vector_model import BaseNode
 
+
 class VectorService:
-    def __init__(self, tenant_id: int, konwledge_base_id: int, document_id: int, embedding_model=None):
+    def __init__(self, tenant_id: int, konwledge_base_id: int, document_id: int):
         self._tenant_id = tenant_id
         self._konwledge_base_id = konwledge_base_id
         self._document_id = document_id
-        self._embeddings = embedding_model if embedding_model else self._get_embeddings()
+        self._embeddings_model = self._get_embeddings_model()
         self._vector_processor = self._init_vector()
-        self._queue = Queue(connection=Redis.from_url(syntellix_config.RQ_REDIS_URL))
 
     def _init_vector(self) -> ElasticSearchVector:
         return ElasticSearchVectorFactory().init_vector(self._tenant_id)
 
     def add_nodes(self, text_chunks: list = None, **kwargs):
         if text_chunks:
+            nodes = []
             for text_chunk in text_chunks:
-                self._queue.enqueue(self._process_chunk, text_chunk, **kwargs)
+                content = text_chunk["content_with_weight"]
+                node = BaseNode(content=content)
+                try:
+                    embeddings, _ = self._embeddings_model.encode([node.content])
+                    node.embedding = embeddings[0]
+                except Exception as e:
+                    logger.error(f"Error encoding content: {str(e)}")
+                    logger.error(f"Problematic content: {content[:100]}...")
+                    return
 
-    def _process_chunk(self, text_chunk, **kwargs):
-        content = text_chunk["content_with_weight"]
-        node = BaseNode(content=content)
-        try:
-            embeddings, _ = self._embeddings.encode([node.content])
-            node.embedding = embeddings[0]
-        except Exception as e:
-            logger.error(f"Error encoding content: {str(e)}")
-            logger.error(f"Problematic content: {content[:100]}...")
-            return
+                node.metadata = {
+                    "document_id": self._document_id,
+                    "knowledge_base_id": self._konwledge_base_id,
+                    "created_at": datetime.now(),
+                }
+                nodes.append(node)
+            try:
+                self._vector_processor.add(nodes=nodes, **kwargs)
+            except Exception as e:
+                logger.error(f"Error adding node to vector processor: {str(e)}")
 
-        node.metadata = {
-            "document_id": self._document_id,
-            "knowledge_base_id": self._konwledge_base_id,
-            "created_at": datetime.now(),
-        }
-
-        try:
-            self._vector_processor.add(nodes=[node], **kwargs)
-        except Exception as e:
-            logger.error(f"Error adding node to vector processor: {str(e)}")
-
-    def _get_embeddings(self) -> Base:
+    def _get_embeddings_model(self) -> Base:
         embedding_model = EmbeddingModel[syntellix_config.EMBEDDING_MODEL]
         return embedding_model(
             key=syntellix_config.EMBEDDING_KEY,

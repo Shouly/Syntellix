@@ -2,9 +2,6 @@ import datetime
 import logging
 from typing import Optional
 
-from redis import Redis
-from rq import Queue
-from syntellix_api.configs import syntellix_config
 from syntellix_api.extensions.ext_database import db
 from syntellix_api.models.account_model import Account, TenantAccountRole
 from syntellix_api.models.dataset_model import (
@@ -16,12 +13,47 @@ from syntellix_api.models.dataset_model import (
     KnowledgeBasePermissionEnum,
     UploadFile,
 )
+from syntellix_api.services.file_service import FileService
 from syntellix_api.services.errors.account import NoPermissionError
 from syntellix_api.services.errors.dataset import DatasetNameDuplicateError
 from syntellix_api.services.errors.file import FileNotExistsError
-from syntellix_api.tasks.document_chunck_task import process_document_chunk
+from syntellix_api.tasks.document_chunck_task import enqueue_document_processing
+from syntellix_api.rag.app import (
+    audio,
+    book,
+    email_app,
+    knowledge_graph,
+    laws,
+    manual,
+    naive,
+    one,
+    paper,
+    picture,
+    presentation,
+    qa,
+    resume,
+    table,
+)
+from syntellix_api.rag.vector_database.vector_service import VectorService
 
 logger = logging.getLogger(__name__)
+
+FACTORY = {
+    DocumentParserTypeEnum.NAIVE.value: naive,
+    DocumentParserTypeEnum.PAPER.value: paper,
+    DocumentParserTypeEnum.BOOK.value: book,
+    DocumentParserTypeEnum.PRESENTATION.value: presentation,
+    DocumentParserTypeEnum.MANUAL.value: manual,
+    DocumentParserTypeEnum.LAWS.value: laws,
+    DocumentParserTypeEnum.QA.value: qa,
+    DocumentParserTypeEnum.TABLE.value: table,
+    DocumentParserTypeEnum.RESUME.value: resume,
+    DocumentParserTypeEnum.PICTURE.value: picture,
+    DocumentParserTypeEnum.ONE.value: one,
+    DocumentParserTypeEnum.AUDIO.value: audio,
+    DocumentParserTypeEnum.EMAIL.value: email_app,
+    DocumentParserTypeEnum.KG.value: knowledge_graph,
+}
 
 
 class KonwledgeBaseService:
@@ -300,7 +332,6 @@ class KnowledgeBasePermissionService:
 
 
 class DocumentService:
-
     @staticmethod
     def save_documents(knowledge_base, args, user):
         documents = []
@@ -341,6 +372,7 @@ class DocumentService:
 
             for file in files:
                 file_key = (file.name, file.extension, file.size)
+                document_id = None
                 if file_key in existing_doc_map:
                     doc = existing_doc_map[file_key]
                     doc.updated_at = datetime.datetime.now()
@@ -350,6 +382,7 @@ class DocumentService:
                     doc.upload_file_id = file.id
                     doc.parse_status = DocumentParseStatusEnum.PENDING
                     documents.append(doc)
+                    document_id = doc.id
                 else:
                     new_doc = Document(
                         knowledge_base_id=knowledge_base.id,
@@ -367,7 +400,33 @@ class DocumentService:
                     )
                     db.session.add(new_doc)  # 直接添加到 session
                     documents.append(new_doc)
+                    document_id = new_doc.id
+                parser_type = DocumentParserTypeEnum(args["parser_type"])
+                parser_config = args["parser_config"]
 
+                if parser_type not in FACTORY:
+                    raise ValueError(f"Unsupported parser type: {parser_type}")
+
+                parser = FACTORY[parser_type]
+                file_binary = FileService.read_file_binary(file.key)
+
+                chunks = parser.chunk(
+                    file.name,
+                    binary=file_binary,
+                    from_page=0,
+                    to_page=100000,
+                    parser_config=parser_config,
+                )
+
+                try:
+                    vector_service = VectorService(
+                        user.current_tenant_id,
+                        knowledge_base.id,
+                        document_id,
+                    )
+                    vector_service.add_nodes(text_chunks=chunks)
+                except Exception as e:
+                    logger.error(f"Error adding nodes to vector service: {str(e)}")
         try:
             db.session.commit()
             logger.info(f"Committed {len(documents)} documents to the database.")
@@ -377,27 +436,19 @@ class DocumentService:
             raise
 
         # 确保所有文档都有 ID
-        documents_with_id = []
-        for document in documents:
-            if document.id is None:
-                logger.error(f"Document still has no ID after commit: {document}")
-                continue
-            documents_with_id.append(document)
+        documents_with_id = [doc for doc in documents if doc.id is not None]
 
-        # 初始化 RQ 队列
-        queue = Queue(connection=Redis.from_url(syntellix_config.RQ_REDIS_URL))
-
-        # 为每个文档发送 RQ 任务
-        for document in documents_with_id:
-            try:
-                job = queue.enqueue(process_document_chunk, document.id)
-                logger.info(
-                    f"RQ task sent for document {document.id}. Job ID: {job.id}"
-                )
-            except Exception as e:
-                logger.error(
-                    f"Failed to send RQ task for document {document.id}: {str(e)}"
-                )
+        # # 为每个文档发送 RQ 任务
+        # for document in documents_with_id:
+        #     try:
+        #         job = enqueue_document_processing(document.id)
+        #         logger.info(
+        #             f"RQ task sent for document {document.id}. Job ID: {job.id}"
+        #         )
+        #     except Exception as e:
+        #         logger.error(
+        #             f"Failed to send RQ task for document {document.id}: {str(e)}"
+        #         )
 
         logger.info(f"All tasks sent. Returning {len(documents_with_id)} documents.")
         return documents_with_id, len(documents_with_id)
