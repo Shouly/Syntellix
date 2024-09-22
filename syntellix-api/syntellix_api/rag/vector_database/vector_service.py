@@ -1,4 +1,7 @@
 from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 from syntellix_api.configs import syntellix_config
 from syntellix_api.rag.llm import EmbeddingModel
@@ -28,14 +31,26 @@ class VectorService:
             for text_chunk in text_chunks:
                 content = text_chunk["content_with_weight"]
                 node = BaseNode(content=content)
-                node.embedding = self._embeddings.encode([node.content])
+                try:
+                    node.embedding = self._embeddings.encode([node.content])
+                except Exception as e:
+                    logger.error(f"Error encoding content: {str(e)}")
+                    # You might want to skip this node or use a fallback method
+                    continue
                 node.metadata = {
                     "document_id": self._document_id,
                     "knowledge_base_id": self._konwledge_base_id,
                     "created_at": datetime.now(),
                 }
                 nodes.append(node)
-            self._vector_processor.add(nodes=nodes, **kwargs)
+            if nodes:
+                try:
+                    self._vector_processor.add(nodes=nodes, **kwargs)
+                except Exception as e:
+                    logger.error(f"Error adding nodes to vector processor: {str(e)}")
+                    # Handle the error appropriately (e.g., retry, skip, or raise)
+            else:
+                logger.warning("No valid nodes to add to vector processor")
 
     # def delete_by_ids(self, ids: list[str]) -> None:
     #     self._vector_processor.delete_by_ids(ids)

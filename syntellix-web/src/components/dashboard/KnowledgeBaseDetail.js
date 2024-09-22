@@ -14,9 +14,9 @@ const columns = [
   { header: '文档名称', key: 'name' },
   { header: '大小', key: 'size' },
   { header: '块数', key: 'chunk_num' },
-  { header: '进度', key: 'progress' },
-  { header: '状态', key: 'parse_status' },
-  { header: '创建时间', key: 'created_at' },
+  { header: '解析进度', key: 'progress' },
+  { header: '解析状态', key: 'parse_status' },
+  { header: '上传时间', key: 'created_at' },
 ];
 
 function KnowledgeBaseDetail({ id, onBack }) {
@@ -421,18 +421,30 @@ function KnowledgeBaseDetail({ id, onBack }) {
               <div>
                 <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
                   <button
-                    onClick={() => setCurrentPage(page => Math.max(page - 1, 1))}
+                    onClick={() => {
+                      if (currentPage > 1) {
+                        setCurrentPage(currentPage - 1);
+                      }
+                    }}
                     disabled={currentPage === 1}
-                    className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                    className={`relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${
+                      currentPage === 1 ? 'cursor-not-allowed opacity-50' : ''
+                    }`}
                   >
                     <span className="sr-only">上一页</span>
                     <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
                   </button>
                   {/* Add page numbers here if needed */}
                   <button
-                    onClick={() => setCurrentPage(page => Math.min(page + 1, totalPages))}
+                    onClick={() => {
+                      if (currentPage < totalPages) {
+                        setCurrentPage(currentPage + 1);
+                      }
+                    }}
                     disabled={currentPage === totalPages}
-                    className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                    className={`relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${
+                      currentPage === totalPages ? 'cursor-not-allowed opacity-50' : ''
+                    }`}
                   >
                     <span className="sr-only">下一页</span>
                     <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />

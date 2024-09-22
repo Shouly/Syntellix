@@ -13,6 +13,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+import logging
 import os
 import re
 import threading
@@ -28,8 +29,9 @@ from huggingface_hub import snapshot_download
 from openai import OpenAI
 from openai.lib.azure import AzureOpenAI
 from syntellix_api.rag.utils.file_utils import get_home_cache_dir
-from syntellix_api.rag.utils.parser_utils import (num_tokens_from_string,
-                                                  truncate)
+from syntellix_api.rag.utils.parser_utils import num_tokens_from_string, truncate
+
+logger = logging.getLogger(__name__)
 
 
 class Base(ABC):
@@ -63,6 +65,7 @@ class DefaultEmbedding(Base):
             with DefaultEmbedding._model_lock:
                 if not DefaultEmbedding._model:
                     try:
+                        logger.info(f"Attempting to load model: {model_name}")
                         DefaultEmbedding._model = FlagModel(
                             os.path.join(
                                 get_home_cache_dir(),
@@ -71,20 +74,31 @@ class DefaultEmbedding(Base):
                             query_instruction_for_retrieval="为这个句子生成表示以用于检索相关文章：",
                             use_fp16=torch.cuda.is_available(),
                         )
+                        logger.info("Model loaded successfully")
                     except Exception as e:
-                        model_dir = snapshot_download(
-                            repo_id="BAAI/bge-large-zh-v1.5",
-                            local_dir=os.path.join(
-                                get_home_cache_dir(),
-                                re.sub(r"^[a-zA-Z]+/", "", model_name),
-                            ),
-                            local_dir_use_symlinks=False,
-                        )
-                        DefaultEmbedding._model = FlagModel(
-                            model_dir,
-                            query_instruction_for_retrieval="为这个句子生成表示以用于检索相关文章：",
-                            use_fp16=torch.cuda.is_available(),
-                        )
+                        logger.error(f"Error loading model: {str(e)}")
+                        try:
+                            logger.info("Attempting to download model")
+                            model_dir = snapshot_download(
+                                repo_id="BAAI/bge-large-zh-v1.5",
+                                local_dir=os.path.join(
+                                    get_home_cache_dir(),
+                                    re.sub(r"^[a-zA-Z]+/", "", model_name),
+                                ),
+                                local_dir_use_symlinks=False,
+                            )
+                            logger.info(f"Model downloaded to: {model_dir}")
+                            DefaultEmbedding._model = FlagModel(
+                                model_dir,
+                                query_instruction_for_retrieval="为这个句子生成表示以用于检索相关文章：",
+                                use_fp16=torch.cuda.is_available(),
+                            )
+                            logger.info("Model loaded successfully after download")
+                        except Exception as download_error:
+                            logger.error(
+                                f"Error downloading model: {str(download_error)}"
+                            )
+                            raise
         self._model = DefaultEmbedding._model
 
     def encode(self, texts: list, batch_size=32):

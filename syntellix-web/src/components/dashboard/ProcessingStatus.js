@@ -70,15 +70,15 @@ function ProcessingStatus({ onBackToDocuments, knowledgeBaseId, fileIds }) {
     const getProgressColor = (status) => {
         switch (status) {
             case 'pending':
-                return 'text-gray-500';
+                return 'bg-gray-500';
             case 'processing':
-                return 'text-indigo-600';
+                return 'bg-indigo-600';
             case 'completed':
-                return 'text-green-600';
+                return 'bg-green-600';
             case 'failed':
-                return 'text-red-600';
+                return 'bg-red-600';
             default:
-                return 'text-gray-500';
+                return 'bg-gray-500';
         }
     };
 
@@ -117,7 +117,7 @@ function ProcessingStatus({ onBackToDocuments, knowledgeBaseId, fileIds }) {
                                 {getFileIcon(doc.name)}
                                 {doc.name}
                             </span>
-                            <span className={`text-sm font-semibold ${getProgressColor(doc.parse_status)} whitespace-nowrap flex items-center`}>
+                            <span className={`text-sm font-semibold text-${getStatusTextColor(doc.parse_status)} whitespace-nowrap flex items-center`}>
                                 {getStatusIcon(doc.parse_status)}
                                 <span className="ml-1">{getStatusText(doc)}</span>
                             </span>
@@ -130,7 +130,7 @@ function ProcessingStatus({ onBackToDocuments, knowledgeBaseId, fileIds }) {
                                         style={{ width: `${doc.progress || 0}%` }}
                                     ></div>
                                 </div>
-                                <span className={`text-xs font-medium ${getProgressColor(doc.parse_status)}`}>
+                                <span className={`text-xs font-medium text-${getStatusTextColor(doc.parse_status)}`}>
                                     {doc.progress || 0}%
                                 </span>
                             </div>
@@ -175,7 +175,7 @@ function ProcessingStatus({ onBackToDocuments, knowledgeBaseId, fileIds }) {
                 <button
                     onClick={onBackToDocuments}
                     className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    disabled={!isAllCompleted && !hasFailures}
+                    // Remove the disabled condition
                 >
                     <span>前往文档</span>
                     <ArrowRightIcon className="ml-2 h-5 w-5" />
@@ -257,6 +257,22 @@ function getStatusText(doc) {
             return '处理失败';
         default:
             return doc.parse_status;
+    }
+}
+
+// Add this new function
+function getStatusTextColor(status) {
+    switch (status) {
+        case 'pending':
+            return 'gray-500';
+        case 'processing':
+            return 'indigo-600';
+        case 'completed':
+            return 'green-600';
+        case 'failed':
+            return 'red-600';
+        default:
+            return 'gray-500';
     }
 }
 

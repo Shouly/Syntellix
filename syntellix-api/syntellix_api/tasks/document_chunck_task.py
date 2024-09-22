@@ -84,10 +84,18 @@ def process_document_chunk(document_id):
             parser_config=parser_config,
         )
 
-        vector_service = VectorService(
-            document.tenant_id, document.knowledge_base_id, document.id
-        )
-        vector_service.add_nodes(chunks)
+        try:
+            vector_service = VectorService(
+                document.tenant_id, document.knowledge_base_id, document.id
+            )
+            vector_service.add_nodes(chunks)
+        except Exception as e:
+            logger.error(f"Error adding nodes to vector service: {str(e)}")
+            document.update_parse_status(
+                DocumentParseStatusEnum.FAILED, progress_msg=f"Vector service error: {str(e)}"
+            )
+            db.session.commit()
+            raise
 
         document.update_parse_status(DocumentParseStatusEnum.COMPLETED, 100)
         document.chunk_num = len(chunks)
