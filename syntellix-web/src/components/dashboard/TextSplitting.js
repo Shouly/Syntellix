@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Slider } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { QuestionMarkCircleIcon, ChevronDownIcon, CheckIcon, ArrowPathIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
+import { QuestionMarkCircleIcon, ChevronDownIcon, CheckIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import axios from 'axios'; // 确保已安装并导入 axios
 import { useToast } from '../Toast'; // 确保路径正确
 
@@ -236,12 +236,12 @@ function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds })
             });
 
             console.log('Documents processed:', response.data);
-            showToast('文档处理成功', 'success');
-            onNextStep();
+            showToast('保存成功', 'success');
+            onNextStep(knowledgeBaseId, fileIds);
         } catch (error) {
             console.error('Error processing documents:', error);
-            setError(error.response?.data?.message || '处理文档时发生错误，请重试。');
-            showToast('文档处理失败', 'error');
+            setError(error.response?.data?.message || '保存失败，请重试。');
+            showToast('保存失败', 'error');
         } finally {
             setIsProcessing(false);
         }

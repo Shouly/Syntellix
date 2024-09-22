@@ -292,7 +292,7 @@ function KnowledgeBaseDetail({ id, onBack }) {
           </div>
 
           {/* Search and Add Document */}
-          <div className="flex items-center justify-between m b-4">
+          <div className="flex items-center justify-between mb-4">
             <div className="w-64 mr-4">
               <input
                 type="text"

@@ -411,7 +411,7 @@ class DocumentService:
                     "name": doc.name,
                     "progress": doc.progress,
                     "message": doc.progress_msg,
-                    "process_begin_at": doc.process_begin_at,
+                    "process_begin_at": doc.process_begin_at.isoformat() if doc.process_begin_at else None,
                     "process_duation": doc.process_duation,
                     "parse_status": doc.parse_status,
                     "parser_type": doc.parser_type,

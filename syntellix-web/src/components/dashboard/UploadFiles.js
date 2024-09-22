@@ -166,6 +166,8 @@ function UploadFiles({ onUploadComplete, onBack, knowledgeBaseId }) {
             try {
                 await axios.delete(`/console/api/files/${fileToDelete.result.id}`);
                 setFiles(files.filter((_, index) => index !== indexToDelete));
+                // Update uploadedFileIds
+                setUploadedFileIds(prevIds => prevIds.filter(id => id !== fileToDelete.result.id));
             } catch (error) {
                 console.error('Error deleting file:', error);
                 setErrors(prev => [...prev, `删除文件失败 ${fileToDelete.name}: ${error.response?.data?.message || error.message}`]);
@@ -286,8 +288,8 @@ function UploadFiles({ onUploadComplete, onBack, knowledgeBaseId }) {
                             </ul>
                         )}
                         {isUploading && (
-                            <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mt-4">
-                                <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${uploadProgress}%` }}></div>
+                            <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                                <div className="h-1.5 rounded-full transition-all duration-500 ease-in-out bg-indigo-600" style={{ width: `${uploadProgress}%` }}></div>
                             </div>
                         )}
                         {errors.length > 0 && (
@@ -318,7 +320,12 @@ function UploadFiles({ onUploadComplete, onBack, knowledgeBaseId }) {
                     />
                 )}
                 {currentStep === 3 && (
-                    <ProcessingStatus onBackToDocuments={handleBackToDocuments} onPreviousStep={handlePreviousStep} />
+                    <ProcessingStatus 
+                        onBackToDocuments={handleBackToDocuments} 
+                        onPreviousStep={handlePreviousStep}
+                        knowledgeBaseId={knowledgeBaseId}
+                        fileIds={uploadedFileIds}
+                    />
                 )}
 
                 {/* 下一步按钮 */}
