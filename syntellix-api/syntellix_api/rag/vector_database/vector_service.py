@@ -33,3 +33,13 @@ class VectorService:
             logger.info("Nodes added successfully")
         except Exception as e:
             logger.error(f"Error adding nodes: {str(e)}", exc_info=True)
+
+    def delete_by_knowledge_base_and_document_id(self, knowledge_base_id: str, document_id: str) -> None:
+        logger.info(f"Deleting document with knowledge_base_id {knowledge_base_id} and document_id {document_id}")
+        try:
+            self._vector_processor.delete_by_knowledge_base_and_document_id(knowledge_base_id, document_id)
+            logger.info("Document deleted successfully")
+        except Exception as e:
+            logger.error(f"Error deleting document: {str(e)}", exc_info=True)
+
+    

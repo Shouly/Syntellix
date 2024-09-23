@@ -18,6 +18,7 @@ from syntellix_api.services.errors.account import NoPermissionError
 from syntellix_api.services.errors.dataset import DatasetNameDuplicateError
 from syntellix_api.services.errors.file import FileNotExistsError
 from syntellix_api.tasks.document_processing import process_document
+from syntellix_api.rag.vector_database.vector_service import VectorService
 
 logger = logging.getLogger(__name__)
 
@@ -340,10 +341,14 @@ class DocumentService:
                 (doc.name, doc.extension, doc.size): doc for doc in existing_documents
             }
 
+            vector_service = VectorService(knowledge_base.tenant_id)
+
             for file in files:
                 file_key = (file.name, file.extension, file.size)
                 if file_key in existing_doc_map:
                     doc = existing_doc_map[file_key]
+                    # 删除原来的索引
+                    vector_service.delete_by_knowledge_base_and_document_id(knowledge_base.id, doc.id)
                     doc.updated_at = datetime.datetime.now()
                     doc.parser_type = DocumentParserTypeEnum(args["parser_type"])
                     doc.parser_config = args["parser_config"]

@@ -72,7 +72,7 @@ function ProcessingStatus({ onBackToDocuments, knowledgeBaseId, fileIds }) {
             case 'pending':
                 return 'bg-gray-500';
             case 'processing':
-                return 'bg-indigo-600';
+                return 'bg-indigo-500';
             case 'completed':
                 return 'bg-green-600';
             case 'failed':
@@ -106,7 +106,7 @@ function ProcessingStatus({ onBackToDocuments, knowledgeBaseId, fileIds }) {
             </div>
 
             <p className="text-sm text-gray-600">
-                文档正在处理中，请稍候。处理完成后，您可以在知识库的文档列表中找到它们。
+                处理完成后，您可以在知识库的文档列表中找到它们。
             </p>
 
             <div className="space-y-4">
@@ -122,19 +122,17 @@ function ProcessingStatus({ onBackToDocuments, knowledgeBaseId, fileIds }) {
                                 <span className="ml-1">{getStatusText(doc)}</span>
                             </span>
                         </div>
-                        {doc.parse_status !== 'failed' && doc.parse_status !== 'completed' && (
-                            <div className="flex items-center mt-2">
-                                <div className="w-full bg-gray-200 rounded-full h-1.5 flex-grow mr-2">
-                                    <div
-                                        className={`h-1.5 rounded-full transition-all duration-500 ease-in-out ${getProgressColor(doc.parse_status)}`}
-                                        style={{ width: `${doc.progress || 0}%` }}
-                                    ></div>
-                                </div>
-                                <span className={`text-xs font-medium text-${getStatusTextColor(doc.parse_status)}`}>
-                                    {doc.progress || 0}%
-                                </span>
+                        <div className="flex items-center mt-2">
+                            <div className="w-full bg-gray-200 rounded-full h-1.5 flex-grow mr-2">
+                                <div
+                                    className={`h-1.5 rounded-full transition-all duration-500 ease-in-out ${getProgressColor(doc.parse_status)} ${doc.parse_status === 'processing' ? 'animate-pulse' : ''}`}
+                                    style={{ width: `${doc.parse_status === 'completed' ? 100 : doc.progress || 0}%` }} // Ensure 100% width for completed status
+                                ></div>
                             </div>
-                        )}
+                            <span className={`text-xs font-medium text-${getStatusTextColor(doc.parse_status)}`}>
+                                {doc.parse_status === 'completed' ? 100 : doc.progress || 0}%
+                            </span>
+                        </div>
                         {doc.message && (
                             <div className="mt-2 text-xs">
                                 <p className="text-gray-600">{doc.message}</p>
@@ -143,13 +141,6 @@ function ProcessingStatus({ onBackToDocuments, knowledgeBaseId, fileIds }) {
                     </div>
                 ))}
             </div>
-
-            {isAllCompleted && !hasFailures && (
-                <div className="bg-green-50 p-4 rounded-lg">
-                    <h3 className="text-lg font-semibold text-green-800 mb-2">处理完成</h3>
-                    <p className="text-sm text-green-700">所有文档已成功处理完毕。</p>
-                </div>
-            )}
 
             {hasFailures && (
                 <div className="bg-yellow-50 p-4 rounded-lg">
@@ -183,17 +174,6 @@ function ProcessingStatus({ onBackToDocuments, knowledgeBaseId, fileIds }) {
             </div>
         </div>
     );
-}
-
-// 格式化解析状态
-function formatParseStatus(status) {
-    const statusMap = {
-        'pending': '待处理',
-        'processing': '处理中',
-        'completed': '已完成',
-        'failed': '失败'
-    };
-    return statusMap[status] || status;
 }
 
 // 获取背景颜色
@@ -252,7 +232,7 @@ function getStatusText(doc) {
         case 'processing':
             return '处理中';
         case 'completed':
-            return '处理完成';
+            return '处理成功';
         case 'failed':
             return '处理失败';
         default:

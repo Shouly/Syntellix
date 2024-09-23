@@ -66,9 +66,13 @@ def process_document(
         def update_progress(progress, message):
             document.progress = int(progress * 100)
             document.progress_msg = message
-            document.progress_status = DocumentParseStatusEnum.PROCESSING
             db.session.commit()
             logger.info(f"Document {document_id} progress: {document.progress}% - {message}")
+
+        # 更新状态为处理中
+        document.parse_status = DocumentParseStatusEnum.PROCESSING
+        document.begin_time = datetime.now()
+        db.session.commit()
 
         chunks = parser.chunk(
             document.name,
@@ -123,6 +127,7 @@ def process_document(
         update_progress(1.0, "处理完成")
         document.parse_status = DocumentParseStatusEnum.COMPLETED
         document.chunk_num = total_chunks
+        document.process_duration = (datetime.now() - document.begin_time).total_seconds()
         db.session.commit()
 
     except Exception as e:

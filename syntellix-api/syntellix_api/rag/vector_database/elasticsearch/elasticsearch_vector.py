@@ -199,6 +199,30 @@ class ElasticSearchVector:
             logger.error(f"Error deleting text: {ref_doc_id}")
             raise
 
+    def delete_by_knowledge_base_and_document_id(self, knowledge_base_id: str, document_id: str) -> None:
+        try:
+            res = self._client.delete_by_query(
+                index=self._index_name,
+                body={
+                    "query": {
+                        "bool": {
+                            "must": [
+                                {"term": {"metadata.knowledge_base_id": knowledge_base_id}},
+                                {"term": {"metadata.document_id": document_id}}
+                            ]
+                        }
+                    }
+                },
+                refresh=True,
+            )
+            if res["deleted"] == 0:
+                logger.warning(f"Could not find document with knowledge_base_id {knowledge_base_id} and document_id {document_id} to delete")
+            else:
+                logger.debug(f"Deleted document with knowledge_base_id {knowledge_base_id} and document_id {document_id} from index")
+        except Exception as e:
+            logger.error(f"Error deleting document with knowledge_base_id {knowledge_base_id} and document_id {document_id}: {e}")
+            raise
+
     def query(
         self,
         query: dict,
