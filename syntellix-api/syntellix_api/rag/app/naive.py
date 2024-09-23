@@ -251,6 +251,7 @@ def chunk(
         return res
 
     elif re.search(r"\.pdf$", filename, re.IGNORECASE):
+        callback(0.1, "Start to parse.")
         pdf_parser = (
             Pdf() if parser_config.get("layout_recognize", True) else PlainParser()
         )
@@ -277,7 +278,7 @@ def chunk(
             parser_config.get("chunk_token_num", 128),
             parser_config.get("delimiter", "\n!?;。；！？"),
         )
-        callback(0.8, "Finish parsing.")
+        callback(0.4, "Finish parsing.")
 
     elif re.search(r"\.(md|markdown)$", filename, re.IGNORECASE):
         callback(0.1, "Start to parse.")
@@ -285,19 +286,19 @@ def chunk(
             filename, binary
         )
         res = tokenize_table(tbls, doc, eng)
-        callback(0.8, "Finish parsing.")
+        callback(0.4, "Finish parsing.")
 
     elif re.search(r"\.(htm|html)$", filename, re.IGNORECASE):
         callback(0.1, "Start to parse.")
         sections = HtmlParser()(filename, binary)
         sections = [(l, "") for l in sections if l]
-        callback(0.8, "Finish parsing.")
+        callback(0.4, "Finish parsing.")
 
     elif re.search(r"\.json$", filename, re.IGNORECASE):
         callback(0.1, "Start to parse.")
         sections = JsonParser(int(parser_config.get("chunk_token_num", 128)))(binary)
         sections = [(l, "") for l in sections if l]
-        callback(0.8, "Finish parsing.")
+        callback(0.4, "Finish parsing.")
 
     elif re.search(r"\.doc$", filename, re.IGNORECASE):
         callback(0.1, "Start to parse.")
@@ -305,7 +306,7 @@ def chunk(
         doc_parsed = parser.from_buffer(binary)
         sections = doc_parsed["content"].split("\n")
         sections = [(l, "") for l in sections if l]
-        callback(0.8, "Finish parsing.")
+        callback(0.4, "Finish parsing.")
 
     else:
         raise NotImplementedError(
