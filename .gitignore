@@ -71,6 +71,9 @@ instance/
 # Sphinx documentation
 docs/_build/
 
+# deepdoc models
+syntellix-api/syntellix_api/rag/res/deepdoc/
+
 # PyBuilder
 .pybuilder/
 target/
