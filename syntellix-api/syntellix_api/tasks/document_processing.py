@@ -79,7 +79,13 @@ def process_document(
             callback=update_progress,
         )
 
-        update_progress(0.5, "Parsing completed. Starting embedding process.")
+        if not chunks:
+            update_progress(1.0, "文件解析失败，未找到有效内容")
+            document.parse_status = DocumentParseStatusEnum.FAILED
+            db.session.commit()
+            return
+
+        update_progress(0.5, "文件解析完成，开始嵌入过程")
 
         vector_service = VectorService(tenant_id)
         
@@ -88,6 +94,7 @@ def process_document(
         
         nodes = []
         total_chunks = len(chunks)
+        print(f"total_chunks: {total_chunks}")
         for i, chunk in enumerate(chunks, 1):
             text = chunk["content_with_weight"]
             # Calculate embedding for each text chunk individually
@@ -106,15 +113,16 @@ def process_document(
 
             # Update progress for embedding process
             embedding_progress = 0.5 + (i / total_chunks) * 0.4
-            update_progress(embedding_progress, f"Embedding progress: {i}/{total_chunks}")
+            update_progress(embedding_progress, f"嵌入进度: {i}/{total_chunks}")
 
-        update_progress(0.9, "Embedding completed. Adding nodes to vector database.")
+        update_progress(0.9, "文件嵌入完成，开始保存嵌入数据")
         
         # Add nodes to vector database
         vector_service.add_nodes(nodes)
 
-        update_progress(1.0, "Processing completed")
+        update_progress(1.0, "处理完成")
         document.parse_status = DocumentParseStatusEnum.COMPLETED
+        document.chunk_num = total_chunks
         db.session.commit()
 
     except Exception as e:
