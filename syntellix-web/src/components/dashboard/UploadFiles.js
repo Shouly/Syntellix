@@ -7,7 +7,11 @@ import {
     mdiFilePdfBox,
     mdiFileWordBox,
     mdiLanguageHtml5,
-    mdiLanguageMarkdown
+    mdiLanguageMarkdown,
+    mdiFilePowerpointBox,
+    mdiCodeJson,
+    mdiEmail,
+    mdiImage
 } from '@mdi/js';
 import Icon from '@mdi/react';
 import axios from 'axios';
@@ -61,7 +65,7 @@ function UploadFiles({ onUploadComplete, onBack, knowledgeBaseId }) {
     const handleFiles = async (uploadedFiles) => {
         const newValidFiles = [];
         const newErrors = [];
-        const validTypes = ['txt', 'md', 'pdf', 'html', 'xlsx', 'xls', 'docx', 'csv'];
+        const validTypes = ['txt', 'md', 'pdf', 'html', 'xlsx', 'xls', 'docx', 'csv', 'ppt', 'json', 'eml', 'jpg', 'jpeg', 'png', 'gif'];
         const maxSize = 15 * 1024 * 1024; // 15MB in bytes
 
         for (let file of Array.from(uploadedFiles)) {
@@ -154,6 +158,17 @@ function UploadFiles({ onUploadComplete, onBack, knowledgeBaseId }) {
                 return <Icon path={mdiLanguageHtml5} {...baseProps} className="w-5 h-5 text-orange-500" />;
             case 'md':
                 return <Icon path={mdiLanguageMarkdown} {...baseProps} className="w-5 h-5 text-purple-500" />;
+            case 'ppt':
+                return <Icon path={mdiFilePowerpointBox} {...baseProps} className="w-5 h-5 text-orange-500" />;
+            case 'json':
+                return <Icon path={mdiCodeJson} {...baseProps} className="w-5 h-5 text-yellow-500" />;
+            case 'eml':
+                return <Icon path={mdiEmail} {...baseProps} className="w-5 h-5 text-blue-500" />;
+            case 'jpg':
+            case 'jpeg':
+            case 'png':
+            case 'gif':
+                return <Icon path={mdiImage} {...baseProps} className="w-5 h-5 text-pink-500" />;
             default:
                 return <Icon path={mdiFile} {...baseProps} className="w-5 h-5 text-gray-500" />;
         }
@@ -243,7 +258,7 @@ function UploadFiles({ onUploadComplete, onBack, knowledgeBaseId }) {
                                         点击或拖拽文件至此区域即可上传
                                     </p>
                                     <p className="text-xs text-gray-500 font-noto-sans-sc">
-                                        支持 TXT、MARKDOWN、PDF、HTML、XLSX、XLS、DOCX、CSV，每个文件不超过 15MB
+                                        支持 TXT、MARKDOWN、PDF、HTML、XLSX、XLS、DOCX、CSV、PPT、JSON、EML、IMAGE，每个文件不超过 15MB
                                     </p>
                                 </div>
                             </div>

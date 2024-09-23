@@ -185,7 +185,7 @@ const methodDescriptions = {
 function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds }) {
     const [splitConfig, setSplitConfig] = useState({
         method: 'naive', // 默认设置为 'naive'，对应"通用"
-        chunkSize: 512,
+        chunkSize: 1024,
         separator: '\\n!?。；！？',
         layoutAware: true
     });
