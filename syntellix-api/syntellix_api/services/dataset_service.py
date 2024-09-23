@@ -1,5 +1,6 @@
 import datetime
 import logging
+import os
 from typing import Optional
 
 from syntellix_api.extensions.ext_database import db
@@ -13,48 +14,17 @@ from syntellix_api.models.dataset_model import (
     KnowledgeBasePermissionEnum,
     UploadFile,
 )
-from syntellix_api.services.file_service import FileService
 from syntellix_api.services.errors.account import NoPermissionError
 from syntellix_api.services.errors.dataset import DatasetNameDuplicateError
 from syntellix_api.services.errors.file import FileNotExistsError
-from syntellix_api.tasks.document_chunck_task import enqueue_document_processing
-from syntellix_api.rag.app import (
-    audio,
-    book,
-    email_app,
-    knowledge_graph,
-    laws,
-    manual,
-    naive,
-    one,
-    paper,
-    picture,
-    presentation,
-    qa,
-    resume,
-    table,
-)
-from syntellix_api.rag.vector_database.vector_service import VectorService
+from syntellix_api.tasks.document_processing import process_document
 
 logger = logging.getLogger(__name__)
 
-FACTORY = {
-    DocumentParserTypeEnum.NAIVE.value: naive,
-    DocumentParserTypeEnum.PAPER.value: paper,
-    DocumentParserTypeEnum.BOOK.value: book,
-    DocumentParserTypeEnum.PRESENTATION.value: presentation,
-    DocumentParserTypeEnum.MANUAL.value: manual,
-    DocumentParserTypeEnum.LAWS.value: laws,
-    DocumentParserTypeEnum.QA.value: qa,
-    DocumentParserTypeEnum.TABLE.value: table,
-    DocumentParserTypeEnum.RESUME.value: resume,
-    DocumentParserTypeEnum.PICTURE.value: picture,
-    DocumentParserTypeEnum.ONE.value: one,
-    DocumentParserTypeEnum.AUDIO.value: audio,
-    DocumentParserTypeEnum.EMAIL.value: email_app,
-    DocumentParserTypeEnum.KG.value: knowledge_graph,
-}
-
+# Ensure that the 'fork' start method is not used in macOS
+if os.name == 'posix' and os.uname().sysname == 'Darwin':
+    import multiprocessing
+    multiprocessing.set_start_method('spawn', force=True)
 
 class KonwledgeBaseService:
 
@@ -372,7 +342,6 @@ class DocumentService:
 
             for file in files:
                 file_key = (file.name, file.extension, file.size)
-                document_id = None
                 if file_key in existing_doc_map:
                     doc = existing_doc_map[file_key]
                     doc.updated_at = datetime.datetime.now()
@@ -382,7 +351,6 @@ class DocumentService:
                     doc.upload_file_id = file.id
                     doc.parse_status = DocumentParseStatusEnum.PENDING
                     documents.append(doc)
-                    document_id = doc.id
                 else:
                     new_doc = Document(
                         knowledge_base_id=knowledge_base.id,
@@ -398,37 +366,9 @@ class DocumentService:
                         location=file.key,
                         parse_status=DocumentParseStatusEnum.PENDING,
                     )
-                    db.session.add(new_doc)  # 直接添加到 session
+                    db.session.add(new_doc)
                     documents.append(new_doc)
-                    document_id = new_doc.id
-                parser_type = DocumentParserTypeEnum(args["parser_type"])
-                parser_config = args["parser_config"]
 
-                if parser_type not in FACTORY:
-                    raise ValueError(f"Unsupported parser type: {parser_type}")
-
-                parser = FACTORY[parser_type]
-                file_binary = FileService.read_file_binary(file.key)
-
-                chunks = parser.chunk(
-                    file.name,
-                    binary=file_binary,
-                    from_page=0,
-                    to_page=100000,
-                    parser_config=parser_config,
-                    callback=lambda x,y: print(x,y),
-                )
-                print(chunks[0])
-                try:
-                    vector_service = VectorService(
-                        user.current_tenant_id,
-                        knowledge_base.id,
-                        document_id,
-                    )
-                    vector_service.add_nodes(text_chunks=[chunk["content_with_weight"] for chunk in chunks])
-                except Exception as e:
-                    logger.error(f"Error adding nodes to vector service: {str(e)}")
-                    # Handle error as needed
         try:
             db.session.commit()
             logger.info(f"Committed {len(documents)} documents to the database.")
@@ -437,23 +377,25 @@ class DocumentService:
             logger.error(f"Failed to commit documents: {str(e)}")
             raise
 
-        # 确保所有文档都有 ID
-        documents_with_id = [doc for doc in documents if doc.id is not None]
+        # 为每个文档发送 Celery 任务
+        for document in documents:
+            try:
+                process_document.delay(
+                    document.id,
+                    document.location,
+                    document.parser_type,
+                    document.parser_config,
+                    user.current_tenant_id,
+                    knowledge_base.id,
+                )
+                logger.info(f"Celery task sent for document {document.id}")
+            except Exception as e:
+                logger.error(
+                    f"Failed to send Celery task for document {document.id}: {str(e)}"
+                )
 
-        # # 为每个文档发送 RQ 任务
-        # for document in documents_with_id:
-        #     try:
-        #         job = enqueue_document_processing(document.id)
-        #         logger.info(
-        #             f"RQ task sent for document {document.id}. Job ID: {job.id}"
-        #         )
-        #     except Exception as e:
-        #         logger.error(
-        #             f"Failed to send RQ task for document {document.id}: {str(e)}"
-        #         )
-
-        logger.info(f"All tasks sent. Returning {len(documents_with_id)} documents.")
-        return documents_with_id, len(documents_with_id)
+        logger.info(f"All tasks sent. Returning {len(documents)} documents.")
+        return documents, len(documents)
 
     @staticmethod
     def get_documents_progress(knowledge_base_id, file_ids):

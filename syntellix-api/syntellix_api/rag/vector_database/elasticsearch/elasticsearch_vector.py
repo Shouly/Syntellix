@@ -1,13 +1,13 @@
-import asyncio
 import urllib.parse as urlparse
 import uuid
 from logging import getLogger
 from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union, cast
+import os
 
 import numpy as np
 import requests
 from elasticsearch import Elasticsearch
-from elasticsearch.helpers import async_bulk, bulk
+from elasticsearch.helpers import bulk
 from flask import current_app
 from pydantic import BaseModel, model_validator
 from syntellix_api.rag.vector_database.vector_model import BaseNode
@@ -20,6 +20,10 @@ DISTANCE_STRATEGIES = Literal[
     "EUCLIDEAN_DISTANCE",
 ]
 
+# Ensure that the 'fork' start method is not used in macOS
+if os.name == 'posix' and os.uname().sysname == 'Darwin':
+    import multiprocessing
+    multiprocessing.set_start_method('spawn', force=True)
 
 class ElasticSearchConfig(BaseModel):
     host: str
@@ -62,7 +66,7 @@ class ElasticSearchVector:
 
     def _init_client(self, config: ElasticSearchConfig) -> Elasticsearch:
         try:
-            parsed_url = urlparse(config.host)
+            parsed_url = urlparse.urlparse(config.host)
             if parsed_url.scheme in ["http", "https"]:
                 hosts = f"{config.host}:{config.port}"
             else:
@@ -79,10 +83,10 @@ class ElasticSearchVector:
 
         return client
 
-    async def _create_index_if_not_exists(
+    def _create_index_if_not_exists(
         self, index_name: str, dims_length: Optional[int] = None
     ) -> None:
-        exists = await asyncio.to_thread(self._client.indices.exists, index=index_name)
+        exists = self._client.indices.exists(index=index_name)
         if exists:
             logger.debug(f"Index {index_name} already exists. Skipping creation.")
         else:
@@ -127,9 +131,9 @@ class ElasticSearchVector:
             logger.debug(
                 f"Creating index {index_name} with mappings {index_settings['mappings']}"
             )
-            await asyncio.to_thread(self._client.indices.create, index=index_name, **index_settings)
+            self._client.indices.create(index=index_name, **index_settings)
 
-    async def async_add(
+    def add(
         self,
         nodes: List[BaseNode],
         *,
@@ -141,12 +145,11 @@ class ElasticSearchVector:
 
         if create_index_if_not_exists:
             dims_length = len(nodes[0].get_embedding())
-            await self._create_index_if_not_exists(
+            self._create_index_if_not_exists(
                 index_name=self._index_name, dims_length=dims_length
             )
 
-        # 将批量添加操作包装在 asyncio.to_thread 中
-        return await asyncio.to_thread(self._bulk_add, nodes, **add_kwargs)
+        return self._bulk_add(nodes, **add_kwargs)
 
     def _bulk_add(self, nodes: List[BaseNode], **add_kwargs: Any) -> List[str]:
         requests = []
@@ -162,7 +165,7 @@ class ElasticSearchVector:
                     self._vector_field: node.get_embedding(),
                     self._text_field: node.get_content(),
                     "metadata": node.get_metadata(),
-                }
+                },
             }
             requests.append(request)
             return_ids.append(_id)
@@ -181,11 +184,6 @@ class ElasticSearchVector:
             raise
 
     def delete(self, ref_doc_id: str, **delete_kwargs: Any) -> None:
-        return asyncio.get_event_loop().run_until_complete(
-            self.async_delete(ref_doc_id, **delete_kwargs)
-        )
-
-    async def async_delete(self, ref_doc_id: str, **delete_kwargs: Any) -> None:
         try:
             res = self._client.delete_by_query(
                 index=self._index_name,
@@ -208,18 +206,6 @@ class ElasticSearchVector:
         es_filter: Optional[List[Dict]] = None,
         **kwargs: Any,
     ) -> list[BaseNode]:
-        return asyncio.get_event_loop().run_until_complete(
-            self.async_query(query, custom_query, es_filter, **kwargs)
-        )
-
-    async def async_query(
-        self,
-        query: dict,
-        custom_query: Optional[Callable[[Dict, Union[dict, None]], Dict]] = None,
-        es_filter: Optional[List[Dict]] = None,
-        **kwargs: Any,
-    ) -> Tuple[List[BaseNode], List[str], List[float]]:
-
         query_embedding = cast(List[float], query["query_embedding"])
 
         es_query = {}
@@ -303,14 +289,17 @@ class ElasticSearchVectorFactory:
                 username=config.get("ELASTICSEARCH_USERNAME"),
                 password=config.get("ELASTICSEARCH_PASSWORD"),
             ),
-            client=self._es_client
+            client=self._es_client,
         )
 
     @staticmethod
     def _init_client(config):
         return Elasticsearch(
             hosts=f"http://{config.get('ELASTICSEARCH_HOST')}:{config.get('ELASTICSEARCH_PORT')}",
-            basic_auth=(config.get("ELASTICSEARCH_USERNAME"), config.get("ELASTICSEARCH_PASSWORD")),
+            basic_auth=(
+                config.get("ELASTICSEARCH_USERNAME"),
+                config.get("ELASTICSEARCH_PASSWORD"),
+            ),
             request_timeout=100000,
             retry_on_timeout=True,
             max_retries=10000,

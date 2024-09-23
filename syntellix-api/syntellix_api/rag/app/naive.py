@@ -235,7 +235,6 @@ def chunk(
         sections, tbls = Docx()(filename, binary)
         res = tokenize_table(tbls, doc, eng)  # just for table
 
-        callback(0.8, "Finish parsing.")
         st = timer()
 
         chunks, images = naive_merge_docx(

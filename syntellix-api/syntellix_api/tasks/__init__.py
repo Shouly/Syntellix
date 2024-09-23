@@ -1,1 +1,1 @@
-from .document_chunck_task import process_document_chunk
+from syntellix_api.tasks import document_processing
