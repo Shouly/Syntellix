@@ -147,7 +147,7 @@ function Dashboard({ setIsAuthenticated }) {
       case 'KnowledgeBase':
         if (isCreatingKnowledgeBase) {
           return (
-            <CreateKnowledgeBase 
+            <CreateKnowledgeBase
               onBack={handleBackToKnowledgeBase}
               onCreated={(newKnowledgeBase) => {
                 setIsCreatingKnowledgeBase(false);
@@ -172,7 +172,7 @@ function Dashboard({ setIsAuthenticated }) {
           );
         } else {
           return (
-            <KnowledgeBase 
+            <KnowledgeBase
               onCreateNew={() => setIsCreatingKnowledgeBase(true)}
               onKnowledgeBaseClick={handleKnowledgeBaseClick}
             />
@@ -239,14 +239,14 @@ function Dashboard({ setIsAuthenticated }) {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-indigo-100 to-purple-50 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-gray-50 relative overflow-hidden">
       {/* Subtle tech-inspired background */}
-      <div className="absolute inset-0 overflow-hidden">
+      {/* <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjZmZmZmZmMTAiPjwvcmVjdD4KPHBhdGggZD0iTTAgNUw1IDBaTTYgNEw0IDZaTS0xIDFMMSAtMVoiIHN0cm9rZT0iIzAwMDAwMDEwIiBzdHJva2Utd2lkdGg9IjEiPjwvcGF0aD4KPC9zdmc+')] opacity-10"></div>
-      </div>
+      </div> */}
 
       {/* Top Navigation */}
-      <nav className="bg-white bg-opacity-30 backdrop-filter backdrop-blur-sm p-3 z-10">
+      <nav className="bg-white backdrop-filter backdrop-blur-sm p-3 z-10 shadow">
         <div className="max-w-full mx-auto flex justify-between items-center">
           {/* Logo - Left aligned */}
           <div className="flex-shrink-0">
@@ -263,11 +263,10 @@ function Dashboard({ setIsAuthenticated }) {
             {menuItems.map((item, index) => (
               <React.Fragment key={item.name}>
                 <button
-                  className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                    activeMenu === item.name
+                  className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${activeMenu === item.name
                       ? 'bg-indigo-200 bg-opacity-70 text-indigo-900 hover:bg-opacity-90 shadow-md'
                       : 'text-gray-600 hover:bg-indigo-50 hover:bg-opacity-50 hover:text-indigo-700'
-                  }`}
+                    }`}
                   onClick={() => handleMenuChange(item.name)}
                 >
                   {activeMenu === item.name ? (
@@ -298,16 +297,14 @@ function Dashboard({ setIsAuthenticated }) {
       </nav>
 
       {/* Main content area */}
-      <div className="flex-1 flex flex-col">
-        <div className="flex-1 flex flex-col bg-white bg-opacity-30 backdrop-filter backdrop-blur-sm overflow-hidden">
-          {/* Content area */}
-          <main className="flex-1 overflow-auto bg-white bg-opacity-10 backdrop-filter backdrop-blur-sm">
-            <div className="px-4 sm:px-6 md:px-8 lg:px-10">
-              {/* Content */}
-              {renderContent()}
-            </div>
-          </main>
-        </div>
+      <div className="flex-1 flex flex-col bg-white bg-opacity-30 backdrop-filter backdrop-blur-sm overflow-hidden">
+        {/* Content area */}
+        <main className="flex-1 overflow-auto bg-white bg-opacity-10 backdrop-filter backdrop-blur-sm">
+          <div className="px-4 sm:px-6 md:px-8 lg:px-10">
+            {/* Content */}
+            {renderContent()}
+          </div>
+        </main>
       </div>
 
       <AccountSettings

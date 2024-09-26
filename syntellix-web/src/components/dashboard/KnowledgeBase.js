@@ -112,7 +112,7 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
       className="group bg-white bg-opacity-30 backdrop-filter backdrop-blur-sm rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative cursor-pointer"
       onClick={handleCreateKnowledgeBase}
     >
-      <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 opacity-70 group-hover:opacity-80 transition-all duration-300"></div>
+      <div className="absolute inset-0 rounded-xl bg-indigo-50 opacity-70 group-hover:opacity-80 transition-all duration-300"></div>
       <div className="absolute inset-[1px] rounded-[11px] flex items-center p-6 z-10">
         <div className="w-16 h-16 bg-indigo-100 bg-opacity-50 rounded-lg flex items-center justify-center mr-4 flex-shrink-0 group-hover:bg-opacity-70 transition-all duration-300">
           <PlusIcon className="w-10 h-10 text-indigo-500 group-hover:text-indigo-600 transition-all duration-300" />
@@ -195,7 +195,7 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
             className="group bg-white bg-opacity-30 backdrop-filter backdrop-blur-sm rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative cursor-pointer"
             onClick={() => handleKnowledgeBaseClick(kb)}
           >
-            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-indigo-100 via-purple-100 to-blue-100 opacity-30 group-hover:opacity-50 transition-all duration-300"></div>
+            <div className="absolute inset-0 rounded-xl bg-indigo-100 opacity-30 group-hover:opacity-50 transition-all duration-300"></div>
             <div className="absolute inset-[1px] bg-white bg-opacity-50 rounded-[11px] flex flex-col justify-between z-10">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-2">
