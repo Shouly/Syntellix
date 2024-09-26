@@ -146,21 +146,21 @@ function KnowledgeBaseDetail({ id, onBack }) {
 
   if (isLoading || isDocumentsLoading) {
     return (
-      <div className="flex pt-4 h-full">
+      <div className="flex pt-4 gap-6 px-6 h-full">
         {/* Left sidebar skeleton */}
-        <div className="w-58 pr-6 border-r border-gray-200">
+        <div className="bg-bgPrimary rounded-lg shadow-sm p-6 w-64">
           <div className="mb-10 mt-5 animate-pulse">
             <div className="flex items-center mb-10">
-              <div className="w-8 h-8 bg-indigo-100 rounded-full mr-3"></div>
-              <div className="h-6 bg-indigo-100 rounded w-3/4"></div>
+              <div className="w-8 h-8 bg-primary bg-opacity-20 rounded-full mr-3"></div>
+              <div className="h-6 bg-primary bg-opacity-20 rounded w-3/4"></div>
             </div>
           </div>
           <nav>
-            <ul className="space-y-2">
+            <ul className="space-y-4">
               {[1, 2, 3].map((item) => (
-                <li key={item} className="flex items-center px-4 py-2">
-                  <div className="w-5 h-5 bg-indigo-100 rounded mr-3"></div>
-                  <div className="h-4 bg-indigo-50 rounded w-3/4"></div>
+                <li key={item} className="flex items-center py-2 px-3 rounded-lg">
+                  <div className="w-5 h-5 bg-primary bg-opacity-20 rounded mr-3"></div>
+                  <div className="h-4 bg-primary bg-opacity-10 rounded w-3/4"></div>
                 </li>
               ))}
             </ul>
@@ -168,33 +168,35 @@ function KnowledgeBaseDetail({ id, onBack }) {
         </div>
 
         {/* Main content area skeleton */}
-        <div className="flex-1 pl-4 flex flex-col h-full">
-          <div className="bg-white bg-opacity-90 backdrop-filter backdrop-blur-sm rounded-lg shadow-sm p-6 flex flex-col h-full">
-            <div className="mb-10">
-              <div className="h-6 bg-indigo-100 rounded w-1/4 mb-1"></div>
-              <div className="h-4 bg-gray-100 rounded w-3/4"></div>
-            </div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-64 h-9 bg-indigo-50 rounded"></div>
-              <div className="w-32 h-9 bg-indigo-200 rounded"></div>
-            </div>
-            <div className="overflow-x-auto flex-grow" style={{ minHeight: '400px' }}>
+        <div className="flex-1 flex flex-col space-y-6 bg-bgPrimary rounded-lg shadow-sm p-6">
+          <div className="space-y-6 animate-pulse">
+            <div className="h-6 bg-primary bg-opacity-20 rounded w-1/4"></div>
+            <div className="h-4 bg-primary bg-opacity-10 rounded w-3/4"></div>
+          </div>
+
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-64 h-9 bg-bgSecondary rounded"></div>
+            <div className="w-32 h-9 bg-primary bg-opacity-20 rounded"></div>
+          </div>
+
+          <div className="flex-grow bg-white bg-opacity-90 rounded-lg shadow-sm flex flex-col" style={{ minHeight: '400px' }}>
+            <div className="overflow-x-auto flex-grow">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    {[1, 2, 3, 4, 5, 6].map((item) => (
+                    {[1, 2, 3, 4, 5, 6, 7].map((item) => (
                       <th key={item} className="px-4 py-3">
-                        <div className="h-4 bg-indigo-100 rounded"></div>
+                        <div className="h-4 bg-primary bg-opacity-10 rounded"></div>
                       </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {[1, 2, 3].map((row) => (
-                    <tr key={row}>
-                      {[1, 2, 3, 4, 5, 6].map((cell) => (
+                  {[1, 2, 3, 4, 5].map((row) => (
+                    <tr key={row} className="animate-pulse">
+                      {[1, 2, 3, 4, 5, 6, 7].map((cell) => (
                         <td key={cell} className="px-4 py-3">
-                          <div className="h-4 bg-gray-100 rounded"></div>
+                          <div className="h-4 bg-primary bg-opacity-5 rounded"></div>
                         </td>
                       ))}
                     </tr>
@@ -202,12 +204,13 @@ function KnowledgeBaseDetail({ id, onBack }) {
                 </tbody>
               </table>
             </div>
-            {/* Pagination skeleton */}
-            <div className="mt-4 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
-              <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                <div className="w-1/3 h-4 bg-gray-100 rounded"></div>
-                <div className="w-1/4 h-8 bg-gray-100 rounded"></div>
-              </div>
+          </div>
+
+          {/* Pagination skeleton */}
+          <div className="mt-4 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+              <div className="w-1/3 h-4 bg-primary bg-opacity-10 rounded"></div>
+              <div className="w-1/4 h-8 bg-primary bg-opacity-10 rounded"></div>
             </div>
           </div>
         </div>
@@ -253,7 +256,7 @@ function KnowledgeBaseDetail({ id, onBack }) {
   const totalPages = Math.ceil(totalDocuments / itemsPerPage);
 
   return (
-    <div className="flex pt-4 gap-6 px-6">
+    <div className="flex pt-4 gap-6 px-6 h-full">
       {/* Left sidebar with consistent background */}
       <div className="bg-bgPrimary rounded-lg shadow-sm p-6 w-64">
         <div className="mb-10 mt-5">
@@ -278,7 +281,7 @@ function KnowledgeBaseDetail({ id, onBack }) {
       </div>
 
       {/* Main content area */}
-      <div className="flex-1 space-y-6 bg-bgPrimary rounded-lg shadow-sm p-6">
+      <div className="flex-1 flex flex-col space-y-6 bg-bgPrimary rounded-lg shadow-sm p-6">
         <div className="space-y-6">
           <h3 className="text-lg font-semibold text-textBody font-sans-sc">文档</h3>
           <p className="text-sm text-textMuted font-sans-sc">
@@ -307,100 +310,108 @@ function KnowledgeBaseDetail({ id, onBack }) {
         </div>
 
         {/* Document List */}
-        <div className="overflow-x-auto bg-white bg-opacity-90 rounded-lg shadow-sm" style={{ minHeight: '400px' }}>
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                {columns.map((column) => (
-                  <th key={column.key} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {column.header}
-                  </th>
-                ))}
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  操作
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {documents.map((doc) => (
-                <tr key={doc.id} className="hover:bg-gray-50 transition-colors duration-200">
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="flex items-center">
-                      {getFileIcon(doc.name)}
-                      <span className="ml-2 text-sm text-gray-900 font-medium">{doc.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{formatFileSize(doc.size)}</td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{doc.chunk_num}</td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{formatProgress(doc.progress)}</td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusStyle(doc.parse_status)}`}>
-                      {formatParseStatus(doc.parse_status)}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(doc.created_at).toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                    <Menu as="div" className="relative inline-block text-left">
-                      <div>
-                        <Menu.Button className="text-gray-400 hover:text-gray-600 transition-colors duration-200">
-                          <EllipsisHorizontalIcon className="w-5 h-5" />
-                        </Menu.Button>
-                      </div>
-                      <Transition
-                        as={Fragment}
-                        enter="transition ease-out duration-100"
-                        enterFrom="transform opacity-0 scale-95"
-                        enterTo="transform opacity-100 scale-100"
-                        leave="transition ease-in duration-75"
-                        leaveFrom="transform opacity-100 scale-100"
-                        leaveTo="transform opacity-0 scale-95"
-                      >
-                        <Menu.Items className="absolute right-0 z-10 mt-2 w-36 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                          <div className="py-1">
-                            <Menu.Item>
-                              {({ active }) => (
-                                <button
-                                  className={`${active ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700'
-                                    } group flex w-full items-center px-3 py-2 text-sm font-medium font-noto-sans-sc`}
-                                >
-                                  <PencilIcon className="mr-2 h-4 w-4 text-gray-500" aria-hidden="true" />
-                                  重命名
-                                </button>
-                              )}
-                            </Menu.Item>
-                            <Menu.Item>
-                              {({ active }) => (
-                                <button
-                                  className={`${active ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700'
-                                    } group flex w-full items-center px-3 py-2 text-sm font-medium font-noto-sans-sc`}
-                                >
-                                  <AdjustmentsHorizontalIconOutline className="mr-2 h-4 w-4 text-gray-500" aria-hidden="true" />
-                                  分段设置
-                                </button>
-                              )}
-                            </Menu.Item>
-                            <Menu.Item>
-                              {({ active }) => (
-                                <button
-                                  className={`${active ? 'bg-red-50 text-red-700' : 'text-red-600'
-                                    } group flex w-full items-center px-3 py-2 text-sm font-medium font-noto-sans-sc`}
-                                >
-                                  <TrashIcon className="mr-2 h-4 w-4 text-red-500" aria-hidden="true" />
-                                  删除
-                                </button>
-                              )}
-                            </Menu.Item>
+        <div className="flex-grow overflow-hidden bg-white bg-opacity-90 rounded-lg shadow-sm flex flex-col" style={{ minHeight: '400px' }}>
+          {documents.length > 0 ? (
+            <div className="overflow-x-auto flex-grow">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    {columns.map((column) => (
+                      <th key={column.key} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {column.header}
+                      </th>
+                    ))}
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      操作
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {documents.map((doc) => (
+                    <tr key={doc.id} className="hover:bg-gray-50 transition-colors duration-200">
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex items-center">
+                          {getFileIcon(doc.name)}
+                          <span className="ml-2 text-sm text-gray-900 font-medium">{doc.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{formatFileSize(doc.size)}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{doc.chunk_num}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{formatProgress(doc.progress)}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusStyle(doc.parse_status)}`}>
+                          {formatParseStatus(doc.parse_status)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(doc.created_at).toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        <Menu as="div" className="relative inline-block text-left">
+                          <div>
+                            <Menu.Button className="text-gray-400 hover:text-gray-600 transition-colors duration-200">
+                              <EllipsisHorizontalIcon className="w-5 h-5" />
+                            </Menu.Button>
                           </div>
-                        </Menu.Items>
-                      </Transition>
-                    </Menu>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                          <Transition
+                            as={Fragment}
+                            enter="transition ease-out duration-100"
+                            enterFrom="transform opacity-0 scale-95"
+                            enterTo="transform opacity-100 scale-100"
+                            leave="transition ease-in duration-75"
+                            leaveFrom="transform opacity-100 scale-100"
+                            leaveTo="transform opacity-0 scale-95"
+                          >
+                            <Menu.Items className="absolute right-0 z-10 mt-2 w-36 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                              <div className="py-1">
+                                <Menu.Item>
+                                  {({ active }) => (
+                                    <button
+                                      className={`${active ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700'
+                                        } group flex w-full items-center px-3 py-2 text-sm font-medium font-noto-sans-sc`}
+                                    >
+                                      <PencilIcon className="mr-2 h-4 w-4 text-gray-500" aria-hidden="true" />
+                                      重命名
+                                    </button>
+                                  )}
+                                </Menu.Item>
+                                <Menu.Item>
+                                  {({ active }) => (
+                                    <button
+                                      className={`${active ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700'
+                                        } group flex w-full items-center px-3 py-2 text-sm font-medium font-noto-sans-sc`}
+                                    >
+                                      <AdjustmentsHorizontalIconOutline className="mr-2 h-4 w-4 text-gray-500" aria-hidden="true" />
+                                      分段设置
+                                    </button>
+                                  )}
+                                </Menu.Item>
+                                <Menu.Item>
+                                  {({ active }) => (
+                                    <button
+                                      className={`${active ? 'bg-red-50 text-red-700' : 'text-red-600'
+                                        } group flex w-full items-center px-3 py-2 text-sm font-medium font-noto-sans-sc`}
+                                    >
+                                      <TrashIcon className="mr-2 h-4 w-4 text-red-500" aria-hidden="true" />
+                                      删除
+                                    </button>
+                                  )}
+                                </Menu.Item>
+                              </div>
+                            </Menu.Items>
+                          </Transition>
+                        </Menu>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="flex-grow flex items-center justify-center text-gray-500">
+              <p>暂无文档</p>
+            </div>
+          )}
         </div>
 
         {/* Pagination */}

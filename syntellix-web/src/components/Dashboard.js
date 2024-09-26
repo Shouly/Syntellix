@@ -31,14 +31,6 @@ import CreateKnowledgeBase from './dashboard/CreateKnowledgeBase';
 import KnowledgeBaseDetail from './dashboard/KnowledgeBaseDetail';
 import UploadFiles from './dashboard/UploadFiles';
 
-const CustomE = () => (
-  <span className="relative inline-flex items-center justify-center w-[0.7em]">
-    <span className="absolute bg-primary h-[2px] w-full top-0"></span>
-    <span className="absolute bg-primary h-[2px] w-full top-1/2 -translate-y-1/2"></span>
-    <span className="absolute bg-primary h-[2px] w-full bottom-0"></span>
-  </span>
-);
-
 function Dashboard({ setIsAuthenticated }) {
   const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState('Agent');
@@ -199,35 +191,35 @@ function Dashboard({ setIsAuthenticated }) {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setShowMenu(!showMenu)}
-        className="flex items-center rounded-full py-1 px-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary"
+        className="flex items-center rounded-full py-1 px-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-light"
       >
-        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center overflow-hidden">
+        <div className="w-8 h-8 rounded-full bg-primary-light flex items-center justify-center overflow-hidden">
           {userProfile?.name ? (
-            <span className="text-sm font-semibold text-textPrimary">
+            <span className="text-sm font-semibold text-text-primary">
               {userProfile.name.charAt(0).toUpperCase()}
             </span>
           ) : (
-            <UserCircleIcon className="w-6 h-6 text-textPrimary" />
+            <UserCircleIcon className="w-6 h-6 text-text-primary" />
           )}
         </div>
-        <span className="ml-2 text-sm font-medium text-bgPrimary truncate max-w-[100px]">
+        <span className="ml-2 text-sm font-medium text-bg-primary truncate max-w-[100px]">
           {isLoadingProfile ? '加载中' : (userProfile?.name || '用户')}
         </span>
-        <ChevronDownIcon className="w-4 h-4 text-bgPrimary ml-1" />
+        <ChevronDownIcon className="w-4 h-4 text-bg-primary ml-1" />
       </button>
       {showMenu && (
-        <div className="absolute right-0 mt-2 w-48 bg-bgPrimary rounded-lg shadow-lg overflow-hidden z-20 border border-bgSecondary">
+        <div className="absolute right-0 mt-2 w-48 bg-bg-primary rounded-lg shadow-lg overflow-hidden z-20 border border-bg-secondary">
           <button
             onClick={handleAccountSettings}
-            className="w-full text-left py-2.5 px-4 text-sm text-textBody hover:bg-bgSecondary transition-colors duration-200 flex items-center"
+            className="w-full text-left py-2.5 px-4 text-sm text-text-body hover:bg-bg-secondary transition-colors duration-200 flex items-center"
           >
-            <Cog6ToothIconOutline className="w-5 h-5 mr-3 text-textBody" />
+            <Cog6ToothIconOutline className="w-5 h-5 mr-3 text-text-body" />
             设置
           </button>
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="w-full text-left py-2.5 px-4 text-sm text-textBody hover:bg-bgSecondary transition-colors duration-200 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full text-left py-2.5 px-4 text-sm text-text-body hover:bg-bg-secondary transition-colors duration-200 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoggingOut ? (
               <>
@@ -236,7 +228,7 @@ function Dashboard({ setIsAuthenticated }) {
               </>
             ) : (
               <>
-                <ArrowRightOnRectangleIcon className="w-5 h-5 mr-3 text-textBody" />
+                <ArrowRightOnRectangleIcon className="w-5 h-5 mr-3 text-text-body" />
                 登出
               </>
             )}
@@ -247,9 +239,9 @@ function Dashboard({ setIsAuthenticated }) {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-bgPrimary relative overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-bg-primary relative overflow-hidden">
       {/* Top Navigation */}
-      <nav className="bg-textBody backdrop-filter backdrop-blur-sm p-2 z-10 shadow">
+      <nav className="bg-sidebar backdrop-filter backdrop-blur-sm p-2 z-10 shadow">
         <div className="max-w-full mx-auto flex justify-between items-center pl-4">
           {/* Logo - Left aligned with fixed width */}
           <div className="flex-shrink-0 w-48">
@@ -269,20 +261,20 @@ function Dashboard({ setIsAuthenticated }) {
                 <button
                   className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                     activeMenu === item.name
-                      ? 'bg-primary bg-opacity-20 text-primary hover:bg-opacity-30 shadow-md'
-                      : 'text-bgPrimary hover:bg-primary hover:bg-opacity-10 hover:text-primary'
+                      ? 'bg-primary bg-opacity-20 text-primary-light hover:bg-opacity-30 shadow-md'
+                      : 'text-bg-primary hover:bg-primary hover:bg-opacity-10 hover:text-primary-light'
                   }`}
                   onClick={() => handleMenuChange(item.name)}
                 >
                   {activeMenu === item.name ? (
-                    <item.icon className="w-5 h-5 mr-2 text-primary" />
+                    <item.icon className="w-5 h-5 mr-2 text-primary-light" />
                   ) : (
-                    <item.outlineIcon className="w-5 h-5 mr-2 text-bgPrimary" />
+                    <item.outlineIcon className="w-5 h-5 mr-2 text-bg-primary" />
                   )}
                   <span>{item.displayName}</span>
                 </button>
                 {index === 0 && (
-                  <div className="h-6 w-px bg-bgPrimary mx-2 opacity-50"></div>
+                  <div className="h-6 w-px bg-bg-primary mx-2 opacity-50"></div>
                 )}
               </React.Fragment>
             ))}
@@ -302,9 +294,9 @@ function Dashboard({ setIsAuthenticated }) {
       </nav>
 
       {/* Main content area */}
-      <div className="flex-1 flex flex-col bg-bgSecondary bg-opacity-30 backdrop-filter backdrop-blur-sm overflow-hidden">
+      <div className="flex-1 flex flex-col bg-bg-secondary bg-opacity-30 backdrop-filter backdrop-blur-sm overflow-hidden">
         {/* Content area */}
-        <main className="flex-1 overflow-auto bg-bgSecondary bg-opacity-10 backdrop-filter backdrop-blur-sm">
+        <main className="flex-1 overflow-auto bg-bg-secondary bg-opacity-10 backdrop-filter backdrop-blur-sm">
           <div className="px-4 sm:px-6 md:px-8 lg:px-10">
             {/* Content */}
             {renderContent()}
