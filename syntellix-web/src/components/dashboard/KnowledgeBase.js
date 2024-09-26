@@ -109,17 +109,17 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
 
   const NewKnowledgeBaseCard = () => (
     <div
-      className="bg-bgPrimary rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative cursor-pointer"
+      className="bg-bgPrimary rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative cursor-pointer group"
       onClick={handleCreateKnowledgeBase}
     >
-      <div className="absolute inset-0 rounded-xl bg-info opacity-10 group-hover:opacity-20 transition-all duration-300"></div>
+      <div className="absolute inset-0 rounded-xl bg-primary opacity-5 group-hover:opacity-10 transition-all duration-300"></div>
       <div className="absolute inset-[1px] rounded-[11px] flex items-center p-6 z-10">
-        <div className="w-16 h-16 bg-info bg-opacity-10 rounded-lg flex items-center justify-center mr-4 flex-shrink-0 group-hover:bg-opacity-20 transition-all duration-300">
-          <PlusIcon className="w-10 h-10 text-textBody group-hover:text-info transition-all duration-300" />
+        <div className="w-16 h-16 bg-primary bg-opacity-10 rounded-lg flex items-center justify-center mr-4 flex-shrink-0 group-hover:bg-opacity-20 transition-all duration-300">
+          <PlusIcon className="w-10 h-10 text-textBody group-hover:text-primary transition-all duration-300" />
         </div>
         <div>
-          <h3 className="text-base font-semibold text-textBody font-noto-sans-sc mb-2 group-hover:text-info transition-all duration-300">创建知识库</h3>
-          <p className="text-xs text-textBody font-noto-sans-sc group-hover:text-info transition-all duration-300">
+          <h3 className="text-base font-semibold text-textBody font-noto-sans-sc mb-2 group-hover:text-primary transition-all duration-300">创建知识库</h3>
+          <p className="text-xs text-textSecondary font-noto-sans-sc group-hover:text-textBody transition-all duration-300">
             接入您的文本数据让AI更了解您。
           </p>
         </div>
@@ -198,8 +198,8 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center">
-                  <div className="w-16 h-16 bg-info rounded-lg flex items-center justify-center mr-3">
-                    <BookOpenIcon className="w-12 h-12 text-bgPrimary" />
+                  <div className="w-16 h-16 bg-primary bg-opacity-10 rounded-lg flex items-center justify-center mr-3">
+                    <BookOpenIcon className="w-12 h-12 text-primary" />
                   </div>
                   <div>
                     <h3 className="text-base font-semibold text-textBody font-noto-sans-sc mb-1">{kb.name}</h3>
@@ -218,7 +218,7 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
             <div className="px-4 py-3 flex items-center justify-between mt-auto border-t border-bgSecondary">
               <div className="flex items-center text-xs text-textMuted space-x-2 font-noto-sans-sc">
                 {kb.tags && kb.tags.map((tag, index) => (
-                  <span key={index} className="bg-bgSecondary text-textMuted px-2 py-1 rounded">{tag}</span>
+                  <span key={index} className="bg-bgSecondary text-textSecondary px-2 py-1 rounded">{tag}</span>
                 ))}
               </div>
               <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">

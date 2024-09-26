@@ -253,16 +253,15 @@ function KnowledgeBaseDetail({ id, onBack }) {
   const totalPages = Math.ceil(totalDocuments / itemsPerPage);
 
   return (
-    <div className="flex pt-4 h-full">
-      {/* Left sidebar */}
-      <div className="w-58 pr-6 border-r border-gray-200">
-        {/* Knowledge Base Icon and Title */}
+    <div className="flex pt-4 gap-6 px-6">
+      {/* Left sidebar with consistent background */}
+      <div className="bg-bgPrimary rounded-lg shadow-sm p-6 w-64">
         <div className="mb-10 mt-5">
           <div className="flex items-center mb-10 cursor-pointer group" onClick={handleBack}>
-            <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-3 transition-colors duration-200 group-hover:bg-indigo-200">
-              <ArrowLeftIcon className="w-5 h-5 text-indigo-600 transition-colors duration-200 group-hover:text-indigo-700" />
+            <div className="w-8 h-8 bg-primary bg-opacity-90 rounded-full flex items-center justify-center mr-3 transition-colors duration-200 group-hover:bg-opacity-20">
+              <ArrowLeftIcon className="w-5 h-5 text-textBody transition-colors duration-200 group-hover:text-primary" />
             </div>
-            <h1 className="text-base font-semibold text-gray-800 font-noto-sans-sc truncate">
+            <h1 className="text-base font-semibold text-textBody font-sans-sc truncate">
               {knowledgeBase?.name}
             </h1>
           </div>
@@ -279,178 +278,173 @@ function KnowledgeBaseDetail({ id, onBack }) {
       </div>
 
       {/* Main content area */}
-      <div className="flex-1 pl-4 flex flex-col h-full">
-        <div className="bg-white bg-opacity-90 backdrop-filter backdrop-blur-sm rounded-lg shadow-sm p-6 flex flex-col h-full">
-          {/* Breadcrumb navigation and description */}
-          <div className="mb-10">
-            <nav className="text-lg font-semibold text-gray-800 font-noto-sans-sc mb-1">
-              <span>文档</span>
-            </nav>
-            <p className="text-sm text-gray-500 font-noto-sans-sc">
-              知识库的所有文件都在这里显示，整个知识库文档都可以被AI智能体引用。
-            </p>
-          </div>
+      <div className="flex-1 space-y-6 bg-bgPrimary rounded-lg shadow-sm p-6">
+        <div className="space-y-6">
+          <h3 className="text-lg font-semibold text-textBody font-sans-sc">文档</h3>
+          <p className="text-sm text-textMuted font-sans-sc">
+            知识库的所有文件都在这里显示，整个知识库文档都可以被AI智能体引用。
+          </p>
+        </div>
 
-          {/* Search and Add Document */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-64 mr-4">
-              <input
-                type="text"
-                placeholder="搜索文档..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full p-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              />
-            </div>
-            <button
-              onClick={handleAddDocument}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-1.5 px-3 rounded-lg flex items-center justify-center transition-colors duration-200 text-sm"
-            >
-              <PlusIcon className="w-4 h-4 mr-1" />
-              <span className="font-noto-sans-sc">添加文件</span>
-            </button>
+        {/* Search and Add Document */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="w-64 mr-4">
+            <input
+              type="text"
+              placeholder="搜索文档..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full p-2 text-sm font-tech bg-bgSecondary border border-bgSecondary rounded-md text-textBody focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+            />
           </div>
+          <button
+            onClick={handleAddDocument}
+            className="bg-primary hover:bg-primary hover:bg-opacity-80 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center transition-colors duration-200 text-sm"
+          >
+            <PlusIcon className="w-4 h-4 mr-2" />
+            <span className="font-sans-sc">添加文件</span>
+          </button>
+        </div>
 
-          {/* Document List */}
-          <div className="overflow-x-auto flex-grow" style={{ minHeight: '400px' }}>
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  {columns.map((column) => (
-                    <th key={column.key} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {column.header}
-                    </th>
-                  ))}
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    操作
+        {/* Document List */}
+        <div className="overflow-x-auto bg-white bg-opacity-90 rounded-lg shadow-sm" style={{ minHeight: '400px' }}>
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                {columns.map((column) => (
+                  <th key={column.key} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {column.header}
                   </th>
-                </tr>
-              </thead>
-              <tbody>
-                {documents.map((doc) => (
-                  <tr key={doc.id} className="hover:bg-gray-50 transition-colors duration-200">
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center">
-                        {getFileIcon(doc.name)}
-                        <span className="ml-2 text-sm text-gray-900 font-medium">{doc.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{formatFileSize(doc.size)}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{doc.chunk_num}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{formatProgress(doc.progress)}</td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusStyle(doc.parse_status)}`}>
-                        {formatParseStatus(doc.parse_status)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(doc.created_at).toLocaleString()}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                      <Menu as="div" className="relative inline-block text-left">
-                        <div>
-                          <Menu.Button className="text-gray-400 hover:text-gray-600 transition-colors duration-200">
-                            <EllipsisHorizontalIcon className="w-5 h-5" />
-                          </Menu.Button>
-                        </div>
-                        <Transition
-                          as={Fragment}
-                          enter="transition ease-out duration-100"
-                          enterFrom="transform opacity-0 scale-95"
-                          enterTo="transform opacity-100 scale-100"
-                          leave="transition ease-in duration-75"
-                          leaveFrom="transform opacity-100 scale-100"
-                          leaveTo="transform opacity-0 scale-95"
-                        >
-                          <Menu.Items className="absolute right-0 z-10 mt-2 w-36 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                            <div className="py-1">
-                              <Menu.Item>
-                                {({ active }) => (
-                                  <button
-                                    className={`${active ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700'
-                                      } group flex w-full items-center px-3 py-2 text-sm font-medium font-noto-sans-sc`}
-                                  >
-                                    <PencilIcon className="mr-2 h-4 w-4 text-gray-500" aria-hidden="true" />
-                                    重命名
-                                  </button>
-                                )}
-                              </Menu.Item>
-                              <Menu.Item>
-                                {({ active }) => (
-                                  <button
-                                    className={`${active ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700'
-                                      } group flex w-full items-center px-3 py-2 text-sm font-medium font-noto-sans-sc`}
-                                  >
-                                    <AdjustmentsHorizontalIconOutline className="mr-2 h-4 w-4 text-gray-500" aria-hidden="true" />
-                                    分段设置
-                                  </button>
-                                )}
-                              </Menu.Item>
-                              <Menu.Item>
-                                {({ active }) => (
-                                  <button
-                                    className={`${active ? 'bg-red-50 text-red-700' : 'text-red-600'
-                                      } group flex w-full items-center px-3 py-2 text-sm font-medium font-noto-sans-sc`}
-                                  >
-                                    <TrashIcon className="mr-2 h-4 w-4 text-red-500" aria-hidden="true" />
-                                    删除
-                                  </button>
-                                )}
-                              </Menu.Item>
-                            </div>
-                          </Menu.Items>
-                        </Transition>
-                      </Menu>
-                    </td>
-                  </tr>
                 ))}
-              </tbody>
-            </table>
-          </div>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  操作
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {documents.map((doc) => (
+                <tr key={doc.id} className="hover:bg-gray-50 transition-colors duration-200">
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="flex items-center">
+                      {getFileIcon(doc.name)}
+                      <span className="ml-2 text-sm text-gray-900 font-medium">{doc.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{formatFileSize(doc.size)}</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{doc.chunk_num}</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{formatProgress(doc.progress)}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusStyle(doc.parse_status)}`}>
+                      {formatParseStatus(doc.parse_status)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                    {new Date(doc.created_at).toLocaleString()}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                    <Menu as="div" className="relative inline-block text-left">
+                      <div>
+                        <Menu.Button className="text-gray-400 hover:text-gray-600 transition-colors duration-200">
+                          <EllipsisHorizontalIcon className="w-5 h-5" />
+                        </Menu.Button>
+                      </div>
+                      <Transition
+                        as={Fragment}
+                        enter="transition ease-out duration-100"
+                        enterFrom="transform opacity-0 scale-95"
+                        enterTo="transform opacity-100 scale-100"
+                        leave="transition ease-in duration-75"
+                        leaveFrom="transform opacity-100 scale-100"
+                        leaveTo="transform opacity-0 scale-95"
+                      >
+                        <Menu.Items className="absolute right-0 z-10 mt-2 w-36 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                          <div className="py-1">
+                            <Menu.Item>
+                              {({ active }) => (
+                                <button
+                                  className={`${active ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700'
+                                    } group flex w-full items-center px-3 py-2 text-sm font-medium font-noto-sans-sc`}
+                                >
+                                  <PencilIcon className="mr-2 h-4 w-4 text-gray-500" aria-hidden="true" />
+                                  重命名
+                                </button>
+                              )}
+                            </Menu.Item>
+                            <Menu.Item>
+                              {({ active }) => (
+                                <button
+                                  className={`${active ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700'
+                                    } group flex w-full items-center px-3 py-2 text-sm font-medium font-noto-sans-sc`}
+                                >
+                                  <AdjustmentsHorizontalIconOutline className="mr-2 h-4 w-4 text-gray-500" aria-hidden="true" />
+                                  分段设置
+                                </button>
+                              )}
+                            </Menu.Item>
+                            <Menu.Item>
+                              {({ active }) => (
+                                <button
+                                  className={`${active ? 'bg-red-50 text-red-700' : 'text-red-600'
+                                    } group flex w-full items-center px-3 py-2 text-sm font-medium font-noto-sans-sc`}
+                                >
+                                  <TrashIcon className="mr-2 h-4 w-4 text-red-500" aria-hidden="true" />
+                                  删除
+                                </button>
+                              )}
+                            </Menu.Item>
+                          </div>
+                        </Menu.Items>
+                      </Transition>
+                    </Menu>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-          {/* Pagination */}
-          <div className="mt-4 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
-            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm text-gray-700">
-                  显示第 <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> 到第{' '}
-                  <span className="font-medium">{Math.min(currentPage * itemsPerPage, totalDocuments)}</span> 条，
-                  共 <span className="font-medium">{totalDocuments}</span> 条结果
-                </p>
-              </div>
-              <div>
-                <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-                  <button
-                    onClick={() => {
-                      if (currentPage > 1) {
-                        setCurrentPage(currentPage - 1);
-                      }
-                    }}
-                    disabled={currentPage === 1}
-                    className={`relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${
-                      currentPage === 1 ? 'cursor-not-allowed opacity-50' : ''
-                    }`}
-                  >
-                    <span className="sr-only">上一页</span>
-                    <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
-                  </button>
-                  {/* Add page numbers here if needed */}
-                  <button
-                    onClick={() => {
-                      if (currentPage < totalPages) {
-                        setCurrentPage(currentPage + 1);
-                      }
-                    }}
-                    disabled={currentPage === totalPages}
-                    className={`relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${
-                      currentPage === totalPages ? 'cursor-not-allowed opacity-50' : ''
-                    }`}
-                  >
-                    <span className="sr-only">下一页</span>
-                    <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
-                  </button>
-                </nav>
-              </div>
+        {/* Pagination */}
+        <div className="mt-4 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+          <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-gray-700">
+                显示第 <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> 到第{' '}
+                <span className="font-medium">{Math.min(currentPage * itemsPerPage, totalDocuments)}</span> 条，
+                共 <span className="font-medium">{totalDocuments}</span> 条结果
+              </p>
+            </div>
+            <div>
+              <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                <button
+                  onClick={() => {
+                    if (currentPage > 1) {
+                      setCurrentPage(currentPage - 1);
+                    }
+                  }}
+                  disabled={currentPage === 1}
+                  className={`relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${
+                    currentPage === 1 ? 'cursor-not-allowed opacity-50' : ''
+                  }`}
+                >
+                  <span className="sr-only">上一页</span>
+                  <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
+                </button>
+                {/* Add page numbers here if needed */}
+                <button
+                  onClick={() => {
+                    if (currentPage < totalPages) {
+                      setCurrentPage(currentPage + 1);
+                    }
+                  }}
+                  disabled={currentPage === totalPages}
+                  className={`relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${
+                    currentPage === totalPages ? 'cursor-not-allowed opacity-50' : ''
+                  }`}
+                >
+                  <span className="sr-only">下一页</span>
+                  <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
+                </button>
+              </nav>
             </div>
           </div>
         </div>
@@ -461,10 +455,11 @@ function KnowledgeBaseDetail({ id, onBack }) {
 
 function SidebarItem({ icon: Icon, text, active = false }) {
   return (
-    <li className={`flex items-center py-2 px-3 rounded-lg transition-colors duration-200 ${active ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-100'
-      }`}>
-      <Icon className={`w-5 h-5 mr-3 ${active ? 'text-indigo-600' : 'text-gray-400'}`} />
-      <span className={`font-noto-sans-sc text-sm ${active ? 'font-semibold' : ''}`}>{text}</span>
+    <li className={`flex items-center py-2 px-3 rounded-lg transition-colors duration-200 ${
+      active ? 'bg-primary bg-opacity-10 text-primary' : 'text-textBody hover:bg-bgSecondary'
+    }`}>
+      <Icon className={`w-5 h-5 mr-3 ${active ? 'text-primary' : 'text-textMuted'}`} />
+      <span className={`font-sans-sc text-sm ${active ? 'font-semibold' : ''}`}>{text}</span>
     </li>
   );
 }

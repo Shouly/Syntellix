@@ -221,7 +221,7 @@ function Dashboard({ setIsAuthenticated }) {
             onClick={handleAccountSettings}
             className="w-full text-left py-2.5 px-4 text-sm text-textBody hover:bg-bgSecondary transition-colors duration-200 flex items-center"
           >
-            <Cog6ToothIconOutline className="w-5 h-5 mr-3 text-primary" />
+            <Cog6ToothIconOutline className="w-5 h-5 mr-3 text-textBody" />
             设置
           </button>
           <button
@@ -236,7 +236,7 @@ function Dashboard({ setIsAuthenticated }) {
               </>
             ) : (
               <>
-                <ArrowRightOnRectangleIcon className="w-5 h-5 mr-3 text-primary" />
+                <ArrowRightOnRectangleIcon className="w-5 h-5 mr-3 text-textBody" />
                 登出
               </>
             )}
