@@ -223,14 +223,14 @@ function UploadFiles({ onUploadComplete, onBack, knowledgeBaseId }) {
             <div className="bg-bg-primary rounded-lg shadow-sm p-6 w-64">
                 <div className="mb-10 mt-5">
                     <div className="flex items-center mb-10 cursor-pointer group" onClick={onBack}>
-                        <div className="w-8 h-8 bg-primary bg-opacity-90 rounded-full flex items-center justify-center mr-3 transition-colors duration-200 group-hover:bg-opacity-20">
-                            <ArrowLeftIcon className="w-5 h-5 text-text-body transition-colors duration-200 group-hover:text-primary" />
+                        <div className="w-8 h-8 bg-primary bg-opacity-10 rounded-full flex items-center justify-center mr-3 transition-colors duration-200 group-hover:bg-opacity-20">
+                            <ArrowLeftIcon className="w-5 h-5 text-primary transition-colors duration-200 group-hover:text-primary-dark" />
                         </div>
                         <span className="text-base font-semibold text-text-body font-sans-sc truncate">上传文件</span>
                     </div>
                 </div>
                 <ol className="space-y-4 relative">
-                    <div className="absolute left-3 top-6 bottom-0 w-0.5 bg-gray-200"></div>
+                    <div className="absolute left-3 top-6 bottom-0 w-0.5 bg-bg-secondary"></div>
                     <StepItem number={1} text="选取文件" active={currentStep === 1} completed={completedSteps.includes(1)} />
                     <StepItem number={2} text="文本切分" active={currentStep === 2} completed={completedSteps.includes(2)} />
                     <StepItem number={3} text="处理完成" active={currentStep === 3} completed={completedSteps.includes(3)} />
@@ -245,8 +245,8 @@ function UploadFiles({ onUploadComplete, onBack, knowledgeBaseId }) {
                             <h3 className="text-lg font-semibold text-text-body font-sans-sc">上传文本文件</h3>
                         </div>
                         <div
-                            className={`bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm rounded-lg p-8 border-2 border-dashed transition-colors duration-200 cursor-pointer ${
-                                dragActive ? 'border-indigo-400 bg-indigo-50' : 'border-gray-300 hover:border-indigo-300'
+                            className={`bg-bg-secondary bg-opacity-50 backdrop-filter backdrop-blur-sm rounded-lg p-8 border-2 border-dashed transition-colors duration-200 cursor-pointer ${
+                                dragActive ? 'border-primary bg-primary bg-opacity-5' : 'border-bg-tertiary hover:border-primary'
                             }`}
                             onDragEnter={handleDrag}
                             onDragLeave={handleDrag}
@@ -255,11 +255,11 @@ function UploadFiles({ onUploadComplete, onBack, knowledgeBaseId }) {
                             onClick={handleClick}
                         >
                             <div className="text-center">
-                                <CloudArrowUpIcon className={`w-16 h-16 mx-auto mb-4 ${dragActive ? 'text-indigo-500' : 'text-gray-400'}`} />
-                                <p className="text-sm text-gray-600 mb-2 font-noto-sans-sc">
+                                <CloudArrowUpIcon className={`w-16 h-16 mx-auto mb-4 ${dragActive ? 'text-primary' : 'text-text-muted'}`} />
+                                <p className="text-sm text-text-body mb-2 font-noto-sans-sc">
                                     点击或拖拽文件至此区域即可上传
                                 </p>
-                                <p className="text-xs text-gray-500 font-noto-sans-sc">
+                                <p className="text-xs text-text-muted font-noto-sans-sc">
                                     支持 TXT、MARKDOWN、PDF、HTML、XLSX、XLS、DOCX、CSV、PPT、JSON、EML、IMAGE，每个文件不超过 15MB
                                 </p>
                             </div>
@@ -276,26 +276,26 @@ function UploadFiles({ onUploadComplete, onBack, knowledgeBaseId }) {
                                 {files.map((file, index) => (
                                     <li
                                         key={index}
-                                        className={`flex items-center text-sm text-gray-600 bg-white/50 backdrop-blur-sm rounded-lg p-3 shadow-sm transition-colors duration-200 group ${
-                                            file.uploaded ? 'bg-green-50' : (file.name === currentlyUploading ? 'bg-yellow-50' : '')
+                                        className={`flex items-center text-sm text-text-body bg-bg-secondary bg-opacity-50 backdrop-blur-sm rounded-lg p-3 shadow-sm transition-colors duration-200 group ${
+                                            file.uploaded ? 'bg-success bg-opacity-10' : (file.name === currentlyUploading ? 'bg-warning bg-opacity-10' : '')
                                         }`}
                                     >
                                         {getFileIcon(file.name)}
                                         <div className="flex-1 ml-3 overflow-hidden">
                                             <div className="flex items-center">
                                                 <span className="font-semibold truncate mr-2">{file.name}</span>
-                                                <span className="text-gray-600 text-xs whitespace-nowrap">{file.size}</span>
+                                                <span className="text-text-muted text-xs whitespace-nowrap">{file.size}</span>
                                             </div>
                                         </div>
-                                        {file.uploaded && <CheckCircleIcon className="w-5 h-5 text-green-500" />}
+                                        {file.uploaded && <CheckCircleIcon className="w-5 h-5 text-success" />}
                                         {file.name === currentlyUploading && (
-                                            <ArrowPathIcon className="w-5 h-5 text-yellow-500 animate-spin" />
+                                            <ArrowPathIcon className="w-5 h-5 text-warning animate-spin" />
                                         )}
                                         {deletingFiles[index] ? (
-                                            <ArrowPathIcon className="w-5 h-5 text-red-500 animate-spin ml-2" />
+                                            <ArrowPathIcon className="w-5 h-5 text-danger animate-spin ml-2" />
                                         ) : (
                                             <TrashIcon 
-                                                className="w-5 h-5 text-red-500 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-200 ml-2" 
+                                                className="w-5 h-5 text-danger cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-200 ml-2" 
                                                 onClick={() => handleDeleteFile(index)}
                                             />
                                         )}
@@ -304,17 +304,17 @@ function UploadFiles({ onUploadComplete, onBack, knowledgeBaseId }) {
                             </ul>
                         )}
                         {isUploading && (
-                            <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
-                                <div className="h-1.5 rounded-full transition-all duration-500 ease-in-out bg-indigo-600" style={{ width: `${uploadProgress}%` }}></div>
+                            <div className="w-full bg-bg-secondary rounded-full h-1.5 mt-2">
+                                <div className="h-1.5 rounded-full transition-all duration-500 ease-in-out bg-primary" style={{ width: `${uploadProgress}%` }}></div>
                             </div>
                         )}
                         {errors.length > 0 && (
-                            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
+                            <div className="bg-danger bg-opacity-10 border border-danger border-opacity-20 rounded-lg p-4 mt-4">
                                 <div className="flex">
-                                    <ExclamationCircleIcon className="h-5 w-5 text-red-400" aria-hidden="true" />
+                                    <ExclamationCircleIcon className="h-5 w-5 text-danger" aria-hidden="true" />
                                     <div className="ml-3">
-                                        <h3 className="text-sm font-medium text-red-800">上传出现以下问题：</h3>
-                                        <div className="mt-2 text-sm text-red-700">
+                                        <h3 className="text-sm font-medium text-danger">上传出现以下问题：</h3>
+                                        <div className="mt-2 text-sm text-danger text-opacity-90">
                                             <ul className="list-disc pl-5 space-y-1">
                                                 {errors.map((error, index) => (
                                                     <li key={index}>{error}</li>
@@ -351,8 +351,8 @@ function UploadFiles({ onUploadComplete, onBack, knowledgeBaseId }) {
                             onClick={handleNextStep}
                             className={`text-sm font-semibold py-2 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 ${
                                 files.length > 0 && files.every(file => file.uploaded)
-                                    ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    ? 'bg-primary hover:bg-primary-dark text-bg-primary'
+                                    : 'bg-bg-tertiary text-text-muted cursor-not-allowed'
                             }`}
                             disabled={files.length === 0 || !files.every(file => file.uploaded)}
                         >
@@ -368,10 +368,10 @@ function UploadFiles({ onUploadComplete, onBack, knowledgeBaseId }) {
 // Modified StepItem component
 function StepItem({ number, text, active = false, completed = false }) {
     return (
-        <li className={`flex items-center ${active ? 'text-indigo-600' : completed ? 'text-indigo-600' : 'text-gray-500'}`}>
+        <li className={`flex items-center ${active ? 'text-primary' : completed ? 'text-primary' : 'text-text-muted'}`}>
             <span className={`w-6 h-6 flex items-center justify-center rounded-full mr-3 z-10 ${
-                active ? 'bg-indigo-100 text-indigo-600 font-semibold' : 
-                completed ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100'
+                active ? 'bg-primary bg-opacity-10 text-primary font-semibold' : 
+                completed ? 'bg-primary bg-opacity-10 text-primary' : 'bg-bg-secondary'
             }`}>
                 {completed ? (
                     <CheckIcon className="w-4 h-4" />

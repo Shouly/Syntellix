@@ -261,8 +261,8 @@ function KnowledgeBaseDetail({ id, onBack }) {
       <div className="bg-bg-primary rounded-lg shadow-sm p-6 w-64">
         <div className="mb-10 mt-5">
           <div className="flex items-center mb-10 cursor-pointer group" onClick={handleBack}>
-            <div className="w-8 h-8 bg-primary bg-opacity-90 rounded-full flex items-center justify-center mr-3 transition-colors duration-200 group-hover:bg-opacity-20">
-              <ArrowLeftIcon className="w-5 h-5 text-text-body transition-colors duration-200 group-hover:text-primary" />
+            <div className="w-8 h-8 bg-primary bg-opacity-10 rounded-full flex items-center justify-center mr-3 transition-colors duration-200 group-hover:bg-opacity-20">
+              <ArrowLeftIcon className="w-5 h-5 text-primary transition-colors duration-200 group-hover:text-primary-dark" />
             </div>
             <h1 className="text-base font-semibold text-text-body font-sans-sc truncate">
               {knowledgeBase?.name}
@@ -302,7 +302,7 @@ function KnowledgeBaseDetail({ id, onBack }) {
           </div>
           <button
             onClick={handleAddDocument}
-            className="bg-primary hover:bg-primary hover:bg-opacity-80 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center transition-colors duration-200 text-sm"
+            className="bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center transition-colors duration-200 text-sm"
           >
             <PlusIcon className="w-4 h-4 mr-2" />
             <span className="font-sans-sc">添加文件</span>

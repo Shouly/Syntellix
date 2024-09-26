@@ -1,23 +1,24 @@
 import React, { useState } from 'react';
-import { Slider } from '@mui/material';
+import { ChevronDownIcon, CheckIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
+import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 import { styled } from '@mui/material/styles';
-import { QuestionMarkCircleIcon, ChevronDownIcon, CheckIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
-import axios from 'axios'; // 确保已安装并导入 axios
-import { useToast } from '../Toast'; // 确保路径正确
+import Slider from '@mui/material/Slider';
+import axios from 'axios';
+import { useToast } from '../../components/Toast';
 
 // 自定义 Slider 样式
 const CustomSlider = styled(Slider)(({ theme }) => ({
-  color: '#4f46e5', // indigo-600
+  color: '#4f46e5', // primary color
   height: 4,
   padding: '13px 0',
   '& .MuiSlider-track': {
     height: 4,
-    backgroundColor: '#4f46e5', // indigo-600
+    backgroundColor: '#4f46e5', // primary color
   },
   '& .MuiSlider-rail': {
     height: 4,
     opacity: 0.5,
-    backgroundColor: '#bfbfbf',
+    backgroundColor: '#e5e7eb', // bg-secondary color
   },
   '& .MuiSlider-thumb': {
     height: 20,
@@ -36,7 +37,7 @@ const CustomSlider = styled(Slider)(({ theme }) => ({
     width: 32,
     height: 32,
     borderRadius: '50% 50% 50% 0',
-    backgroundColor: '#4f46e5', // indigo-600
+    backgroundColor: '#4f46e5', // primary color
     transformOrigin: 'bottom left',
     transform: 'translate(50%, -100%) rotate(-45deg) scale(0)',
     '&:before': { display: 'none' },
@@ -250,32 +251,32 @@ function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds })
     return (
         <div className="space-y-6">
             <div className="bg-white bg-opacity-90 backdrop-filter backdrop-blur-sm rounded-lg shadow-sm p-6 space-y-6">
-                <h3 className="text-lg font-semibold text-gray-800 font-noto-sans-sc">文本分段配置</h3>
+                <h3 className="text-lg font-semibold text-text-body font-noto-sans-sc">文本分段配置</h3>
                 <div className="flex space-x-8">
-                    <div className="w-1/3 pr-8 pl-8 border-r border-gray-300">
+                    <div className="w-1/3 pr-8 pl-8 border-r border-bg-secondary">
                         <div className="space-y-6 pr-8">
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2 font-noto-sans-sc">解析方法</label>
+                                <label className="block text-sm font-semibold text-text-body mb-2 font-noto-sans-sc">解析方法</label>
                                 <div className="relative">
                                     <button
                                         onClick={() => setIsMethodDropdownOpen(!isMethodDropdownOpen)}
-                                        className="w-full bg-white border border-gray-300 rounded-lg py-2 px-4 text-left focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                        className="w-full bg-bg-secondary border border-bg-tertiary rounded-lg py-2 px-4 text-left focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                                     >
-                                        <span className="block truncate">
+                                        <span className="block truncate text-text-body">
                                             {methods.find(m => m.value === splitConfig.method)?.name || '通用'}
                                         </span>
                                         <span className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                                            <ChevronDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                            <ChevronDownIcon className="h-5 w-5 text-text-muted" aria-hidden="true" />
                                         </span>
                                     </button>
                                     {isMethodDropdownOpen && (
-                                        <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+                                        <div className="absolute z-10 mt-1 w-full bg-bg-primary shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
                                             {methods.map((method) => (
                                                 <div
                                                     key={method.value}
                                                     className={`${
-                                                        method.value === splitConfig.method ? 'bg-indigo-100 text-indigo-900' : 'text-gray-900'
-                                                    } cursor-default select-none relative py-2 pl-3 pr-9 hover:bg-indigo-50`}
+                                                        method.value === splitConfig.method ? 'bg-primary bg-opacity-10 text-primary' : 'text-text-body'
+                                                    } cursor-default select-none relative py-2 pl-3 pr-9 hover:bg-primary hover:bg-opacity-5`}
                                                     onClick={() => {
                                                         handleConfigChange('method', method.value);
                                                         setIsMethodDropdownOpen(false);
@@ -285,7 +286,7 @@ function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds })
                                                         {method.name}
                                                     </span>
                                                     {method.value === splitConfig.method && (
-                                                        <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-indigo-600">
+                                                        <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-primary">
                                                             <CheckIcon className="h-5 w-5" aria-hidden="true" />
                                                         </span>
                                                     )}
@@ -298,7 +299,7 @@ function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds })
                             {splitConfig.method === 'naive' && (
                                 <>
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-2 font-noto-sans-sc">块Token数</label>
+                                        <label className="block text-sm font-semibold text-text-body mb-2 font-noto-sans-sc">块Token数</label>
                                         <div className="flex items-center space-x-4">
                                             <CustomSlider
                                                 value={splitConfig.chunkSize}
@@ -315,27 +316,27 @@ function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds })
                                                 name="chunkSize"
                                                 value={splitConfig.chunkSize}
                                                 onChange={(e) => handleConfigChange('chunkSize', e.target.value)}
-                                                className="w-20 px-3 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm font-noto-sans-sc"
+                                                className="w-20 px-3 py-2 text-text-body bg-bg-secondary border border-bg-tertiary rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary text-sm font-noto-sans-sc"
                                             />
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-2 font-noto-sans-sc">分段标识符</label>
+                                        <label className="block text-sm font-semibold text-text-body mb-2 font-noto-sans-sc">分段标识符</label>
                                         <input
                                             type="text"
                                             name="separator"
                                             value={splitConfig.separator}
                                             onChange={(e) => handleConfigChange('separator', e.target.value)}
-                                            className="block w-full px-3 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm font-noto-sans-sc"
+                                            className="block w-full px-3 py-2 text-text-body bg-bg-secondary border border-bg-tertiary rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary text-sm font-noto-sans-sc"
                                         />
                                     </div>
                                     <div>
                                         <div className="flex items-center justify-between mb-2">
-                                            <span className="text-sm font-semibold text-gray-700 font-noto-sans-sc flex items-center">
+                                            <span className="text-sm font-semibold text-text-body font-noto-sans-sc flex items-center">
                                                 布局识别
                                                 <div className="relative group ml-1">
-                                                    <QuestionMarkCircleIcon className="h-5 w-5 text-gray-400 cursor-help" aria-hidden="true" />
-                                                    <div className="absolute z-10 w-64 p-2 bg-white rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 text-xs text-gray-600 left-1/2 -translate-x-1/2 top-6">
+                                                    <QuestionMarkCircleIcon className="h-5 w-5 text-text-muted cursor-help" aria-hidden="true" />
+                                                    <div className="absolute z-10 w-64 p-2 bg-bg-primary rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 text-xs text-text-body left-1/2 -translate-x-1/2 top-6">
                                                         启用此选项可以更好地保留文档的原始布局结构
                                                     </div>
                                                 </div>
@@ -351,13 +352,13 @@ function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds })
                                                     className="sr-only"
                                                 />
                                                 <div className={`block w-10 h-6 rounded-full transition-colors duration-200 ease-in-out ${
-                                                    splitConfig.layoutAware ? 'bg-indigo-600' : 'bg-gray-300'
+                                                    splitConfig.layoutAware ? 'bg-primary' : 'bg-bg-tertiary'
                                                 }`}></div>
                                                 <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 ease-in-out ${
                                                     splitConfig.layoutAware ? 'transform translate-x-4' : ''
                                                 }`}></div>
                                             </div>
-                                            <span className="text-sm text-gray-600 font-noto-sans-sc">
+                                            <span className="text-sm text-text-body font-noto-sans-sc">
                                                 {splitConfig.layoutAware ? '已启用' : '未启用'}
                                             </span>
                                         </label>
@@ -367,10 +368,10 @@ function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds })
                         </div>
                     </div>
                     <div className="w-2/3 pl-8">
-                        <h4 className="text-lg font-semibold text-gray-800 mb-4 font-noto-sans-sc">
+                        <h4 className="text-lg font-semibold text-text-body mb-4 font-noto-sans-sc">
                             {methodDescriptions[splitConfig.method]?.title || '方法说明'}
                         </h4>
-                        <p className="text-sm text-gray-700 mb-4 font-noto-sans-sc">
+                        <p className="text-sm text-text-body mb-4 font-noto-sans-sc">
                             支持的文件格式：
                             <span className="font-bold font-tech">
                                 {methodDescriptions[splitConfig.method]?.formats || ''}
@@ -379,16 +380,16 @@ function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds })
                         {methodDescriptions[splitConfig.method]?.description && (
                             <div className="mb-4">
                                 {methodDescriptions[splitConfig.method].description.map((item, index) => (
-                                    <p key={index} className="text-sm text-gray-700 mb-2 font-noto-sans-sc">{item}</p>
+                                    <p key={index} className="text-sm text-text-body mb-2 font-noto-sans-sc">{item}</p>
                                 ))}
                             </div>
                         )}
                         {(methodDescriptions[splitConfig.method]?.steps || methodDescriptions[splitConfig.method]?.rules) && (
                             <>
-                                <p className="text-sm text-gray-700 mb-4 font-noto-sans-sc">
+                                <p className="text-sm text-text-body mb-4 font-noto-sans-sc">
                                     {splitConfig.method === 'naive' ? '此方法采用以下步骤处理文件：' : '此方法采用以下规则处理文件：'}
                                 </p>
-                                <ul className="list-disc pl-5 space-y-2 text-sm text-gray-700 font-noto-sans-sc">
+                                <ul className="list-disc pl-5 space-y-2 text-sm text-text-body font-noto-sans-sc">
                                     {(methodDescriptions[splitConfig.method]?.steps || methodDescriptions[splitConfig.method]?.rules || []).map((item, index) => (
                                         <li key={index}>{item}</li>
                                     ))}
@@ -397,9 +398,9 @@ function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds })
                         )}
                         {methodDescriptions[splitConfig.method]?.examples && (
                             <div className="mt-4">
-                                <p className="text-sm font-semibold text-gray-700 mb-2 font-noto-sans-sc">标题行示例：</p>
+                                <p className="text-sm font-semibold text-text-body mb-2 font-noto-sans-sc">标题行示例：</p>
                                 {methodDescriptions[splitConfig.method].examples.map((example, index) => (
-                                    <p key={index} className="text-sm text-gray-600 mb-1 font-mono">{example}</p>
+                                    <p key={index} className="text-sm text-text-muted mb-1 font-mono">{example}</p>
                                 ))}
                             </div>
                         )}
@@ -407,21 +408,21 @@ function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds })
                 </div>
             </div>
             {error && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative text-sm" role="alert">
+                <div className="bg-danger bg-opacity-10 border border-danger text-danger px-4 py-3 rounded relative text-sm" role="alert">
                     <span className="block sm:inline">{error}</span>
                 </div>
             )}
             <div className="flex items-center space-x-4">
                 <button
                     onClick={onPreviousStep}
-                    className="text-sm font-semibold py-2 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 bg-gray-200 hover:bg-gray-300 text-gray-700"
+                    className="text-sm font-semibold py-2 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 bg-bg-secondary hover:bg-bg-tertiary text-text-body"
                     disabled={isProcessing}
                 >
                     <span className="font-noto-sans-sc">上一步</span>
                 </button>
                 <button
                     onClick={handleSaveAndProcess}
-                    className="text-sm font-semibold py-2 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 bg-indigo-600 hover:bg-indigo-700 text-white"
+                    className="text-sm font-semibold py-2 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 bg-primary hover:bg-primary-dark text-bg-primary"
                     disabled={isProcessing}
                 >
                     {isProcessing ? (

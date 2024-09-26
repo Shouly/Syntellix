@@ -239,7 +239,7 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
                         {files.map((file, index) => (
                             <li
                                 key={index}
-                                className="flex items-center text-sm text-text-body bg-white/50 backdrop-blur-sm rounded-lg p-3 shadow-sm hover:bg-white/80 transition-colors duration-200 group"
+                                className="flex items-center text-sm text-text-body bg-bg-secondary bg-opacity-50 backdrop-blur-sm rounded-lg p-3 shadow-sm hover:bg-bg-secondary hover:bg-opacity-70 transition-colors duration-200 group"
                             >
                                 {getFileIcon(file.name)}
                                 <div className="flex-1 ml-3 overflow-hidden">
@@ -260,12 +260,12 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
                 )}
 
                 {errors.length > 0 && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
+                    <div className="bg-danger bg-opacity-10 border border-danger border-opacity-20 rounded-lg p-4 mt-4">
                         <div className="flex">
-                            <ExclamationCircleIcon className="h-5 w-5 text-red-400" aria-hidden="true" />
+                            <ExclamationCircleIcon className="h-5 w-5 text-danger" aria-hidden="true" />
                             <div className="ml-3">
-                                <h3 className="text-sm font-medium text-red-800">上传出现以下问题：</h3>
-                                <div className="mt-2 text-sm text-red-700">
+                                <h3 className="text-sm font-medium text-danger">上传出现以下问题：</h3>
+                                <div className="mt-2 text-sm text-danger text-opacity-90">
                                     <ul className="list-disc pl-5 space-y-1">
                                         {errors.map((error, index) => (
                                             <li key={index}>{error}</li>
@@ -282,7 +282,7 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
                         <button
                             className={`text-sm font-semibold py-2.5 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 ${
                                 files.length > 0
-                                    ? 'bg-primary hover:bg-primary text-white'
+                                    ? 'bg-primary hover:bg-primary-dark text-white'
                                     : 'bg-bg-secondary text-text-muted cursor-not-allowed'
                             }`}
                             disabled={files.length === 0}
@@ -302,8 +302,8 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
                 </div>
 
                 {showEmptyKBModal && (
-                    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-filter backdrop-blur-sm overflow-y-auto h-full w-full z-50">
-                        <div className="relative top-20 mx-auto p-6 border w-[450px] shadow-lg rounded-2xl bg-white bg-opacity-90">
+                    <div className="fixed inset-0 bg-text-secondary bg-opacity-50 backdrop-filter backdrop-blur-sm overflow-y-auto h-full w-full z-50">
+                        <div className="relative top-20 mx-auto p-6 border w-[450px] shadow-lg rounded-2xl bg-bg-primary bg-opacity-90">
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="text-lg font-semibold text-text-body font-sans-sc">创建空知识库</h3>
                                 <button onClick={handleCloseModal} className="text-text-muted hover:text-text-secondary transition-colors duration-200">
@@ -367,9 +367,9 @@ function DataSourceButton({ icon: Icon, text, active = false, developing = false
         <div className="relative">
             <button
                 className={`py-3 px-4 rounded-lg flex items-center justify-center transition-colors duration-200 w-full ${
-                    active ? 'bg-primary bg-opacity-90 text-text-body' :
+                    active ? 'bg-primary bg-opacity-90 text-white' :
                     developing ? 'bg-bg-secondary text-text-muted cursor-not-allowed' :
-                    'bg-bg-secondary text-text-body hover:bg-bg-secondary hover:bg-opacity-70'
+                    'bg-bg-secondary text-text-body hover:bg-bg-tertiary'
                 }`}
                 disabled={developing}
             >
@@ -388,7 +388,7 @@ function DataSourceButton({ icon: Icon, text, active = false, developing = false
 function StepItem({ number, text, active = false }) {
     return (
         <li className={`flex items-center ${active ? 'text-text-body' : 'text-text-muted'}`}>
-            <span className={`w-6 h-6 flex items-center justify-center rounded-full mr-3 z-10 ${active ? 'bg-primary bg-opacity-90 text-text-body font-semibold' : 'bg-bg-secondary'}`}>
+            <span className={`w-6 h-6 flex items-center justify-center rounded-full mr-3 z-10 ${active ? 'bg-primary text-white font-semibold' : 'bg-bg-secondary'}`}>
                 {number}
             </span>
             <span className={`font-sans-sc text-sm ${active ? 'font-semibold' : ''}`}>{text}</span>
