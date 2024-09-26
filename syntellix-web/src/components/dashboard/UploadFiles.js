@@ -218,15 +218,15 @@ function UploadFiles({ onUploadComplete, onBack, knowledgeBaseId }) {
     };
 
     return (
-        <div className="flex pt-4">
-            {/* 左侧菜单栏 */}
-            <div className="w-58 pr-6 border-r border-gray-200">
+        <div className="flex pt-4 gap-6 px-6 h-full">
+            {/* Left sidebar */}
+            <div className="bg-bg-primary rounded-lg shadow-sm p-6 w-64">
                 <div className="mb-10 mt-5">
-                    <div className="flex items-center mb-10 cursor-pointer group">
-                        <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-3 transition-colors duration-200 group-hover:bg-indigo-200" onClick={onBack}>
-                            <ArrowLeftIcon className="w-5 h-5 text-indigo-600 transition-colors duration-200 group-hover:text-indigo-700" />
+                    <div className="flex items-center mb-10 cursor-pointer group" onClick={onBack}>
+                        <div className="w-8 h-8 bg-primary bg-opacity-90 rounded-full flex items-center justify-center mr-3 transition-colors duration-200 group-hover:bg-opacity-20">
+                            <ArrowLeftIcon className="w-5 h-5 text-text-body transition-colors duration-200 group-hover:text-primary" />
                         </div>
-                        <span className="text-base font-semibold text-gray-800 font-noto-sans-sc truncate">上传文件</span>
+                        <span className="text-base font-semibold text-text-body font-sans-sc truncate">上传文件</span>
                     </div>
                 </div>
                 <ol className="space-y-4 relative">
@@ -237,39 +237,40 @@ function UploadFiles({ onUploadComplete, onBack, knowledgeBaseId }) {
                 </ol>
             </div>
 
-            {/* 主要内容区域 */}
-            <div className="flex-1 pl-8 space-y-6">
+            {/* Main content area */}
+            <div className="flex-1 flex flex-col space-y-6 bg-bg-primary rounded-lg shadow-sm p-6">
                 {currentStep === 1 && (
                     <>
-                        <div className="bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm rounded-lg shadow-sm p-6 space-y-6">
-                            <h3 className="text-lg font-semibold text-gray-800 font-noto-sans-sc">上传文本文件</h3>
-                            <div
-                                className={`bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm rounded-lg p-8 border-2 border-dashed transition-colors duration-200 cursor-pointer ${dragActive ? 'border-indigo-400 bg-indigo-50' : 'border-gray-300 hover:border-indigo-300'
-                                    }`}
-                                onDragEnter={handleDrag}
-                                onDragLeave={handleDrag}
-                                onDragOver={handleDrag}
-                                onDrop={handleDrop}
-                                onClick={handleClick}
-                            >
-                                <div className="text-center">
-                                    <CloudArrowUpIcon className={`w-16 h-16 mx-auto mb-4 ${dragActive ? 'text-indigo-500' : 'text-gray-400'}`} />
-                                    <p className="text-sm text-gray-600 mb-2 font-noto-sans-sc">
-                                        点击或拖拽文件至此区域即可上传
-                                    </p>
-                                    <p className="text-xs text-gray-500 font-noto-sans-sc">
-                                        支持 TXT、MARKDOWN、PDF、HTML、XLSX、XLS、DOCX、CSV、PPT、JSON、EML、IMAGE，每个文件不超过 15MB
-                                    </p>
-                                </div>
-                            </div>
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                onChange={handleFileInputChange}
-                                style={{ display: 'none' }}
-                                multiple
-                            />
+                        <div className="space-y-6">
+                            <h3 className="text-lg font-semibold text-text-body font-sans-sc">上传文本文件</h3>
                         </div>
+                        <div
+                            className={`bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm rounded-lg p-8 border-2 border-dashed transition-colors duration-200 cursor-pointer ${
+                                dragActive ? 'border-indigo-400 bg-indigo-50' : 'border-gray-300 hover:border-indigo-300'
+                            }`}
+                            onDragEnter={handleDrag}
+                            onDragLeave={handleDrag}
+                            onDragOver={handleDrag}
+                            onDrop={handleDrop}
+                            onClick={handleClick}
+                        >
+                            <div className="text-center">
+                                <CloudArrowUpIcon className={`w-16 h-16 mx-auto mb-4 ${dragActive ? 'text-indigo-500' : 'text-gray-400'}`} />
+                                <p className="text-sm text-gray-600 mb-2 font-noto-sans-sc">
+                                    点击或拖拽文件至此区域即可上传
+                                </p>
+                                <p className="text-xs text-gray-500 font-noto-sans-sc">
+                                    支持 TXT、MARKDOWN、PDF、HTML、XLSX、XLS、DOCX、CSV、PPT、JSON、EML、IMAGE，每个文件不超过 15MB
+                                </p>
+                            </div>
+                        </div>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileInputChange}
+                            style={{ display: 'none' }}
+                            multiple
+                        />
                         {files.length > 0 && (
                             <ul className="space-y-2">
                                 {files.map((file, index) => (
@@ -343,22 +344,20 @@ function UploadFiles({ onUploadComplete, onBack, knowledgeBaseId }) {
                     />
                 )}
 
-                {/* 下一步按钮 */}
+                {/* Navigation buttons */}
                 {currentStep === 1 && (
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                            <button
-                                onClick={handleNextStep}
-                                className={`text-sm font-semibold py-2 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 ${
-                                    files.length > 0 && files.every(file => file.uploaded)
-                                        ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                }`}
-                                disabled={files.length === 0 || !files.every(file => file.uploaded)}
-                            >
-                                <span className="font-noto-sans-sc">下一步</span>
-                            </button>
-                        </div>
+                    <div className="flex justify-between items-center">
+                        <button
+                            onClick={handleNextStep}
+                            className={`text-sm font-semibold py-2 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 ${
+                                files.length > 0 && files.every(file => file.uploaded)
+                                    ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            }`}
+                            disabled={files.length === 0 || !files.every(file => file.uploaded)}
+                        >
+                            <span className="font-noto-sans-sc">下一步</span>
+                        </button>
                     </div>
                 )}
             </div>
@@ -366,7 +365,7 @@ function UploadFiles({ onUploadComplete, onBack, knowledgeBaseId }) {
     );
 }
 
-// 修改 StepItem 组件
+// Modified StepItem component
 function StepItem({ number, text, active = false, completed = false }) {
     return (
         <li className={`flex items-center ${active ? 'text-indigo-600' : completed ? 'text-indigo-600' : 'text-gray-500'}`}>
