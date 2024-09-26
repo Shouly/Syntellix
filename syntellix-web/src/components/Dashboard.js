@@ -239,9 +239,9 @@ function Dashboard({ setIsAuthenticated }) {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-bg-secondary relative overflow-hidden">
+    <div className="h-screen flex flex-col bg-bg-secondary">
       {/* Top Navigation */}
-      <nav className="bg-primary shadow-md z-10 relative">
+      <nav className="bg-primary shadow-md z-10">
         <div className="max-w-full mx-auto flex justify-between items-center px-4 py-2">
           {/* Logo - Left aligned with fixed width */}
           <div className="flex-shrink-0 w-48">
@@ -293,10 +293,9 @@ function Dashboard({ setIsAuthenticated }) {
       </nav>
 
       {/* Main content area */}
-      <div className="flex-1 flex flex-col bg-bg-secondary overflow-hidden">
-        {/* Content area */}
-        <main className="flex-1 overflow-auto">
-          <div className="px-2 sm:px-3 md:px-4 lg:px-5 py-3">
+      <div className="flex-1 overflow-hidden">
+        <main className="h-full overflow-hidden">
+          <div className="h-full px-2 sm:px-3 md:px-4 lg:px-5 py-3">
             {/* Content */}
             {renderContent()}
           </div>

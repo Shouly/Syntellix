@@ -146,7 +146,7 @@ function KnowledgeBaseDetail({ id, onBack }) {
 
   if (isLoading || isDocumentsLoading) {
     return (
-      <div className="flex pt-4 gap-6 px-6 h-full">
+      <div className="flex gap-4 h-full">
         {/* Left sidebar skeleton */}
         <div className="bg-bg-primary rounded-lg shadow-sm p-6 w-64">
           <div className="mb-10 mt-5 animate-pulse">
@@ -256,7 +256,7 @@ function KnowledgeBaseDetail({ id, onBack }) {
   const totalPages = Math.ceil(totalDocuments / itemsPerPage);
 
   return (
-    <div className="flex pt-4 gap-6 px-6 h-full">
+    <div className="flex gap-4 h-full">
       {/* Left sidebar with consistent background */}
       <div className="bg-bg-primary rounded-lg shadow-sm p-6 w-64">
         <div className="mb-10 mt-5">
