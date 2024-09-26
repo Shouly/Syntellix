@@ -296,7 +296,7 @@ function Dashboard({ setIsAuthenticated }) {
       <div className="flex-1 flex flex-col bg-bg-secondary overflow-hidden">
         {/* Content area */}
         <main className="flex-1 overflow-auto">
-          <div className="px-4 sm:px-6 md:px-8 lg:px-10 py-6">
+          <div className="px-2 sm:px-3 md:px-4 lg:px-5 py-3">
             {/* Content */}
             {renderContent()}
           </div>
