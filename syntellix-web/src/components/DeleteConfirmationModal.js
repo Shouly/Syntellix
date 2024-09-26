@@ -16,7 +16,7 @@ function DeleteConfirmationModal({ isOpen, onClose, onConfirm, itemType, itemNam
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-filter backdrop-blur-sm" />
+          <div className="fixed inset-0 bg-bg-tertiary bg-opacity-50 backdrop-filter backdrop-blur-sm" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
@@ -30,32 +30,32 @@ function DeleteConfirmationModal({ isOpen, onClose, onConfirm, itemType, itemNam
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all mt-10">
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-bg-primary p-6 text-left align-middle shadow-xl transition-all mt-10">
                 <div className="flex items-center space-x-4 mb-4">
-                  <div className="flex-shrink-0 flex items-center justify-center h-10 w-10 rounded-full bg-red-100">
-                    <ExclamationTriangleIcon className="h-5 w-5 text-red-600" aria-hidden="true" />
+                  <div className="flex-shrink-0 flex items-center justify-center h-10 w-10 rounded-full bg-danger-light">
+                    <ExclamationTriangleIcon className="h-5 w-5 text-danger-dark" aria-hidden="true" />
                   </div>
                   <Dialog.Title
                     as="h3"
-                    className="text-lg font-medium leading-6 text-gray-900 font-noto-sans-sc"
+                    className="text-lg font-medium leading-6 text-text-primary font-sans-sc"
                   >
                     确认删除{itemType}
                   </Dialog.Title>
                 </div>
-                <p className="text-sm text-gray-500 mb-6 font-noto-sans-sc">
-                  您确定要删除{itemType} <span className="font-semibold text-gray-700">"{itemName}"</span> 吗？此操作无法撤销。
+                <p className="text-sm text-text-secondary mb-6 font-sans-sc">
+                  您确定要删除{itemType} <span className="font-semibold text-text-primary">"{itemName}"</span> 吗？此操作无法撤销。
                 </p>
                 <div className="flex justify-end space-x-3">
                   <button
                     type="button"
-                    className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition-colors duration-200 font-noto-sans-sc"
+                    className="inline-flex justify-center rounded-md border border-secondary px-4 py-2 text-sm font-medium text-text-secondary hover:bg-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-colors duration-200 font-sans-sc"
                     onClick={onClose}
                   >
                     取消
                   </button>
                   <button
                     type="button"
-                    className="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 transition-colors duration-200 font-noto-sans-sc"
+                    className="inline-flex justify-center rounded-md border border-transparent bg-danger px-4 py-2 text-sm font-medium text-white hover:bg-danger-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-offset-2 transition-colors duration-200 font-sans-sc"
                     onClick={onConfirm}
                     disabled={isLoading}
                   >

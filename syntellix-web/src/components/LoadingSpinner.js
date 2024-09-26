@@ -21,7 +21,7 @@ function LoadingSpinner() {
         
         {/* Animated underline */}
         <div
-          className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"
+          className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-primary via-info to-secondary"
           style={{
             animation: 'expand 2s infinite',
             transformOrigin: 'left',
@@ -32,8 +32,8 @@ function LoadingSpinner() {
       {/* Styles for animations */}
       <style jsx>{`
         @keyframes colorChange {
-          0%, 100% { color: #4f46e5; } /* indigo-600 */
-          50% { color: #8b5cf6; } /* violet-500 */
+          0%, 100% { color: #3a7bd5; } /* primary */
+          50% { color: #94b9d0; } /* info */
         }
         @keyframes expand {
           0%, 100% { width: 0; }
