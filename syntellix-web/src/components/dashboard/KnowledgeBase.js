@@ -85,14 +85,14 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
       <select
         value={selectedTag}
         onChange={(e) => setSelectedTag(e.target.value)}
-        className="pl-10 pr-8 py-2 text-sm rounded-md bg-white bg-opacity-50 border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all duration-300 appearance-none cursor-pointer font-noto-sans-sc text-gray-600"
+        className="pl-10 pr-8 py-2 text-sm rounded-md bg-bgPrimary bg-opacity-50 border border-info focus:outline-none focus:ring-2 focus:ring-info focus:border-transparent transition-all duration-300 appearance-none cursor-pointer font-noto-sans-sc text-textBody"
       >
         {tags.map((tag) => (
           <option key={tag} value={tag}>{tag}</option>
         ))}
       </select>
-      <FunnelIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-400" />
-      <ChevronDownIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-indigo-400 pointer-events-none" />
+      <FunnelIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-info" />
+      <ChevronDownIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-info pointer-events-none" />
     </div>
   );
 
@@ -101,25 +101,25 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
       <input
         type="text"
         placeholder="搜索..."
-        className="pl-10 pr-4 py-2 text-sm rounded-md bg-white bg-opacity-50 border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all duration-300 w-48 font-noto-sans-sc text-gray-600"
+        className="pl-10 pr-4 py-2 text-sm rounded-md bg-bgPrimary bg-opacity-50 border border-info focus:outline-none focus:ring-2 focus:ring-info focus:border-transparent transition-all duration-300 w-48 font-noto-sans-sc text-textBody"
       />
-      <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-400" />
+      <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-info" />
     </div>
   );
 
   const NewKnowledgeBaseCard = () => (
     <div
-      className="group bg-white bg-opacity-30 backdrop-filter backdrop-blur-sm rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative cursor-pointer"
+      className="bg-bgPrimary rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative cursor-pointer"
       onClick={handleCreateKnowledgeBase}
     >
-      <div className="absolute inset-0 rounded-xl bg-indigo-50 opacity-70 group-hover:opacity-80 transition-all duration-300"></div>
+      <div className="absolute inset-0 rounded-xl bg-info opacity-10 group-hover:opacity-20 transition-all duration-300"></div>
       <div className="absolute inset-[1px] rounded-[11px] flex items-center p-6 z-10">
-        <div className="w-16 h-16 bg-indigo-100 bg-opacity-50 rounded-lg flex items-center justify-center mr-4 flex-shrink-0 group-hover:bg-opacity-70 transition-all duration-300">
-          <PlusIcon className="w-10 h-10 text-indigo-500 group-hover:text-indigo-600 transition-all duration-300" />
+        <div className="w-16 h-16 bg-info bg-opacity-10 rounded-lg flex items-center justify-center mr-4 flex-shrink-0 group-hover:bg-opacity-20 transition-all duration-300">
+          <PlusIcon className="w-10 h-10 text-textBody group-hover:text-info transition-all duration-300" />
         </div>
         <div>
-          <h3 className="text-base font-semibold text-indigo-600 font-noto-sans-sc mb-2 group-hover:text-indigo-700 transition-all duration-300">创建知识库</h3>
-          <p className="text-xs text-indigo-500 font-noto-sans-sc group-hover:text-indigo-600 transition-all duration-300">
+          <h3 className="text-base font-semibold text-textBody font-noto-sans-sc mb-2 group-hover:text-info transition-all duration-300">创建知识库</h3>
+          <p className="text-xs text-textBody font-noto-sans-sc group-hover:text-info transition-all duration-300">
             接入您的文本数据让AI更了解您。
           </p>
         </div>
@@ -128,18 +128,18 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
   );
 
   const SkeletonCard = () => (
-    <div className="bg-white bg-opacity-30 backdrop-filter backdrop-blur-sm rounded-xl shadow-md overflow-hidden flex flex-col justify-between h-48 relative animate-pulse">
+    <div className="bg-bgPrimary bg-opacity-30 backdrop-filter backdrop-blur-sm rounded-xl shadow-md overflow-hidden flex flex-col justify-between h-48 relative animate-pulse">
       <div className="p-6">
         <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 bg-indigo-200 bg-opacity-50 rounded-lg"></div>
+          <div className="w-16 h-16 bg-info bg-opacity-20 rounded-lg"></div>
           <div className="flex-1">
-            <div className="h-4 bg-indigo-200 bg-opacity-50 rounded w-3/4 mb-2"></div>
-            <div className="h-3 bg-indigo-100 bg-opacity-50 rounded w-1/2"></div>
+            <div className="h-4 bg-info bg-opacity-20 rounded w-3/4 mb-2"></div>
+            <div className="h-3 bg-info bg-opacity-10 rounded w-1/2"></div>
           </div>
         </div>
       </div>
-      <div className="px-4 py-3 bg-indigo-50 bg-opacity-30">
-        <div className="h-3 bg-indigo-100 bg-opacity-50 rounded w-1/4"></div>
+      <div className="px-4 py-3 bg-info bg-opacity-10">
+        <div className="h-3 bg-info bg-opacity-20 rounded w-1/4"></div>
       </div>
     </div>
   );
@@ -192,58 +192,55 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
         {knowledgeBases.map((kb) => (
           <div
             key={kb.id}
-            className="group bg-white bg-opacity-30 backdrop-filter backdrop-blur-sm rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative cursor-pointer"
+            className="group bg-bgPrimary rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative cursor-pointer"
             onClick={() => handleKnowledgeBaseClick(kb)}
           >
-            <div className="absolute inset-0 rounded-xl bg-indigo-100 opacity-30 group-hover:opacity-50 transition-all duration-300"></div>
-            <div className="absolute inset-[1px] bg-white bg-opacity-50 rounded-[11px] flex flex-col justify-between z-10">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center">
-                    <div className="w-16 h-16 bg-indigo-100 bg-opacity-50 rounded-lg flex items-center justify-center mr-3">
-                      <BookOpenIcon className="w-12 h-12 text-indigo-500" />
-                    </div>
-                    <div>
-                      <h3 className="text-base font-semibold text-gray-800 font-noto-sans-sc mb-1">{kb.name}</h3>
-                      <div className="flex items-center text-xs text-gray-500 font-noto-sans-sc">
-                        <span>{kb.document_count} 文档</span>
-                        <span className="mx-1 text-gray-400">•</span>
-                        <span>{kb.app_count} 智能体</span>
-                      </div>
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center">
+                  <div className="w-16 h-16 bg-info rounded-lg flex items-center justify-center mr-3">
+                    <BookOpenIcon className="w-12 h-12 text-bgPrimary" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-textBody font-noto-sans-sc mb-1">{kb.name}</h3>
+                    <div className="flex items-center text-xs text-textMuted font-noto-sans-sc">
+                      <span>{kb.document_count} 文档</span>
+                      <span className="mx-1 text-textMuted">•</span>
+                      <span>{kb.app_count} 智能体</span>
                     </div>
                   </div>
-                  <span className="text-xs text-gray-500 font-noto-sans-sc">
-                    {formatRelativeTime(kb.updated_at)}前更新
-                  </span>
                 </div>
+                <span className="text-xs text-textMuted font-noto-sans-sc">
+                  {formatRelativeTime(kb.updated_at)}前更新
+                </span>
               </div>
-              <div className="px-4 py-3 flex items-center justify-between mt-auto bg-indigo-50 bg-opacity-30">
-                <div className="flex items-center text-xs text-gray-700 space-x-2 font-noto-sans-sc">
-                  {kb.tags && kb.tags.map((tag, index) => (
-                    <span key={index} className="bg-gray-100 bg-opacity-50 text-gray-600 px-2 py-1 rounded">{tag}</span>
-                  ))}
-                </div>
-                <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <button
-                    className="text-gray-400 hover:text-indigo-500 transition-colors duration-200"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // 添加设置按钮的处理逻辑
-                      console.log('Settings clicked for', kb.name);
-                    }}
-                  >
-                    <Cog6ToothIcon className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteClick(kb);
-                    }}
-                    className="text-gray-400 hover:text-red-500 transition-colors duration-200"
-                  >
-                    <TrashIcon className="w-5 h-5" />
-                  </button>
-                </div>
+            </div>
+            <div className="px-4 py-3 flex items-center justify-between mt-auto border-t border-bgSecondary">
+              <div className="flex items-center text-xs text-textMuted space-x-2 font-noto-sans-sc">
+                {kb.tags && kb.tags.map((tag, index) => (
+                  <span key={index} className="bg-bgSecondary text-textMuted px-2 py-1 rounded">{tag}</span>
+                ))}
+              </div>
+              <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <button
+                  className="text-textMuted hover:text-textBody transition-colors duration-200"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // 添加设置按钮的处理逻辑
+                    console.log('Settings clicked for', kb.name);
+                  }}
+                >
+                  <Cog6ToothIcon className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteClick(kb);
+                  }}
+                  className="text-textMuted hover:text-danger transition-colors duration-200"
+                >
+                  <TrashIcon className="w-5 h-5" />
+                </button>
               </div>
             </div>
           </div>
@@ -257,7 +254,7 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
       {/* Header */}
       <header className="flex items-center justify-between px-6">
         <div className="flex items-end space-x-4">
-          <h2 className="text-xl font-bold text-indigo-700 font-noto-sans-sc">知识库</h2>
+          <h2 className="text-xl font-bold text-textBody font-noto-sans-sc">知识库</h2>
         </div>
         <div className="flex items-center space-x-4">
           <TagSelector tags={tags} selectedTag={selectedTag} setSelectedTag={setSelectedTag} />

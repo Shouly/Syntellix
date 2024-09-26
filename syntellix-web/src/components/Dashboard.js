@@ -31,6 +31,14 @@ import CreateKnowledgeBase from './dashboard/CreateKnowledgeBase';
 import KnowledgeBaseDetail from './dashboard/KnowledgeBaseDetail';
 import UploadFiles from './dashboard/UploadFiles';
 
+const CustomE = () => (
+  <span className="relative inline-flex items-center justify-center w-[0.7em]">
+    <span className="absolute bg-primary h-[2px] w-full top-0"></span>
+    <span className="absolute bg-primary h-[2px] w-full top-1/2 -translate-y-1/2"></span>
+    <span className="absolute bg-primary h-[2px] w-full bottom-0"></span>
+  </span>
+);
+
 function Dashboard({ setIsAuthenticated }) {
   const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState('Agent');
@@ -191,44 +199,44 @@ function Dashboard({ setIsAuthenticated }) {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setShowMenu(!showMenu)}
-        className="flex items-center bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full py-1 px-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+        className="flex items-center rounded-full py-1 px-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary"
       >
-        <div className="w-7 h-7 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center overflow-hidden">
+        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center overflow-hidden">
           {userProfile?.name ? (
-            <span className="text-xs font-semibold text-white">
+            <span className="text-sm font-semibold text-textPrimary">
               {userProfile.name.charAt(0).toUpperCase()}
             </span>
           ) : (
-            <UserCircleIcon className="w-5 h-5 text-white" />
+            <UserCircleIcon className="w-6 h-6 text-textPrimary" />
           )}
         </div>
-        <span className="ml-2 text-sm font-medium text-gray-700 truncate">
+        <span className="ml-2 text-sm font-medium text-bgPrimary truncate max-w-[100px]">
           {isLoadingProfile ? '加载中' : (userProfile?.name || '用户')}
         </span>
-        <ChevronDownIcon className="w-4 h-4 text-gray-600 ml-1" />
+        <ChevronDownIcon className="w-4 h-4 text-bgPrimary ml-1" />
       </button>
       {showMenu && (
-        <div className="absolute right-0 mt-2 w-36 bg-white rounded-lg shadow-lg overflow-hidden z-20 border border-indigo-100">
+        <div className="absolute right-0 mt-2 w-48 bg-bgPrimary rounded-lg shadow-lg overflow-hidden z-20 border border-bgSecondary">
           <button
             onClick={handleAccountSettings}
-            className="w-full text-left py-2 px-3 text-sm text-gray-700 hover:bg-indigo-50 transition-colors duration-200 flex items-center"
+            className="w-full text-left py-2.5 px-4 text-sm text-textBody hover:bg-bgSecondary transition-colors duration-200 flex items-center"
           >
-            <Cog6ToothIconOutline className="w-4 h-4 mr-2 text-indigo-500" />
+            <Cog6ToothIconOutline className="w-5 h-5 mr-3 text-primary" />
             设置
           </button>
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="w-full text-left py-2 px-3 text-sm text-gray-700 hover:bg-indigo-50 transition-colors duration-200 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full text-left py-2.5 px-4 text-sm text-textBody hover:bg-bgSecondary transition-colors duration-200 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoggingOut ? (
               <>
-                <ArrowPathIcon className="animate-spin w-4 h-4 mr-2 text-indigo-500" />
+                <ArrowPathIcon className="animate-spin w-5 h-5 mr-3 text-primary" />
                 登出中...
               </>
             ) : (
               <>
-                <ArrowRightOnRectangleIcon className="w-4 h-4 mr-2 text-indigo-500" />
+                <ArrowRightOnRectangleIcon className="w-5 h-5 mr-3 text-primary" />
                 登出
               </>
             )}
@@ -239,22 +247,18 @@ function Dashboard({ setIsAuthenticated }) {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 relative overflow-hidden">
-      {/* Subtle tech-inspired background */}
-      {/* <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjZmZmZmZmMTAiPjwvcmVjdD4KPHBhdGggZD0iTTAgNUw1IDBaTTYgNEw0IDZaTS0xIDFMMSAtMVoiIHN0cm9rZT0iIzAwMDAwMDEwIiBzdHJva2Utd2lkdGg9IjEiPjwvcGF0aD4KPC9zdmc+')] opacity-10"></div>
-      </div> */}
-
+    <div className="min-h-screen flex flex-col bg-bgPrimary relative overflow-hidden">
       {/* Top Navigation */}
-      <nav className="bg-white backdrop-filter backdrop-blur-sm p-3 z-10 shadow">
-        <div className="max-w-full mx-auto flex justify-between items-center">
-          {/* Logo - Left aligned */}
-          <div className="flex-shrink-0">
+      <nav className="bg-textBody backdrop-filter backdrop-blur-sm p-2 z-10 shadow">
+        <div className="max-w-full mx-auto flex justify-between items-center pl-4">
+          {/* Logo - Left aligned with fixed width */}
+          <div className="flex-shrink-0 w-48">
             <h1
-              className="text-3xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-500 text-transparent bg-clip-text cursor-pointer transition-all duration-300 hover:scale-105"
+              className="text-3xl font-thin cursor-pointer transition-all duration-300 hover:scale-105 tracking-[.10em]"
               onClick={handleLogoClick}
             >
-              Syntellix
+              <span className="text-primary">SYNTELLI</span>
+              <span className="text-danger font-light">X</span>
             </h1>
           </div>
 
@@ -263,28 +267,29 @@ function Dashboard({ setIsAuthenticated }) {
             {menuItems.map((item, index) => (
               <React.Fragment key={item.name}>
                 <button
-                  className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${activeMenu === item.name
-                      ? 'bg-indigo-200 bg-opacity-70 text-indigo-900 hover:bg-opacity-90 shadow-md'
-                      : 'text-gray-600 hover:bg-indigo-50 hover:bg-opacity-50 hover:text-indigo-700'
-                    }`}
+                  className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                    activeMenu === item.name
+                      ? 'bg-primary bg-opacity-20 text-primary hover:bg-opacity-30 shadow-md'
+                      : 'text-bgPrimary hover:bg-primary hover:bg-opacity-10 hover:text-primary'
+                  }`}
                   onClick={() => handleMenuChange(item.name)}
                 >
                   {activeMenu === item.name ? (
-                    <item.icon className="w-5 h-5 mr-2 text-indigo-800" />
+                    <item.icon className="w-5 h-5 mr-2 text-primary" />
                   ) : (
-                    <item.outlineIcon className="w-5 h-5 mr-2 text-gray-500" />
+                    <item.outlineIcon className="w-5 h-5 mr-2 text-bgPrimary" />
                   )}
                   <span>{item.displayName}</span>
                 </button>
                 {index === 0 && (
-                  <div className="h-6 w-px bg-gray-300 mx-2 opacity-50"></div>
+                  <div className="h-6 w-px bg-bgPrimary mx-2 opacity-50"></div>
                 )}
               </React.Fragment>
             ))}
           </div>
 
-          {/* User Menu - Right aligned */}
-          <div className="flex-shrink-0">
+          {/* User Menu - Right aligned with fixed width */}
+          <div className="flex-shrink-0 w-48 flex justify-end">
             <UserMenu
               userProfile={userProfile}
               isLoadingProfile={isLoadingProfile}
@@ -297,9 +302,9 @@ function Dashboard({ setIsAuthenticated }) {
       </nav>
 
       {/* Main content area */}
-      <div className="flex-1 flex flex-col bg-white bg-opacity-30 backdrop-filter backdrop-blur-sm overflow-hidden">
+      <div className="flex-1 flex flex-col bg-bgSecondary bg-opacity-30 backdrop-filter backdrop-blur-sm overflow-hidden">
         {/* Content area */}
-        <main className="flex-1 overflow-auto bg-white bg-opacity-10 backdrop-filter backdrop-blur-sm">
+        <main className="flex-1 overflow-auto bg-bgSecondary bg-opacity-10 backdrop-filter backdrop-blur-sm">
           <div className="px-4 sm:px-6 md:px-8 lg:px-10">
             {/* Content */}
             {renderContent()}
