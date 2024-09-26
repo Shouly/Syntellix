@@ -208,12 +208,12 @@ function Dashboard({ setIsAuthenticated }) {
         <ChevronDownIcon className="w-4 h-4 text-bg-primary ml-1" />
       </button>
       {showMenu && (
-        <div className="absolute right-0 mt-2 w-48 bg-bg-primary rounded-lg shadow-lg overflow-hidden z-20 border border-bg-tertiary">
+        <div className="absolute right-0 mt-2 w-40 bg-bg-primary rounded-lg shadow-lg overflow-hidden z-20 border border-bg-tertiary">
           <button
             onClick={handleAccountSettings}
             className="w-full text-left py-2.5 px-4 text-sm text-text-body hover:bg-bg-secondary transition-colors duration-200 flex items-center"
           >
-            <Cog6ToothIconOutline className="w-5 h-5 mr-3 text-primary" />
+            <Cog6ToothIconOutline className="w-5 h-5 mr-2 text-primary" />
             设置
           </button>
           <button
@@ -223,12 +223,12 @@ function Dashboard({ setIsAuthenticated }) {
           >
             {isLoggingOut ? (
               <>
-                <ArrowPathIcon className="animate-spin w-5 h-5 mr-3 text-primary" />
+                <ArrowPathIcon className="animate-spin w-5 h-5 mr-2 text-primary" />
                 登出中...
               </>
             ) : (
               <>
-                <ArrowRightOnRectangleIcon className="w-5 h-5 mr-3 text-primary" />
+                <ArrowRightOnRectangleIcon className="w-5 h-5 mr-2 text-primary" />
                 登出
               </>
             )}
