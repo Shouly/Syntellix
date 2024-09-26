@@ -148,7 +148,7 @@ function KnowledgeBaseDetail({ id, onBack }) {
     return (
       <div className="flex pt-4 gap-6 px-6 h-full">
         {/* Left sidebar skeleton */}
-        <div className="bg-bgPrimary rounded-lg shadow-sm p-6 w-64">
+        <div className="bg-bg-primary rounded-lg shadow-sm p-6 w-64">
           <div className="mb-10 mt-5 animate-pulse">
             <div className="flex items-center mb-10">
               <div className="w-8 h-8 bg-primary bg-opacity-20 rounded-full mr-3"></div>
@@ -168,14 +168,14 @@ function KnowledgeBaseDetail({ id, onBack }) {
         </div>
 
         {/* Main content area skeleton */}
-        <div className="flex-1 flex flex-col space-y-6 bg-bgPrimary rounded-lg shadow-sm p-6">
+        <div className="flex-1 flex flex-col space-y-6 bg-bg-primary rounded-lg shadow-sm p-6">
           <div className="space-y-6 animate-pulse">
             <div className="h-6 bg-primary bg-opacity-20 rounded w-1/4"></div>
             <div className="h-4 bg-primary bg-opacity-10 rounded w-3/4"></div>
           </div>
 
           <div className="flex items-center justify-between mb-4">
-            <div className="w-64 h-9 bg-bgSecondary rounded"></div>
+            <div className="w-64 h-9 bg-bg-secondary rounded"></div>
             <div className="w-32 h-9 bg-primary bg-opacity-20 rounded"></div>
           </div>
 
@@ -258,13 +258,13 @@ function KnowledgeBaseDetail({ id, onBack }) {
   return (
     <div className="flex pt-4 gap-6 px-6 h-full">
       {/* Left sidebar with consistent background */}
-      <div className="bg-bgPrimary rounded-lg shadow-sm p-6 w-64">
+      <div className="bg-bg-primary rounded-lg shadow-sm p-6 w-64">
         <div className="mb-10 mt-5">
           <div className="flex items-center mb-10 cursor-pointer group" onClick={handleBack}>
             <div className="w-8 h-8 bg-primary bg-opacity-90 rounded-full flex items-center justify-center mr-3 transition-colors duration-200 group-hover:bg-opacity-20">
-              <ArrowLeftIcon className="w-5 h-5 text-textBody transition-colors duration-200 group-hover:text-primary" />
+              <ArrowLeftIcon className="w-5 h-5 text-text-body transition-colors duration-200 group-hover:text-primary" />
             </div>
-            <h1 className="text-base font-semibold text-textBody font-sans-sc truncate">
+            <h1 className="text-base font-semibold text-text-body font-sans-sc truncate">
               {knowledgeBase?.name}
             </h1>
           </div>
@@ -281,10 +281,10 @@ function KnowledgeBaseDetail({ id, onBack }) {
       </div>
 
       {/* Main content area */}
-      <div className="flex-1 flex flex-col space-y-6 bg-bgPrimary rounded-lg shadow-sm p-6">
+      <div className="flex-1 flex flex-col space-y-6 bg-bg-primary rounded-lg shadow-sm p-6">
         <div className="space-y-6">
-          <h3 className="text-lg font-semibold text-textBody font-sans-sc">文档</h3>
-          <p className="text-sm text-textMuted font-sans-sc">
+          <h3 className="text-lg font-semibold text-text-body font-sans-sc">文档</h3>
+          <p className="text-sm text-text-muted font-sans-sc">
             知识库的所有文件都在这里显示，整个知识库文档都可以被AI智能体引用。
           </p>
         </div>
@@ -297,7 +297,7 @@ function KnowledgeBaseDetail({ id, onBack }) {
               placeholder="搜索文档..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full p-2 text-sm font-tech bg-bgSecondary border border-bgSecondary rounded-md text-textBody focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+              className="w-full p-2 text-sm font-tech bg-bg-secondary border border-bg-secondary rounded-md text-text-body focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
             />
           </div>
           <button
@@ -467,9 +467,9 @@ function KnowledgeBaseDetail({ id, onBack }) {
 function SidebarItem({ icon: Icon, text, active = false }) {
   return (
     <li className={`flex items-center py-2 px-3 rounded-lg transition-colors duration-200 ${
-      active ? 'bg-primary bg-opacity-10 text-primary' : 'text-textBody hover:bg-bgSecondary'
+      active ? 'bg-primary bg-opacity-10 text-primary' : 'text-text-body hover:bg-bg-secondary'
     }`}>
-      <Icon className={`w-5 h-5 mr-3 ${active ? 'text-primary' : 'text-textMuted'}`} />
+      <Icon className={`w-5 h-5 mr-3 ${active ? 'text-primary' : 'text-text-muted'}`} />
       <span className={`font-sans-sc text-sm ${active ? 'font-semibold' : ''}`}>{text}</span>
     </li>
   );

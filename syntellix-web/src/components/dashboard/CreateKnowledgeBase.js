@@ -176,17 +176,17 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
     return (
         <div className="flex pt-4 gap-6 px-6">
             {/* Left sidebar with consistent background */}
-            <div className="bg-bgPrimary rounded-lg shadow-sm p-6 w-64">
+            <div className="bg-bg-primary rounded-lg shadow-sm p-6 w-64">
                 <div className="mb-10 mt-5">
                     <div className="flex items-center mb-10 cursor-pointer group" onClick={onBack}>
                         <div className="w-8 h-8 bg-primary bg-opacity-90 rounded-full flex items-center justify-center mr-3 transition-colors duration-200 group-hover:bg-opacity-20">
-                            <ArrowLeftIcon className="w-5 h-5 text-textBody transition-colors duration-200 group-hover:text-primary" />
+                            <ArrowLeftIcon className="w-5 h-5 text-text-body transition-colors duration-200 group-hover:text-primary" />
                         </div>
-                        <span className="text-base font-semibold text-textBody font-sans-sc truncate">新建知识库</span>
+                        <span className="text-base font-semibold text-text-body font-sans-sc truncate">新建知识库</span>
                     </div>
                 </div>
                 <ol className="space-y-4 relative">
-                    <div className="absolute left-3 top-6 bottom-0 w-0.5 bg-bgSecondary"></div>
+                    <div className="absolute left-3 top-6 bottom-0 w-0.5 bg-bg-secondary"></div>
                     <StepItem number={1} text="选数据源" active />
                     <StepItem number={2} text="文本切分" />
                     <StepItem number={3} text="处理完成" />
@@ -194,9 +194,9 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
             </div>
 
             {/* Main content area */}
-            <div className="flex-1 space-y-6 bg-bgPrimary rounded-lg shadow-sm p-6">
+            <div className="flex-1 space-y-6 bg-bg-primary rounded-lg shadow-sm p-6">
                 <div className="space-y-6">
-                    <h3 className="text-lg font-semibold text-textBody font-sans-sc">选择数据源</h3>
+                    <h3 className="text-lg font-semibold text-text-body font-sans-sc">选择数据源</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 font-medium">
                         <DataSourceButton icon={DocumentTextIcon} text="导入本地文件" active />
                         <DataSourceButton icon={CloudIcon} text="同步钉钉文档" developing />
@@ -208,7 +208,7 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
 
                 <div
                     className={`rounded-lg p-8 border-2 border-dashed transition-colors duration-200 cursor-pointer ${
-                        dragActive ? 'border-primary bg-primary bg-opacity-5' : 'border-bgSecondary hover:border-primary'
+                        dragActive ? 'border-primary bg-primary bg-opacity-5' : 'border-bg-secondary hover:border-primary'
                     }`}
                     onDragEnter={handleDrag}
                     onDragLeave={handleDrag}
@@ -217,11 +217,11 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
                     onClick={handleClick}
                 >
                     <div className="text-center">
-                        <CloudArrowUpIcon className={`w-16 h-16 mx-auto mb-4 ${dragActive ? 'text-primary' : 'text-textMuted'}`} />
-                        <p className="text-sm text-textBody mb-2 font-sans-sc">
+                        <CloudArrowUpIcon className={`w-16 h-16 mx-auto mb-4 ${dragActive ? 'text-primary' : 'text-text-muted'}`} />
+                        <p className="text-sm text-text-body mb-2 font-sans-sc">
                             点击或拖拽文件至此区域即可上传
                         </p>
-                        <p className="text-xs text-textMuted font-sans-sc">
+                        <p className="text-xs text-text-muted font-sans-sc">
                             支持 TXT、MARKDOWN、PDF、HTML、XLSX、XLS、DOCX、CSV、PPT、JSON、EML、IMAGE，每个文件不超过 15MB
                         </p>
                     </div>
@@ -239,18 +239,18 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
                         {files.map((file, index) => (
                             <li
                                 key={index}
-                                className="flex items-center text-sm text-textBody bg-white/50 backdrop-blur-sm rounded-lg p-3 shadow-sm hover:bg-white/80 transition-colors duration-200 group"
+                                className="flex items-center text-sm text-text-body bg-white/50 backdrop-blur-sm rounded-lg p-3 shadow-sm hover:bg-white/80 transition-colors duration-200 group"
                             >
                                 {getFileIcon(file.name)}
                                 <div className="flex-1 ml-3 overflow-hidden">
                                     <div className="flex items-center">
                                         <span className="font-semibold truncate mr-2">{file.name}</span>
-                                        <span className="text-textMuted text-xs whitespace-nowrap">{file.size}</span>
+                                        <span className="text-text-muted text-xs whitespace-nowrap">{file.size}</span>
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => handleDeleteFile(index)}
-                                    className="ml-2 text-textMuted hover:text-red-500 transition-colors duration-200 opacity-0 group-hover:opacity-100"
+                                    className="ml-2 text-text-muted hover:text-red-500 transition-colors duration-200 opacity-0 group-hover:opacity-100"
                                 >
                                     <XCircleIcon className="w-5 h-5" />
                                 </button>
@@ -283,7 +283,7 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
                             className={`text-sm font-semibold py-2.5 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 ${
                                 files.length > 0
                                     ? 'bg-primary hover:bg-primary text-white'
-                                    : 'bg-bgSecondary text-textMuted cursor-not-allowed'
+                                    : 'bg-bg-secondary text-text-muted cursor-not-allowed'
                             }`}
                             disabled={files.length === 0}
                         >
@@ -292,7 +292,7 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
                     </div>
                     <div className="flex justify-center">
                         <button
-                            className="text-sm bg-white border border-primary text-textBody hover:bg-primary hover:bg-opacity-10 font-semibold py-2.5 px-6 rounded-lg flex items-center justify-center transition-colors duration-200"
+                            className="text-sm bg-white border border-primary text-text-body hover:bg-primary hover:bg-opacity-10 font-semibold py-2.5 px-6 rounded-lg flex items-center justify-center transition-colors duration-200"
                             onClick={handleCreateEmptyKB}
                         >
                             <PlusIcon className="w-4 h-4 mr-2" />
@@ -305,24 +305,24 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
                     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-filter backdrop-blur-sm overflow-y-auto h-full w-full z-50">
                         <div className="relative top-20 mx-auto p-6 border w-[450px] shadow-lg rounded-2xl bg-white bg-opacity-90">
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-lg font-semibold text-textBody font-sans-sc">创建空知识库</h3>
-                                <button onClick={handleCloseModal} className="text-textMuted hover:text-textSecondary transition-colors duration-200">
+                                <h3 className="text-lg font-semibold text-text-body font-sans-sc">创建空知识库</h3>
+                                <button onClick={handleCloseModal} className="text-text-muted hover:text-text-secondary transition-colors duration-200">
                                     <XMarkIcon className="h-5 w-5" />
                                 </button>
                             </div>
-                            <p className="text-sm text-textBody mb-6 font-sans-sc">
+                            <p className="text-sm text-text-body mb-6 font-sans-sc">
                                 空知识库中还没有文档，你可以在今后任何时候上传文档至该知识库。
                             </p>
                             <form onSubmit={handleSubmitEmptyKB} className="space-y-4">
                                 <div>
-                                    <label htmlFor="kbName" className="block text-sm font-medium text-textBody mb-1 font-sans-sc">知识库名称 <span className="text-red-500">*</span></label>
+                                    <label htmlFor="kbName" className="block text-sm font-medium text-text-body mb-1 font-sans-sc">知识库名称 <span className="text-red-500">*</span></label>
                                     <input
                                         type="text"
                                         id="kbName"
                                         value={kbName}
                                         onChange={(e) => setKbName(e.target.value)}
                                         placeholder="请输入知识库名称"
-                                        className="w-full p-2 text-sm font-tech bg-bgSecondary border border-bgSecondary rounded-md text-textBody focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                                        className="w-full p-2 text-sm font-tech bg-bg-secondary border border-bg-secondary rounded-md text-text-body focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
                                     />
                                     {kbNameError && (
                                         <p className="mt-1 text-xs text-red-500 flex items-center">
@@ -335,7 +335,7 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
                                     <button
                                         type="button"
                                         onClick={handleCloseModal}
-                                        className="px-4 py-2 text-sm font-medium bg-bgSecondary text-textBody rounded-md hover:bg-bgSecondary hover:bg-opacity-70 transition-colors duration-200 font-sans-sc"
+                                        className="px-4 py-2 text-sm font-medium bg-bg-secondary text-text-body rounded-md hover:bg-bg-secondary hover:bg-opacity-70 transition-colors duration-200 font-sans-sc"
                                         disabled={isLoading}
                                     >
                                         取消
@@ -367,9 +367,9 @@ function DataSourceButton({ icon: Icon, text, active = false, developing = false
         <div className="relative">
             <button
                 className={`py-3 px-4 rounded-lg flex items-center justify-center transition-colors duration-200 w-full ${
-                    active ? 'bg-primary bg-opacity-90 text-textBody' :
-                    developing ? 'bg-bgSecondary text-textMuted cursor-not-allowed' :
-                    'bg-bgSecondary text-textBody hover:bg-bgSecondary hover:bg-opacity-70'
+                    active ? 'bg-primary bg-opacity-90 text-text-body' :
+                    developing ? 'bg-bg-secondary text-text-muted cursor-not-allowed' :
+                    'bg-bg-secondary text-text-body hover:bg-bg-secondary hover:bg-opacity-70'
                 }`}
                 disabled={developing}
             >
@@ -387,8 +387,8 @@ function DataSourceButton({ icon: Icon, text, active = false, developing = false
 
 function StepItem({ number, text, active = false }) {
     return (
-        <li className={`flex items-center ${active ? 'text-textBody' : 'text-textMuted'}`}>
-            <span className={`w-6 h-6 flex items-center justify-center rounded-full mr-3 z-10 ${active ? 'bg-primary bg-opacity-90 text-textBody font-semibold' : 'bg-bgSecondary'}`}>
+        <li className={`flex items-center ${active ? 'text-text-body' : 'text-text-muted'}`}>
+            <span className={`w-6 h-6 flex items-center justify-center rounded-full mr-3 z-10 ${active ? 'bg-primary bg-opacity-90 text-text-body font-semibold' : 'bg-bg-secondary'}`}>
                 {number}
             </span>
             <span className={`font-sans-sc text-sm ${active ? 'font-semibold' : ''}`}>{text}</span>
