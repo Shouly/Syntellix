@@ -40,128 +40,104 @@ function Login({ setIsAuthenticated }) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-200 via-indigo-300 to-purple-300 relative overflow-hidden">
-      {/* Subtle tech-inspired background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjZmZmZmZmMTAiPjwvcmVjdD4KPHBhdGggZD0iTTAgNUw1IDBaTTYgNEw0IDZaTS0xIDFMMSAtMVoiIHN0cm9rZT0iIzAwMDAwMDIwIiBzdHJva2Utd2lkdGg9IjEiPjwvcGF0aD4KPC9zdmc+')] opacity-30"></div>
-      </div>
-      <div className="flex-grow flex">
-        <div className="flex-[3] flex items-center justify-end pr-14">
-          <div className="max-w-2xl w-full space-y-16">
-            <div className="space-y-3">
-              <h1 className="relative">
-                <span className="text-8xl md:text-9xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-transparent bg-clip-text font-tech tracking-tight animate-pulse">
-                  Syntellix
-                </span>
-                <span className="absolute bottom-0 right-5 px-3 py-1 text-sm font-medium text-indigo-600 bg-indigo-100 bg-opacity-50 rounded-full whitespace-nowrap">
-                  /sɪnˈtelɪks/
-                </span>
-              </h1>
-              <div className="flex items-center space-x-2">
-                {['Synergy', 'Intelligence', 'Matrix'].map((word, index) => (
-                  <React.Fragment key={word}>
-                    {index > 0 && <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full"></span>}
-                    <span className={`text-lg font-semibold font-tech ${index === 0 ? 'text-blue-700' :
-                      index === 1 ? 'text-indigo-700' : 'text-purple-700'
-                      }`}>
-                      {word}
-                    </span>
-                  </React.Fragment>
-                ))}
-              </div>
+    <div className="min-h-screen flex bg-gradient-to-br from-primary-light to-primary-dark">
+      {/* Left side - Branding and decorative elements */}
+      <div className="flex-1 flex flex-col justify-center items-end pr-24">
+        <div className="space-y-12 max-w-xl">
+          <div className="space-y-4 pb-12">
+            <div className="flex items-baseline">
+              <span className="text-8xl font-thin text-white font-tech tracking-wider">SYNTELLIX</span>
+              <span className="ml-4 text-xl font-light text-white opacity-80 whitespace-nowrap">/sɪnˈtelɪks/</span>
             </div>
-            <div className="space-y-3 font-roboto">
-              <p className="text-2xl font-semibold font-heading text-indigo-800">Synergizing Intelligence, Amplifying Success</p>
-              <p className="text-4xl font-sans-sc text-indigo-800 mt-2">协同智能，放大成功</p>
+            <div className="flex flex-wrap gap-4">
+              {['Synergy', 'Intelligence', 'Matrix'].map((word) => (
+                <span key={word} className="px-4 py-2 bg-white bg-opacity-20 rounded-full text-white font-semibold text-sm">
+                  {word}
+                </span>
+              ))}
             </div>
           </div>
+          <div className="space-y-4">
+            <h1 className="text-4xl font-bold text-white font-heading leading-tight">
+              Synergizing Intelligence,<br />Amplifying Success
+            </h1>
+            <p className="text-2xl text-white font-sans-sc">协同智能，放大成功</p>
+          </div>
         </div>
-        <div className="flex-[2] flex items-center justify-start">
-          <div className="max-w-md w-full space-y-8 bg-white bg-opacity-20 backdrop-filter backdrop-blur-xl p-10 rounded-2xl shadow-xl border border-indigo-300">
+      </div>
+
+      {/* Right side - Login form */}
+      <div className="flex-1 flex items-center justify-center">
+        <div className="bg-white p-12 rounded-3xl shadow-2xl w-full max-w-md space-y-8">
+          <div>
+            <h2 className="text-3xl font-bold text-primary-dark font-noto-sans-sc">
+              登录
+            </h2>
+            <p className="mt-2 text-sm text-text-secondary font-noto-sans-sc">
+              请输入您的邮箱和密码，登录以继续。
+            </p>
+          </div>
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <h2 className="mt-2 text-3xl font-bold text-indigo-800 font-noto-sans-sc">
-                登录
-              </h2>
-              <p className="mt-2 text-sm text-gray-700 font-noto-sans-sc">
-                请输入您的邮箱和密码，登录以继续。
-              </p>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 font-noto-sans-sc">
+                邮箱
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </div>
-            <form className="mt-10 space-y-6" onSubmit={handleSubmit}>
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="email" className="block text-sm font-bold text-gray-700 font-noto-sans-sc">
-                    邮箱
-                  </label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    className="mt-1 block w-full px-3 py-2 border border-indigo-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white bg-opacity-80 transition-all duration-300"
-                    placeholder="输入邮箱地址"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="password" className="block text-sm font-bold text-gray-700 font-noto-sans-sc">
-                    密码
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="password"
-                      name="password"
-                      type={showPassword ? "text" : "password"}
-                      autoComplete="current-password"
-                      required
-                      className="mt-1 block w-full px-3 py-2 border border-indigo-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm pr-10 bg-white bg-opacity-80 transition-all duration-300"
-                      placeholder="输入密码"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                    <button
-                      type="button"
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeSlashIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                      ) : (
-                        <EyeIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {error && <p className="mt-2 text-center text-sm text-red-600">{error}</p>}
-
-              <div>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 font-noto-sans-sc">
+                密码
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  required
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light pr-10"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
                 <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 ease-in-out transform hover:scale-105 font-noto-sans-sc disabled:opacity-50 disabled:cursor-not-allowed"
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowPassword(!showPassword)}
                 >
-                  {isLoading ? (
-                    <>
-                      <ArrowPathIcon className="animate-spin h-5 w-5 mr-2" />
-                      登录中...
-                    </>
+                  {showPassword ? (
+                    <EyeSlashIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
                   ) : (
-                    '登录'
+                    <EyeIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
                   )}
                 </button>
               </div>
-            </form>
-          </div>
+            </div>
+            {error && <p className="text-sm text-danger">{error}</p>}
+            <div>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-light transition duration-150 ease-in-out"
+              >
+                {isLoading ? (
+                  <ArrowPathIcon className="animate-spin h-5 w-5" />
+                ) : (
+                  '登录'
+                )}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
-      <footer className="py-4 text-center text-xs relative z-10">
-        <span className="bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 text-transparent bg-clip-text font-medium">
-          © 2024 Syntellix, Inc. All rights reserved.
-        </span>
-      </footer>
     </div>
   );
 }

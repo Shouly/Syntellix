@@ -39,21 +39,17 @@ function App() {
 
   if (isInitialized === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-200 via-indigo-300 to-purple-300 relative overflow-hidden">
-        {/* Subtle tech-inspired background */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjZmZmZmZmMTAiPjwvcmVjdD4KPHBhdGggZD0iTTAgNUw1IDBaTTYgNEw0IDZaTS0xIDFMMSAtMVoiIHN0cm9rZT0iIzAwMDAwMDIwIiBzdHJva2Utd2lkdGg9IjEiPjwvcGF0aD4KPC9zdmc+')] opacity-30"></div>
-        </div>
-        <LoadingSpinner /> {/* 使用 LoadingSpinner 组件 */}
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-light via-primary to-primary-dark relative overflow-hidden">
+        <LoadingSpinner />
       </div>
     );
   }
 
   return (
-    <QueryClientProvider client={queryClient}>  {/* 添加这行 */}
+    <QueryClientProvider client={queryClient}>
       <Router>
         <ToastProvider>
-          <div className="App">
+          <div className="App bg-bg-primary min-h-screen">
             <Routes>
               <Route path="/system-init" element={
                 isInitialized ? <Navigate to="/" /> : <SystemInit setIsInitialized={setIsInitialized} />

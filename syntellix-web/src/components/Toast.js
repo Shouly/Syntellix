@@ -34,11 +34,11 @@ export function ToastProvider({ children }) {
 
 function Toast({ message, type, onClose }) {
   const config = {
-    success: { icon: CheckCircleIcon, bgColor: 'bg-green-500', textColor: 'text-white' },
-    error: { icon: ExclamationCircleIcon, bgColor: 'bg-red-500', textColor: 'text-white' },
-    info: { icon: InformationCircleIcon, bgColor: 'bg-indigo-500', textColor: 'text-white' },
-    warning: { icon: ExclamationCircleIcon, bgColor: 'bg-yellow-500', textColor: 'text-white' },
-  }[type] || { icon: InformationCircleIcon, bgColor: 'bg-gray-500', textColor: 'text-white' };
+    success: { icon: CheckCircleIcon, bgColor: 'bg-success-DEFAULT', textColor: 'text-white' },
+    error: { icon: ExclamationCircleIcon, bgColor: 'bg-danger-DEFAULT', textColor: 'text-white' },
+    info: { icon: InformationCircleIcon, bgColor: 'bg-info-DEFAULT', textColor: 'text-primary' },
+    warning: { icon: ExclamationCircleIcon, bgColor: 'bg-warning-DEFAULT', textColor: 'text-primary' },
+  }[type] || { icon: InformationCircleIcon, bgColor: 'bg-secondary-DEFAULT', textColor: 'text-text-primary' };
 
   const Icon = config.icon;
 
@@ -46,7 +46,7 @@ function Toast({ message, type, onClose }) {
     <div className={`${config.bgColor} ${config.textColor} px-4 py-3 rounded-2xl shadow-lg flex items-center max-w-md backdrop-filter backdrop-blur-lg bg-opacity-90 transition-all duration-300 transform hover:scale-105`}>
       <Icon className="h-5 w-5 mr-3" />
       <span className="flex-grow text-sm font-medium">{message}</span>
-      <button onClick={onClose} className="ml-3 focus:outline-none hover:text-opacity-75 transition-colors duration-200">
+      <button onClick={onClose} className="ml-3 focus:outline-none hover:opacity-75 transition-opacity duration-200">
         <XMarkIcon className="h-5 w-5" />
       </button>
     </div>
