@@ -85,14 +85,14 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
       <select
         value={selectedTag}
         onChange={(e) => setSelectedTag(e.target.value)}
-        className="pl-10 pr-8 py-2 text-sm rounded-md bg-bg-primary bg-opacity-50 border border-info focus:outline-none focus:ring-2 focus:ring-info focus:border-transparent transition-all duration-300 appearance-none cursor-pointer font-noto-sans-sc text-text-body"
+        className="pl-10 pr-8 py-2 text-sm rounded-md bg-bg-primary border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 appearance-none cursor-pointer font-noto-sans-sc text-text-body"
       >
         {tags.map((tag) => (
           <option key={tag} value={tag}>{tag}</option>
         ))}
       </select>
-      <FunnelIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-info" />
-      <ChevronDownIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-info pointer-events-none" />
+      <FunnelIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-primary" />
+      <ChevronDownIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-primary pointer-events-none" />
     </div>
   );
 
@@ -101,9 +101,9 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
       <input
         type="text"
         placeholder="搜索..."
-        className="pl-10 pr-4 py-2 text-sm rounded-md bg-bg-primary bg-opacity-50 border border-info focus:outline-none focus:ring-2 focus:ring-info focus:border-transparent transition-all duration-300 w-48 font-noto-sans-sc text-text-body"
+        className="pl-10 pr-4 py-2 text-sm rounded-md bg-bg-primary border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 w-48 font-noto-sans-sc text-text-body"
       />
-      <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-info" />
+      <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-primary" />
     </div>
   );
 
@@ -115,7 +115,7 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
       <div className="absolute inset-0 rounded-xl bg-primary opacity-5 group-hover:opacity-10 transition-all duration-300"></div>
       <div className="absolute inset-[1px] rounded-[11px] flex items-center p-6 z-10">
         <div className="w-16 h-16 bg-primary bg-opacity-10 rounded-lg flex items-center justify-center mr-4 flex-shrink-0 group-hover:bg-opacity-20 transition-all duration-300">
-          <PlusIcon className="w-10 h-10 text-text-body group-hover:text-primary transition-all duration-300" />
+          <PlusIcon className="w-10 h-10 text-primary group-hover:text-primary-dark transition-all duration-300" />
         </div>
         <div>
           <h3 className="text-base font-semibold text-text-body font-noto-sans-sc mb-2 group-hover:text-primary transition-all duration-300">创建知识库</h3>
@@ -131,15 +131,15 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
     <div className="bg-bg-primary bg-opacity-30 backdrop-filter backdrop-blur-sm rounded-xl shadow-md overflow-hidden flex flex-col justify-between h-48 relative animate-pulse">
       <div className="p-6">
         <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 bg-info bg-opacity-20 rounded-lg"></div>
+          <div className="w-16 h-16 bg-primary bg-opacity-20 rounded-lg"></div>
           <div className="flex-1">
-            <div className="h-4 bg-info bg-opacity-20 rounded w-3/4 mb-2"></div>
-            <div className="h-3 bg-info bg-opacity-10 rounded w-1/2"></div>
+            <div className="h-4 bg-primary bg-opacity-20 rounded w-3/4 mb-2"></div>
+            <div className="h-3 bg-primary bg-opacity-10 rounded w-1/2"></div>
           </div>
         </div>
       </div>
-      <div className="px-4 py-3 bg-info bg-opacity-10">
-        <div className="h-3 bg-info bg-opacity-20 rounded w-1/4"></div>
+      <div className="px-4 py-3 bg-primary bg-opacity-10">
+        <div className="h-3 bg-primary bg-opacity-20 rounded w-1/4"></div>
       </div>
     </div>
   );
@@ -172,13 +172,13 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
 
     if (error) {
       return (
-        <div className="col-span-full flex flex-col items-center justify-center h-64 bg-red-50 bg-opacity-50 backdrop-filter backdrop-blur-sm rounded-xl p-6">
-          <ExclamationCircleIcon className="w-12 h-12 text-red-500 mb-4" />
-          <div className="text-red-600 font-semibold text-lg mb-2">获取知识库失败</div>
-          <div className="text-red-500 text-sm mb-4">{error}</div>
+        <div className="col-span-full flex flex-col items-center justify-center h-64 bg-danger-light bg-opacity-50 backdrop-filter backdrop-blur-sm rounded-xl p-6">
+          <ExclamationCircleIcon className="w-12 h-12 text-danger mb-4" />
+          <div className="text-danger font-semibold text-lg mb-2">获取知识库失败</div>
+          <div className="text-danger-dark text-sm mb-4">{error}</div>
           <button
             onClick={fetchKnowledgeBases}
-            className="px-4 py-2 bg-red-100 bg-opacity-50 text-red-600 rounded-md hover:bg-opacity-70 transition-colors duration-200"
+            className="px-4 py-2 bg-danger text-bg-primary rounded-md hover:bg-danger-dark transition-colors duration-200"
           >
             重试
           </button>
@@ -223,7 +223,7 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
               </div>
               <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                 <button
-                  className="text-text-muted hover:text-text-body transition-colors duration-200"
+                  className="text-text-muted hover:text-primary transition-colors duration-200"
                   onClick={(e) => {
                     e.stopPropagation();
                     // 添加设置按钮的处理逻辑

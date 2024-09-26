@@ -191,15 +191,15 @@ function Dashboard({ setIsAuthenticated }) {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setShowMenu(!showMenu)}
-        className="flex items-center rounded-full py-1 px-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-light"
+        className="flex items-center rounded-full py-1 px-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-secondary-light"
       >
-        <div className="w-8 h-8 rounded-full bg-primary-light flex items-center justify-center overflow-hidden">
+        <div className="w-8 h-8 rounded-full bg-secondary-light flex items-center justify-center overflow-hidden">
           {userProfile?.name ? (
-            <span className="text-sm font-semibold text-text-primary">
+            <span className="text-sm font-semibold text-primary">
               {userProfile.name.charAt(0).toUpperCase()}
             </span>
           ) : (
-            <UserCircleIcon className="w-6 h-6 text-text-primary" />
+            <UserCircleIcon className="w-6 h-6 text-primary" />
           )}
         </div>
         <span className="ml-2 text-sm font-medium text-bg-primary truncate max-w-[100px]">
@@ -208,12 +208,12 @@ function Dashboard({ setIsAuthenticated }) {
         <ChevronDownIcon className="w-4 h-4 text-bg-primary ml-1" />
       </button>
       {showMenu && (
-        <div className="absolute right-0 mt-2 w-48 bg-bg-primary rounded-lg shadow-lg overflow-hidden z-20 border border-bg-secondary">
+        <div className="absolute right-0 mt-2 w-48 bg-bg-primary rounded-lg shadow-lg overflow-hidden z-20 border border-bg-tertiary">
           <button
             onClick={handleAccountSettings}
             className="w-full text-left py-2.5 px-4 text-sm text-text-body hover:bg-bg-secondary transition-colors duration-200 flex items-center"
           >
-            <Cog6ToothIconOutline className="w-5 h-5 mr-3 text-text-body" />
+            <Cog6ToothIconOutline className="w-5 h-5 mr-3 text-primary" />
             设置
           </button>
           <button
@@ -228,7 +228,7 @@ function Dashboard({ setIsAuthenticated }) {
               </>
             ) : (
               <>
-                <ArrowRightOnRectangleIcon className="w-5 h-5 mr-3 text-text-body" />
+                <ArrowRightOnRectangleIcon className="w-5 h-5 mr-3 text-primary" />
                 登出
               </>
             )}
@@ -239,18 +239,17 @@ function Dashboard({ setIsAuthenticated }) {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-bg-primary relative overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-bg-secondary relative overflow-hidden">
       {/* Top Navigation */}
-      <nav className="bg-sidebar backdrop-filter backdrop-blur-sm p-2 z-10 shadow">
-        <div className="max-w-full mx-auto flex justify-between items-center pl-4">
+      <nav className="bg-primary shadow-md z-10 relative">
+        <div className="max-w-full mx-auto flex justify-between items-center px-4 py-2">
           {/* Logo - Left aligned with fixed width */}
           <div className="flex-shrink-0 w-48">
             <h1
               className="text-3xl font-thin cursor-pointer transition-all duration-300 hover:scale-105 tracking-[.10em]"
               onClick={handleLogoClick}
             >
-              <span className="text-primary">SYNTELLI</span>
-              <span className="text-danger font-light">X</span>
+              <span className="text-bg-primary">SYNTELLIX</span>
             </h1>
           </div>
 
@@ -261,15 +260,15 @@ function Dashboard({ setIsAuthenticated }) {
                 <button
                   className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                     activeMenu === item.name
-                      ? 'bg-primary bg-opacity-20 text-primary-light hover:bg-opacity-30 shadow-md'
-                      : 'text-bg-primary hover:bg-primary hover:bg-opacity-10 hover:text-primary-light'
+                      ? 'bg-primary-light text-bg-primary hover:bg-primary-dark'
+                      : 'text-bg-primary hover:bg-primary-dark hover:text-bg-primary'
                   }`}
                   onClick={() => handleMenuChange(item.name)}
                 >
                   {activeMenu === item.name ? (
-                    <item.icon className="w-5 h-5 mr-2 text-primary-light" />
+                    <item.icon className="w-5 h-5 mr-2" />
                   ) : (
-                    <item.outlineIcon className="w-5 h-5 mr-2 text-bg-primary" />
+                    <item.outlineIcon className="w-5 h-5 mr-2" />
                   )}
                   <span>{item.displayName}</span>
                 </button>
@@ -294,10 +293,10 @@ function Dashboard({ setIsAuthenticated }) {
       </nav>
 
       {/* Main content area */}
-      <div className="flex-1 flex flex-col bg-bg-secondary bg-opacity-30 backdrop-filter backdrop-blur-sm overflow-hidden">
+      <div className="flex-1 flex flex-col bg-bg-secondary overflow-hidden">
         {/* Content area */}
-        <main className="flex-1 overflow-auto bg-bg-secondary bg-opacity-10 backdrop-filter backdrop-blur-sm">
-          <div className="px-4 sm:px-6 md:px-8 lg:px-10">
+        <main className="flex-1 overflow-auto">
+          <div className="px-4 sm:px-6 md:px-8 lg:px-10 py-6">
             {/* Content */}
             {renderContent()}
           </div>
