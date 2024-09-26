@@ -124,25 +124,70 @@ function Agent({ onCreateNew, onAgentClick }) {
         </div>
     );
 
-    const NewAgentCard = () => (
+    const NewAgentCard = ({ onCreateNew }) => (
         <div
-            className="bg-bg-primary rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative cursor-pointer group"
             onClick={onCreateNew}
+            className="bg-white rounded-lg shadow-sm overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-md flex flex-col h-64"
         >
-            <div className="absolute inset-0 rounded-xl bg-primary opacity-5 group-hover:opacity-10 transition-all duration-300"></div>
-            <div className="absolute inset-[1px] rounded-[11px] flex items-center p-6 z-10">
-                <div className="w-16 h-16 bg-primary bg-opacity-10 rounded-lg flex items-center justify-center mr-4 flex-shrink-0 group-hover:bg-opacity-20 transition-all duration-300">
-                    <PlusIcon className="w-10 h-10 text-primary group-hover:text-primary-dark transition-all duration-300" />
-                </div>
-                <div>
-                    <h3 className="text-base font-semibold text-text-body font-noto-sans-sc mb-2 group-hover:text-primary transition-all duration-300">创建智能体</h3>
-                    <p className="text-xs text-text-secondary font-noto-sans-sc group-hover:text-text-body transition-all duration-300">
-                        创建新的AI助手来帮助您完成任务。
-                    </p>
-                </div>
+            <div className="bg-gradient-to-r from-primary-light/30 to-secondary-light h-2/3 flex items-center justify-center">
+                <PlusIcon className="w-16 h-16 text-primary group-hover:scale-110 transition-transform duration-300" />
+            </div>
+            <div className="p-4 flex-grow flex flex-col justify-center">
+                <h3 className="text-base font-semibold text-primary group-hover:text-primary-dark transition-colors duration-300">创建智能体</h3>
+                <p className="text-xs text-text-secondary mt-1">开启您的新AI助手之旅</p>
             </div>
         </div>
     );
+
+    const AgentCard = ({ agent, onAgentClick, onDeleteClick }) => {
+        const [showActions, setShowActions] = useState(false);
+
+        return (
+            <div
+                onClick={() => onAgentClick(agent.id)}
+                onMouseEnter={() => setShowActions(true)}
+                onMouseLeave={() => setShowActions(false)}
+                className="bg-white rounded-lg shadow-sm overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-md flex flex-col h-64 relative"
+            >
+                <div className="h-2/3 bg-primary/10 flex items-center justify-center">
+                    <ChatBubbleLeftRightIcon className="w-20 h-20 text-primary" />
+                </div>
+                <div className="p-4 flex-grow flex flex-col justify-between">
+                    <h3 className="text-base font-semibold text-text-body group-hover:text-primary transition-colors duration-300 truncate">{agent.name}</h3>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                        {agent.tags && agent.tags.slice(0, 2).map((tag, index) => (
+                            <span key={index} className="text-xs bg-bg-secondary text-text-secondary px-1.5 py-0.5 rounded-full">{tag}</span>
+                        ))}
+                        {agent.tags && agent.tags.length > 2 && (
+                            <span className="text-xs text-text-secondary">+{agent.tags.length - 2}</span>
+                        )}
+                    </div>
+                </div>
+                {showActions && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-bg-primary bg-opacity-90 p-2 flex justify-end space-x-2">
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                console.log('Settings clicked for', agent.name);
+                            }}
+                            className="text-text-muted hover:text-primary transition-colors duration-200"
+                        >
+                            <Cog6ToothIcon className="w-5 h-5" />
+                        </button>
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onDeleteClick(agent);
+                            }}
+                            className="text-text-muted hover:text-danger transition-colors duration-200"
+                        >
+                            <TrashIcon className="w-5 h-5" />
+                        </button>
+                    </div>
+                )}
+            </div>
+        );
+    };
 
     const SkeletonCard = () => (
         <div className="bg-bg-primary bg-opacity-30 backdrop-filter backdrop-blur-sm rounded-xl shadow-md overflow-hidden flex flex-col justify-between h-48 relative animate-pulse">
@@ -175,7 +220,7 @@ function Agent({ onCreateNew, onAgentClick }) {
         if (isLoading) {
             return (
                 <>
-                    <NewAgentCard />
+                    <NewAgentCard onCreateNew={onCreateNew} />
                     {[...Array(5)].map((_, index) => (
                         <SkeletonCard key={index} />
                     ))}
@@ -201,59 +246,9 @@ function Agent({ onCreateNew, onAgentClick }) {
 
         return (
             <>
-                <NewAgentCard />
+                <NewAgentCard onCreateNew={onCreateNew} />
                 {agents.map((agent) => (
-                    <div
-                        key={agent.id}
-                        className="group bg-bg-primary rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative cursor-pointer"
-                        onClick={() => onAgentClick(agent.id)}
-                    >
-                        <div className="p-6">
-                            <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center">
-                                    <div className="w-16 h-16 bg-primary bg-opacity-10 rounded-lg flex items-center justify-center mr-3">
-                                        <ChatBubbleLeftRightIcon className="w-12 h-12 text-primary" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-base font-semibold text-text-body font-noto-sans-sc mb-1">{agent.name}</h3>
-                                        <div className="flex items-center text-xs text-text-muted font-noto-sans-sc">
-                                            <span>{agent.conversation_count} 对话</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <span className="text-xs text-text-muted font-noto-sans-sc">
-                                    {formatRelativeTime(agent.updated_at)}前更新
-                                </span>
-                            </div>
-                        </div>
-                        <div className="px-4 py-3 flex items-center justify-between mt-auto border-t border-bg-secondary">
-                            <div className="flex items-center text-xs text-text-muted space-x-2 font-noto-sans-sc">
-                                {agent.tags && agent.tags.map((tag, index) => (
-                                    <span key={index} className="bg-bg-secondary text-text-secondary px-2 py-1 rounded">{tag}</span>
-                                ))}
-                            </div>
-                            <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                <button
-                                    className="text-text-muted hover:text-primary transition-colors duration-200"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        console.log('Settings clicked for', agent.name);
-                                    }}
-                                >
-                                    <Cog6ToothIcon className="w-5 h-5" />
-                                </button>
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDeleteClick(agent);
-                                    }}
-                                    className="text-text-muted hover:text-danger transition-colors duration-200"
-                                >
-                                    <TrashIcon className="w-5 h-5" />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    <AgentCard key={agent.id} agent={agent} onAgentClick={onAgentClick} onDeleteClick={handleDeleteClick} />
                 ))}
             </>
         );
@@ -263,7 +258,7 @@ function Agent({ onCreateNew, onAgentClick }) {
         <div className="space-y-6 pt-4">
             <header className="flex items-center justify-between px-6">
                 <div className="flex items-end space-x-4">
-                    <h2 className="text-xl font-bold text-text-body font-noto-sans-sc">智能体</h2>
+                    <h2 className="text-xl font-bold text-primary font-noto-sans-sc">智能体</h2>
                 </div>
                 <div className="flex items-center space-x-4">
                     <TagSelector tags={tags} selectedTag={selectedTag} setSelectedTag={setSelectedTag} />
@@ -271,7 +266,7 @@ function Agent({ onCreateNew, onAgentClick }) {
                 </div>
             </header>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 px-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 px-6">
                 {renderContent()}
             </div>
             <DeleteConfirmationModal
