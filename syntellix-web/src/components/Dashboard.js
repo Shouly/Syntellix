@@ -30,7 +30,7 @@ import Settings from './dashboard/Settings';
 import CreateKnowledgeBase from './dashboard/CreateKnowledgeBase';
 import KnowledgeBaseDetail from './dashboard/KnowledgeBaseDetail';
 import UploadFiles from './dashboard/UploadFiles';
-import syntellixLogo from '../assets/syntellix_icon_1.png';
+import syntellixLogo from '../assets/syntellix_logo.png';
 
 function Dashboard({ setIsAuthenticated }) {
   const navigate = useNavigate();

@@ -3,6 +3,7 @@ import { ArrowPathIcon } from '@heroicons/react/24/solid';
 import axios from 'axios';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import syntellixLogo from '../assets/syntellix_login_logo.png';
 
 function Login({ setIsAuthenticated }) {
   const [email, setEmail] = useState('');
@@ -40,35 +41,54 @@ function Login({ setIsAuthenticated }) {
   };
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-primary-light to-primary-dark">
-      {/* Left side - Branding and decorative elements */}
-      <div className="flex-1 flex flex-col justify-center items-end pr-24">
-        <div className="space-y-12 max-w-xl">
-          <div className="space-y-4 pb-12">
-            <div className="flex items-baseline">
-              <span className="text-8xl font-thin text-white font-tech tracking-wider">SYNTELLIX</span>
-              <span className="ml-4 text-xl font-light text-white opacity-80 whitespace-nowrap">/sɪnˈtelɪks/</span>
+    <div className="min-h-screen flex bg-gradient-to-br from-primary-light to-primary-dark overflow-hidden relative">
+      {/* 添加背景装饰 */}
+      <div className="absolute inset-0 overflow-hidden opacity-10">
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white via-transparent to-primary-dark"></div>
+      </div>
+
+      {/* Logo */}
+      <div className="absolute top-4 left-4 z-10">
+        <img
+          src={syntellixLogo}
+          alt="Syntellix"
+          className="h-5 w-auto object-contain"
+        />
+      </div>
+
+      {/* Left side content */}
+      <div className="flex-1 flex flex-col justify-center items-end pr-24 relative z-10">
+        <div className="space-y-16 max-w-xl">
+          <div className="space-y-8">
+            <div className="flex items-baseline space-x-4">
+              <h1 className="text-7xl font-extralight text-white font-tech tracking-wider">Syntellix</h1>
+              <span className="text-xl font-light text-white opacity-80">/sɪnˈtelɪks/</span>
             </div>
-            <div className="flex flex-wrap gap-4">
-              {['Synergy', 'Intelligence', 'Matrix'].map((word) => (
-                <span key={word} className="px-4 py-2 bg-white bg-opacity-20 rounded-full text-white font-semibold text-sm">
-                  {word}
-                </span>
+            <div className="flex items-center space-x-3">
+              {['Synergy', 'Intelligence', 'Matrix'].map((word, index, array) => (
+                <React.Fragment key={word}>
+                  <span className="px-4 py-2 bg-white bg-opacity-10 backdrop-blur-sm rounded-full text-white font-medium text-sm border border-white border-opacity-20 shadow-sm transition-all duration-300 hover:bg-opacity-20 hover:shadow-md">
+                    {word}
+                  </span>
+                  {index < array.length - 1 && (
+                    <span className="text-white text-xl font-light mx-2">+</span>
+                  )}
+                </React.Fragment>
               ))}
             </div>
           </div>
           <div className="space-y-4">
-            <h1 className="text-4xl font-bold text-white font-heading leading-tight">
+            <h2 className="text-4xl font-bold text-white font-heading leading-tight">
               Synergizing Intelligence,<br />Amplifying Success
-            </h1>
-            <p className="text-2xl text-white font-sans-sc">协同智能，放大成功</p>
+            </h2>
+            <p className="text-2xl text-white font-sans-sc opacity-75">协同智能，放大成功</p>
           </div>
         </div>
       </div>
 
       {/* Right side - Login form */}
       <div className="flex-1 flex items-center justify-center">
-        <div className="bg-white p-12 rounded-3xl shadow-2xl w-full max-w-md space-y-8">
+        <div className="bg-white bg-opacity-95 p-12 rounded-3xl shadow-2xl w-full max-w-md space-y-8 backdrop-blur-sm">
           <div>
             <h2 className="text-3xl font-bold text-primary-dark font-noto-sans-sc">
               登录
@@ -87,7 +107,6 @@ function Login({ setIsAuthenticated }) {
                 name="email"
                 type="email"
                 autoComplete="email"
-                required
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -103,7 +122,6 @@ function Login({ setIsAuthenticated }) {
                   name="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
-                  required
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light pr-10"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
