@@ -171,12 +171,6 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
-# Tailwind CSS
-tailwind.config.js
-tailwind.config.cjs
-postcss.config.js
-postcss.config.cjs
-
 # Next.js
 .next/
 out/
