@@ -5,6 +5,8 @@ import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import { useToast } from '../../components/Toast';
 import CreateAgentAdvancedConfig from './CreateAgentAdvancedConfig';
+import { createAvatar } from '@dicebear/core';
+import { initials } from '@dicebear/collection';
 
 function CreateAgent({ onBack, onCreated }) {
     const [agentName, setAgentName] = useState('');
@@ -13,6 +15,7 @@ function CreateAgent({ onBack, onCreated }) {
     const [errors, setErrors] = useState({});
     const { showToast } = useToast();
     const [avatar, setAvatar] = useState(null);
+    const [avatarBase64, setAvatarBase64] = useState(null);
     const [greeting, setGreeting] = useState('你好！我是你的助理，有什么可以帮到你的吗？');
     const [showCitation, setShowCitation] = useState(true);
     const [emptyResponse, setEmptyResponse] = useState('我没有找到相关的信息，请问您可以换个问题吗？');
@@ -40,7 +43,15 @@ function CreateAgent({ onBack, onCreated }) {
         }
     };
 
-    const handleNextStep = () => {
+    const generateDefaultAvatar = (name) => {
+        const avatar = createAvatar(initials, {
+            seed: name,
+            backgroundColor: ['#92A1C6', '#146A7C', '#F0AB3D', '#C271B4', '#C20D90'],
+        });
+        return avatar.toDataUri();
+    };
+
+    const handleNextStep = async () => {
         // Validation
         const errors = {};
         if (!agentName.trim()) errors.name = "智能体名称不能为空";
@@ -51,11 +62,17 @@ function CreateAgent({ onBack, onCreated }) {
             return;
         }
 
+        let finalAvatar = avatarBase64;
+        if (!finalAvatar) {
+            const defaultAvatarUri = await generateDefaultAvatar(agentName);
+            finalAvatar = defaultAvatarUri.split(',')[1]; // Remove the "data:image/svg+xml;base64," prefix
+        }
+
         // Save basic settings data
         setAgentData({
             name: agentName,
             description: agentDescription,
-            avatar: avatar,
+            avatar: finalAvatar,
             greeting_message: greeting,
             empty_response: emptyResponse,
             knowledge_base_ids: selectedKnowledgeBases.map(kb => kb.value),
@@ -94,6 +111,19 @@ function CreateAgent({ onBack, onCreated }) {
         // Clear the error message for knowledgeBase when a valid selection is made
         if (selected && selected.length > 0) {
             setErrors(prevErrors => ({ ...prevErrors, knowledgeBase: null }));
+        }
+    };
+
+    const handleAvatarChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64String = reader.result.split(',')[1];
+                setAvatarBase64(base64String);
+                setAvatar(URL.createObjectURL(file));
+            };
+            reader.readAsDataURL(file);
         }
     };
 
@@ -177,7 +207,7 @@ function CreateAgent({ onBack, onCreated }) {
                                         <input
                                             type="file"
                                             accept="image/*"
-                                            onChange={(e) => setAvatar(URL.createObjectURL(e.target.files[0]))}
+                                            onChange={handleAvatarChange}
                                             className="hidden"
                                         />
                                     </div>

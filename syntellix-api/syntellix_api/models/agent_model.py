@@ -1,4 +1,4 @@
-from sqlalchemy.dialects.mysql import JSON
+from sqlalchemy.dialects.mysql import JSON, LONGTEXT
 from syntellix_api.extensions.ext_database import db
 
 
@@ -11,7 +11,7 @@ class Agent(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     tenant_id = db.Column(db.Integer, nullable=False)
     name = db.Column(db.String(255), nullable=False)
-    avatar = db.Column(db.String(255), nullable=True)
+    avatar = db.Column(LONGTEXT, nullable=True)
     description = db.Column(db.Text, nullable=True)
     greeting_message = db.Column(db.Text, nullable=True)
     show_citation = db.Column(db.Boolean, nullable=False, default=True)
