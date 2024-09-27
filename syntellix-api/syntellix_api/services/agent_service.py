@@ -7,6 +7,8 @@ from syntellix_api.services.errors.agent import (
     AgentNameDuplicateError,
     KonwledgeBaseIdEmptyError,
 )
+from sqlalchemy import or_
+import base64
 
 logger = logging.getLogger(__name__)
 
@@ -61,3 +63,40 @@ class AgentService:
     @staticmethod
     def is_agent_name_exists(tenant_id: int, name: str) -> bool:
         return Agent.query.filter_by(name=name, tenant_id=tenant_id).first() is not None
+
+    @staticmethod
+    def get_agents(
+        tenant_id: int,
+        user_id: int,
+        limit: int = 10,
+        cursor: Optional[str] = None,
+        search: Optional[str] = None
+    ):
+        query = Agent.query.filter_by(tenant_id=tenant_id, created_by=user_id)
+
+        if search:
+            query = query.filter(or_(
+                Agent.name.ilike(f"%{search}%"),
+                Agent.description.ilike(f"%{search}%")
+            ))
+
+        if cursor:
+            last_id = int(base64.b64decode(cursor.encode()).decode())
+            query = query.filter(Agent.id < last_id)
+
+        query = query.order_by(Agent.id.desc())
+        agents = query.limit(limit + 1).all()
+
+        has_more = len(agents) > limit
+        if has_more:
+            agents = agents[:limit]
+
+        next_cursor = None
+        if has_more:
+            next_cursor = base64.b64encode(str(agents[-1].id).encode()).decode()
+
+        return {
+            'items': agents,
+            'has_more': has_more,
+            'cursor': next_cursor
+        }

@@ -1,5 +1,5 @@
 from flask_login import current_user
-from flask_restful import Resource, marshal_with, reqparse
+from flask_restful import Resource, marshal_with, reqparse, fields
 from syntellix_api.controllers.api_errors import (
     AgentNameDuplicateError as api_agent_name_duplicate_error,
 )
@@ -8,7 +8,7 @@ from syntellix_api.controllers.api_errors import (
 )
 from syntellix_api.controllers.console import api
 from syntellix_api.libs.login import login_required
-from syntellix_api.response.agent_response import agent_fields
+from syntellix_api.response.agent_response import agent_fields, agent_list_fields
 from syntellix_api.services.agent_service import AgentService
 from syntellix_api.services.errors.agent import (
     AgentNameDuplicateError,
@@ -70,5 +70,26 @@ class AgentNameExistsApi(Resource):
         return {"exists": exists}, 200
 
 
+class AgentListApi(Resource):
+    @login_required
+    @marshal_with(agent_list_fields)
+    def get(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument("limit", type=int, default=10, location="args")
+        parser.add_argument("cursor", type=str, required=False, location="args")
+        parser.add_argument("search", type=str, required=False, location="args")
+        args = parser.parse_args()
+
+        result = AgentService.get_agents(
+            tenant_id=current_user.current_tenant_id,
+            user_id=current_user.id,
+            limit=args['limit'],
+            cursor=args.get('cursor'),
+            search=args.get('search')
+        )
+
+        return result
+
+api.add_resource(AgentListApi, "/agents/list")
 api.add_resource(AgentNameExistsApi, "/agents/name-exists")
 api.add_resource(AgentApi, "/agents")

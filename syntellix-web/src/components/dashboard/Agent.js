@@ -10,7 +10,7 @@ import DeleteConfirmationModal from '../DeleteConfirmationModal';
 
 function Agent({ onCreateNew, onAgentClick }) {
     const [agents, setAgents] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const { showToast } = useToast();
 
@@ -22,54 +22,49 @@ function Agent({ onCreateNew, onAgentClick }) {
     const [selectedTag, setSelectedTag] = useState('全部标签');
     const navigate = useNavigate();
 
-    // Add mock data
-    const mockAgents = [
-        {
-            id: 1,
-            name: "客服助手",
-            conversation_count: 120,
-            updated_at: "2023-06-01T10:00:00Z",
-            tags: ["客服", "销售"]
-        },
-        {
-            id: 2,
-            name: "技术支持",
-            conversation_count: 85,
-            updated_at: "2023-06-02T14:30:00Z",
-            tags: ["技术", "IT"]
-        },
-        {
-            id: 3,
-            name: "营销助手",
-            conversation_count: 200,
-            updated_at: "2023-06-03T09:15:00Z",
-            tags: ["营销", "广告"]
-        }
-    ];
+    const [cursor, setCursor] = useState(null);
+    const [hasMore, setHasMore] = useState(true);
+    const [search, setSearch] = useState('');
 
-    useEffect(() => {
-        // Replace API call with mock data
-        setAgents(mockAgents);
-        setIsLoading(false);
-    }, []);
-
-    useEffect(() => {
-        if (error) {
-            showToast(error, 'error');
-        }
-    }, [error, showToast]);
-
-    const fetchAgents = async () => {
+    const fetchAgents = async (newSearch = false) => {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await axios.get('/console/api/agents');
-            setAgents(response.data.data);
+            const response = await axios.get('/console/api/agents/list', {
+                params: {
+                    limit: 10,
+                    cursor: newSearch ? null : cursor,
+                    search: search
+                }
+            });
+            const newAgents = response.data.items;
+            setAgents(prevAgents => newSearch ? newAgents : [...prevAgents, ...newAgents]);
+            setCursor(response.data.cursor);
+            setHasMore(response.data.has_more);
         } catch (error) {
             console.error('Error fetching agents:', error);
             setError('智能体获取失败');
+            showToast('智能体获取失败', 'error');
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchAgents(true);
+    }, []);
+
+    const handleSearchChange = (e) => {
+        setSearch(e.target.value);
+    };
+
+    const handleSearch = () => {
+        fetchAgents(true);
+    };
+
+    const handleLoadMore = () => {
+        if (!isLoading && hasMore) {
+            fetchAgents();
         }
     };
 
@@ -118,9 +113,14 @@ function Agent({ onCreateNew, onAgentClick }) {
             <input
                 type="text"
                 placeholder="搜索..."
+                value={search}
+                onChange={handleSearchChange}
                 className="pl-10 pr-4 py-2 text-sm rounded-md bg-bg-primary border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 w-48 font-noto-sans-sc text-text-body"
             />
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-primary" />
+            <MagnifyingGlassIcon
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-primary cursor-pointer"
+                onClick={handleSearch}
+            />
         </div>
     );
 
@@ -190,18 +190,16 @@ function Agent({ onCreateNew, onAgentClick }) {
     };
 
     const SkeletonCard = () => (
-        <div className="bg-bg-primary bg-opacity-30 backdrop-filter backdrop-blur-sm rounded-xl shadow-md overflow-hidden flex flex-col justify-between h-48 relative animate-pulse">
-            <div className="p-6">
-                <div className="flex items-center space-x-4">
-                    <div className="w-16 h-16 bg-primary bg-opacity-20 rounded-lg"></div>
-                    <div className="flex-1">
-                        <div className="h-4 bg-primary bg-opacity-20 rounded w-3/4 mb-2"></div>
-                        <div className="h-3 bg-primary bg-opacity-10 rounded w-1/2"></div>
-                    </div>
-                </div>
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col h-64 animate-pulse">
+            <div className="h-2/3 bg-primary/5 flex items-center justify-center">
+                <div className="w-20 h-20 bg-primary/10 rounded-full"></div>
             </div>
-            <div className="px-4 py-3 bg-primary bg-opacity-10">
-                <div className="h-3 bg-primary bg-opacity-20 rounded w-1/4"></div>
+            <div className="p-4 flex-grow flex flex-col justify-between">
+                <div className="h-5 bg-primary/10 rounded w-3/4"></div>
+                <div className="space-y-2 mt-2">
+                    <div className="h-4 bg-primary/5 rounded w-full"></div>
+                    <div className="h-4 bg-primary/5 rounded w-2/3"></div>
+                </div>
             </div>
         </div>
     );
@@ -217,7 +215,7 @@ function Agent({ onCreateNew, onAgentClick }) {
     };
 
     const renderContent = () => {
-        if (isLoading) {
+        if (isLoading && agents.length === 0) {
             return (
                 <>
                     <NewAgentCard onCreateNew={onCreateNew} />
@@ -250,6 +248,21 @@ function Agent({ onCreateNew, onAgentClick }) {
                 {agents.map((agent) => (
                     <AgentCard key={agent.id} agent={agent} onAgentClick={onAgentClick} onDeleteClick={handleDeleteClick} />
                 ))}
+                {hasMore && !isLoading && (
+                    <div className="col-span-full flex justify-center">
+                        <button
+                            onClick={handleLoadMore}
+                            className="px-4 py-2 bg-primary text-bg-primary rounded-md hover:bg-primary-dark transition-colors duration-200"
+                        >
+                            加载更多
+                        </button>
+                    </div>
+                )}
+                {isLoading && agents.length > 0 && (
+                    <div className="col-span-full flex justify-center">
+                        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                )}
             </>
         );
     };

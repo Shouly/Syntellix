@@ -14,3 +14,9 @@ agent_fields = {
     "created_at": fields.DateTime,
     "updated_at": fields.DateTime,
 }
+
+agent_list_fields = {
+    'items': fields.List(fields.Nested(agent_fields)),
+    'has_more': fields.Boolean,
+    'cursor': fields.String,
+}
