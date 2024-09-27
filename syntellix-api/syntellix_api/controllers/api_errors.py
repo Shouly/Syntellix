@@ -83,3 +83,15 @@ class UnsupportedFileTypeError(BaseHTTPException):
     error_code = "unsupported_file_type"
     description = "文件类型不支持"
     code = 415
+
+
+class AgentNameDuplicateError(BaseHTTPException):
+    error_code = "agent_name_duplicate"
+    description = "智能体名称已存在"
+    code = 400
+
+
+class KonwledgeBaseIdEmptyError(BaseHTTPException):
+    error_code = "knowledge_base_id_empty"
+    description = "知识库ID不能为空"
+    code = 400

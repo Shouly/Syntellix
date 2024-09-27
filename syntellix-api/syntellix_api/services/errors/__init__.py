@@ -11,9 +11,11 @@ from . import (
     file,
     index,
     message,
+    agent,
 )
 
 __all__ = [
+    "agent",
     "base",
     "conversation",
     "message",

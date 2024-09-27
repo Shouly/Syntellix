@@ -1,11 +1,19 @@
-from flask import request
 from flask_login import current_user
-from flask_restful import Resource, fields, marshal, marshal_with, reqparse
-from sqlalchemy import asc, desc
+from flask_restful import Resource, marshal_with, reqparse
+from syntellix_api.controllers.api_errors import (
+    AgentNameDuplicateError as api_agent_name_duplicate_error,
+)
+from syntellix_api.controllers.api_errors import (
+    KonwledgeBaseIdEmptyError as api_knowledge_base_id_empty_error,
+)
 from syntellix_api.controllers.console import api
 from syntellix_api.libs.login import login_required
 from syntellix_api.response.agent_response import agent_fields
 from syntellix_api.services.agent_service import AgentService
+from syntellix_api.services.errors.agent import (
+    AgentNameDuplicateError,
+    KonwledgeBaseIdEmptyError,
+)
 
 
 class AgentApi(Resource):
@@ -34,9 +42,17 @@ class AgentApi(Resource):
         )
         args = parser.parse_args()
 
-        agent = AgentService.create_agent(
-            tenant_id=current_user.current_tenant_id, user_id=current_user.id, **args
-        )
+        try:
+            agent = AgentService.create_agent(
+                tenant_id=current_user.current_tenant_id,
+                user_id=current_user.id,
+                **args
+            )
+        except AgentNameDuplicateError:
+            raise api_agent_name_duplicate_error()
+        except KonwledgeBaseIdEmptyError:
+            raise api_knowledge_base_id_empty_error()
+
         return agent, 201
 
 
