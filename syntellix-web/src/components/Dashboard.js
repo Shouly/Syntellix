@@ -30,6 +30,7 @@ import Settings from './dashboard/Settings';
 import CreateKnowledgeBase from './dashboard/CreateKnowledgeBase';
 import KnowledgeBaseDetail from './dashboard/KnowledgeBaseDetail';
 import UploadFiles from './dashboard/UploadFiles';
+import syntellixLogo from '../assets/syntellix_icon_1.png';
 
 function Dashboard({ setIsAuthenticated }) {
   const navigate = useNavigate();
@@ -244,13 +245,13 @@ function Dashboard({ setIsAuthenticated }) {
       <nav className="bg-primary shadow-md z-10">
         <div className="max-w-full mx-auto flex justify-between items-center px-4 py-2">
           {/* Logo - Left aligned with fixed width */}
-          <div className="flex-shrink-0 w-48">
-            <h1
-              className="text-3xl font-thin cursor-pointer transition-all duration-300 hover:scale-105 tracking-[.10em]"
+          <div className="flex-shrink-0 w-48 flex items-center">
+            <img
+              src={syntellixLogo}
+              alt="Syntellix"
+              className="h-8 w-auto object-contain cursor-pointer transition-all duration-300 hover:scale-105"
               onClick={handleLogoClick}
-            >
-              <span className="text-bg-primary">SYNTELLIX</span>
-            </h1>
+            />
           </div>
 
           {/* Menu Items - Centered */}
