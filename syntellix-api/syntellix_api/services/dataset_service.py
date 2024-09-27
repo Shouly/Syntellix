@@ -14,18 +14,20 @@ from syntellix_api.models.dataset_model import (
     KnowledgeBasePermissionEnum,
     UploadFile,
 )
+from syntellix_api.rag.vector_database.vector_service import VectorService
 from syntellix_api.services.errors.account import NoPermissionError
 from syntellix_api.services.errors.dataset import DatasetNameDuplicateError
 from syntellix_api.services.errors.file import FileNotExistsError
 from syntellix_api.tasks.document_processing import process_document
-from syntellix_api.rag.vector_database.vector_service import VectorService
 
 logger = logging.getLogger(__name__)
 
 # Ensure that the 'fork' start method is not used in macOS
-if os.name == 'posix' and os.uname().sysname == 'Darwin':
+if os.name == "posix" and os.uname().sysname == "Darwin":
     import multiprocessing
-    multiprocessing.set_start_method('spawn', force=True)
+
+    multiprocessing.set_start_method("spawn", force=True)
+
 
 class KonwledgeBaseService:
 
@@ -43,7 +45,7 @@ class KonwledgeBaseService:
                 account_id=user.id, tenant_id=tenant_id
             ).all()
             permitted_dataset_ids = (
-                {dp.dataset_id for dp in dataset_permission}
+                {dp.knowledge_base_id for dp in dataset_permission}
                 if dataset_permission
                 else None
             )
@@ -108,6 +110,71 @@ class KonwledgeBaseService:
         )
 
         return datasets.items, datasets.total
+
+    @staticmethod
+    def get_knowledge_bases_base_info(
+        tenant_id: int,
+        user=None,
+    ):
+        query = KnowledgeBase.query.filter(
+            KnowledgeBase.tenant_id == tenant_id
+        ).order_by(KnowledgeBase.created_at.desc())
+
+        if user:
+            # get permitted dataset ids
+            dataset_permission = KnowledgeBasePermission.query.filter_by(
+                account_id=user.id, tenant_id=tenant_id
+            ).all()
+            permitted_dataset_ids = (
+                {dp.knowledge_base_id for dp in dataset_permission}
+                if dataset_permission
+                else None
+            )
+
+            if user.current_role == TenantAccountRole.DATASET_OPERATOR:
+                # only show datasets that the user has permission to access
+                if permitted_dataset_ids:
+                    query = query.filter(KnowledgeBase.id.in_(permitted_dataset_ids))
+                else:
+                    return [], 0
+            else:
+                # show all datasets that the user has permission to access
+                if permitted_dataset_ids:
+                    query = query.filter(
+                        db.or_(
+                            KnowledgeBase.permission
+                            == KnowledgeBasePermissionEnum.ALL_TEAM,
+                            db.and_(
+                                KnowledgeBase.permission
+                                == KnowledgeBasePermissionEnum.ONLY_ME,
+                                KnowledgeBase.created_by == user.id,
+                            ),
+                            db.and_(
+                                KnowledgeBase.permission
+                                == KnowledgeBasePermissionEnum.PARTIAL_TEAM,
+                                KnowledgeBase.id.in_(permitted_dataset_ids),
+                            ),
+                        )
+                    )
+                else:
+                    query = query.filter(
+                        db.or_(
+                            KnowledgeBase.permission
+                            == KnowledgeBasePermissionEnum.ALL_TEAM,
+                            db.and_(
+                                KnowledgeBase.permission
+                                == KnowledgeBasePermissionEnum.ONLY_ME,
+                                KnowledgeBase.created_by == user.id,
+                            ),
+                        )
+                    )
+        else:
+            # if no user, only show datasets that are shared with all team members
+            query = query.filter(
+                KnowledgeBase.permission == KnowledgeBasePermissionEnum.ALL_TEAM
+            )
+
+        return query.all()
 
     @staticmethod
     def get_knowledge_bases_by_ids(ids, tenant_id):
@@ -348,7 +415,9 @@ class DocumentService:
                 if file_key in existing_doc_map:
                     doc = existing_doc_map[file_key]
                     # 删除原来的索引
-                    vector_service.delete_by_knowledge_base_and_document_id(knowledge_base.id, doc.id)
+                    vector_service.delete_by_knowledge_base_and_document_id(
+                        knowledge_base.id, doc.id
+                    )
                     doc.updated_at = datetime.datetime.now()
                     doc.parser_type = DocumentParserTypeEnum(args["parser_type"])
                     doc.parser_config = args["parser_config"]

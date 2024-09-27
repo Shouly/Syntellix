@@ -1,7 +1,8 @@
-import { ArrowLeftIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, InformationCircleIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { ArrowPathIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import axios from 'axios';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import Select from 'react-select';
 import { useToast } from '../../components/Toast';
 import CreateAgentAdvancedConfig from './CreateAgentAdvancedConfig';
 
@@ -13,35 +14,54 @@ function CreateAgent({ onBack, onCreated }) {
     const { showToast } = useToast();
     const [avatar, setAvatar] = useState(null);
     const [greeting, setGreeting] = useState('你好！我是你的助理，有什么可以帮到你的吗？');
-    const [showIndexContent, setShowIndexContent] = useState(true);
-    const [knowledgeBase, setKnowledgeBase] = useState('');
+    const [showCitation, setShowCitation] = useState(true);
     const [emptyResponse, setEmptyResponse] = useState('我没有找到相关的信息，请问您可以换个问题吗？');
     const [currentStep, setCurrentStep] = useState(1);
     const [agentData, setAgentData] = useState(null);
+    const [knowledgeBases, setKnowledgeBases] = useState([]);
+    const [selectedKnowledgeBases, setSelectedKnowledgeBases] = useState([]);
+    const [isLoadingKnowledgeBases, setIsLoadingKnowledgeBases] = useState(true);
+    const [advancedConfig, setAdvancedConfig] = useState({});
+
+    useEffect(() => {
+        fetchKnowledgeBases();
+    }, []);
+
+    const fetchKnowledgeBases = async () => {
+        setIsLoadingKnowledgeBases(true);
+        try {
+            const response = await axios.get('/console/api/knowledge-bases/base-info');
+            setKnowledgeBases(response.data.map(kb => ({ value: kb.id, label: kb.name })));
+        } catch (error) {
+            console.error('Error fetching knowledge bases:', error);
+            showToast('获取知识库列表失败', 'error');
+        } finally {
+            setIsLoadingKnowledgeBases(false);
+        }
+    };
 
     const handleNextStep = () => {
-        // 验证基础设置
+        // Validation
         const errors = {};
         if (!agentName.trim()) errors.name = "智能体名称不能为空";
-        if (!knowledgeBase) errors.knowledgeBase = "请选择知识库";
+        if (selectedKnowledgeBases.length === 0) errors.knowledgeBase = "请选择至少一个知识库";
         
         if (Object.keys(errors).length > 0) {
             setErrors(errors);
             return;
         }
 
-        // 保存基础设置数据
+        // Save basic settings data
         setAgentData({
             name: agentName,
             description: agentDescription,
             avatar: avatar,
-            greeting: greeting,
-            emptyResponse: emptyResponse,
-            knowledgeBaseId: knowledgeBase,
-            showIndexContent: showIndexContent
+            greeting_message: greeting,
+            empty_response: emptyResponse,
+            knowledge_base_ids: selectedKnowledgeBases.map(kb => kb.value),
+            show_citation: showCitation
         });
 
-        // 进入高级配置步骤
         setCurrentStep(2);
     };
 
@@ -49,16 +69,14 @@ function CreateAgent({ onBack, onCreated }) {
         setCurrentStep(1);
     };
 
-    const handleComplete = async (advancedConfig) => {
+    const handleComplete = async (advancedConfigData) => {
         setIsLoading(true);
         try {
-            // 合并基础设置和高级配置
             const completeAgentData = {
                 ...agentData,
-                ...advancedConfig
+                advanced_config: advancedConfigData
             };
 
-            // 发送创建智能体的请求
             const response = await axios.post('/console/api/agents', completeAgentData);
             showToast('智能体创建成功', 'success');
             onCreated(response.data);
@@ -69,6 +87,30 @@ function CreateAgent({ onBack, onCreated }) {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleKnowledgeBaseChange = (selected) => {
+        setSelectedKnowledgeBases(selected);
+        // Clear the error message for knowledgeBase when a valid selection is made
+        if (selected && selected.length > 0) {
+            setErrors(prevErrors => ({ ...prevErrors, knowledgeBase: null }));
+        }
+    };
+
+    const customStyles = {
+        control: (provided) => ({
+            ...provided,
+            backgroundColor: 'bg-bg-secondary',
+            borderColor: 'bg-bg-secondary',
+            '&:hover': {
+                borderColor: 'primary',
+            },
+        }),
+        option: (provided, state) => ({
+            ...provided,
+            backgroundColor: state.isSelected ? 'primary' : state.isFocused ? 'bg-bg-secondary' : 'white',
+            color: state.isSelected ? 'white' : 'text-text-body',
+        }),
     };
 
     return (
@@ -91,12 +133,12 @@ function CreateAgent({ onBack, onCreated }) {
             </div>
 
             {/* Main content area */}
-            <div className="flex-1 overflow-y-auto bg-white rounded-lg shadow-sm p-6">
+            <div className="flex-1 overflow-y-auto bg-white rounded-lg shadow-sm p-3">
                 {currentStep === 1 ? (
                     // 基础设置表单
-                    <div className="max-w-3xl mx-auto">
-                        <h3 className="text-xl font-semibold text-text-body font-sans-sc mb-2">创建智能体</h3>
-                        <p className="text-sm text-text-secondary font-sans-sc mb-8">
+                    <div className="p-6 space-y-6">
+                        <h3 className="text-xl font-semibold text-text-body font-sans-sc mb-1">创建智能体</h3>
+                        <p className="text-sm text-text-secondary font-sans-sc -mt-1">
                             智能体是可定制的AI助手，根据您的设置执行特定任务。
                         </p>
                         
@@ -174,7 +216,7 @@ function CreateAgent({ onBack, onCreated }) {
                                 <div className="col-span-3">
                                     <label htmlFor="emptyResponse" className="block text-sm font-medium text-text-body mb-2 font-sans-sc flex items-center">
                                         空回复
-                                        <InfoIcon tooltip="当智能体无法找到相关信息时的回复内容。" />
+                                        <InfoIcon tooltip="当智能体无法从知识库中找到答案时的回复内容。" />
                                     </label>
                                     <textarea
                                         id="emptyResponse"
@@ -188,35 +230,44 @@ function CreateAgent({ onBack, onCreated }) {
                                 <div className="col-span-2 sm:col-span-1">
                                     <label htmlFor="knowledgeBase" className="block text-sm font-medium text-text-body mb-2 font-sans-sc flex items-center">
                                         知识库 <span className="text-red-500">*</span>
-                                        <InfoIcon tooltip="选择智能体使用的知识库，这将决定智能体的专业领域和回答能力。" />
+                                        <InfoIcon tooltip="选择智能体使用的知识库，这将决定智能体的专业领域和回答能力。可以选择多个知识库。" />
                                     </label>
-                                    <select
-                                        id="knowledgeBase"
-                                        value={knowledgeBase}
-                                        onChange={(e) => setKnowledgeBase(e.target.value)}
-                                        className="w-full p-3 text-sm font-tech bg-bg-secondary border border-bg-secondary rounded-md text-text-body focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
-                                    >
-                                        <option value="">请选择</option>
-                                        {/* Add your knowledge base options here */}
-                                    </select>
+                                    <Select
+                                        options={knowledgeBases}
+                                        value={selectedKnowledgeBases}
+                                        onChange={handleKnowledgeBaseChange}
+                                        placeholder={isLoadingKnowledgeBases ? "加载中..." : "请选择知识库"}
+                                        isDisabled={isLoadingKnowledgeBases}
+                                        isMulti={true}
+                                        isClearable={true}
+                                        isSearchable={true}
+                                        styles={customStyles}
+                                        className="text-sm font-tech"
+                                    />
+                                    {errors.knowledgeBase && (
+                                        <p className="mt-1 text-xs text-red-500 flex items-center">
+                                            <ExclamationCircleIcon className="h-3 w-3 mr-1" />
+                                            {errors.knowledgeBase}
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div className="col-span-2 sm:col-span-1 flex items-center">
-                                    <label htmlFor="showIndexContent" className="flex items-center cursor-pointer">
+                                    <label htmlFor="showCitation" className="flex items-center cursor-pointer">
                                         <div className="relative">
                                             <input
                                                 type="checkbox"
-                                                id="showIndexContent"
+                                                id="showCitation"
                                                 className="sr-only"
-                                                checked={showIndexContent}
-                                                onChange={(e) => setShowIndexContent(e.target.checked)}
+                                                checked={showCitation}
+                                                onChange={(e) => setShowCitation(e.target.checked)}
                                             />
-                                            <div className={`w-10 h-6 rounded-full shadow-inner transition-colors duration-200 ${showIndexContent ? 'bg-primary' : 'bg-gray-200'}`}></div>
-                                            <div className={`absolute w-4 h-4 bg-white rounded-full shadow inset-y-1 left-1 transition-transform duration-200 ${showIndexContent ? 'transform translate-x-full' : ''}`}></div>
+                                            <div className={`w-10 h-6 rounded-full shadow-inner transition-colors duration-200 ${showCitation ? 'bg-primary' : 'bg-gray-200'}`}></div>
+                                            <div className={`absolute w-4 h-4 bg-white rounded-full shadow inset-y-1 left-1 transition-transform duration-200 ${showCitation ? 'transform translate-x-full' : ''}`}></div>
                                         </div>
                                         <div className="ml-3 text-sm font-medium text-text-body font-sans-sc flex items-center">
                                             显示引文
-                                            <InfoIcon tooltip="开启后，智能体会在回答中显示信息来源，增加可信度。" />
+                                            <InfoIcon tooltip="开启后，智能体会在回答中展示引用的知识库内容。" />
                                         </div>
                                     </label>
                                 </div>
@@ -236,7 +287,7 @@ function CreateAgent({ onBack, onCreated }) {
                                 </div>
                             )}
 
-                            <div className="flex justify-end pt-6">
+                            <div className="flex justify-end pt-1">
                                 <button
                                     type="button"
                                     onClick={handleNextStep}
@@ -253,6 +304,7 @@ function CreateAgent({ onBack, onCreated }) {
                     <CreateAgentAdvancedConfig
                         onBack={handlePreviousStep}
                         onComplete={handleComplete}
+                        initialConfig={advancedConfig}
                     />
                 )}
             </div>
@@ -263,8 +315,8 @@ function CreateAgent({ onBack, onCreated }) {
 function StepItem({ number, text, active = false, completed = false }) {
     return (
         <li className={`flex items-center ${active ? 'text-text-body' : 'text-text-muted'}`}>
-            <span className={`w-6 h-6 flex items-center justify-center rounded-full mr-3 z-10 ${completed ? 'bg-primary text-white font-semibold' : active ? 'bg-primary text-white font-semibold' : 'bg-bg-secondary'}`}>
-                {completed ? <ArrowPathIcon className="w-4 h-4" /> : number}
+            <span className={`w-6 h-6 flex items-center justify-center rounded-full mr-3 z-10 ${completed ? 'bg-primary text-white' : active ? 'bg-primary text-white font-semibold' : 'bg-bg-secondary'}`}>
+                {completed ? <CheckIcon className="w-4 h-4" /> : number}
             </span>
             <span className={`font-sans-sc text-sm ${active ? 'font-semibold' : ''}`}>{text}</span>
         </li>

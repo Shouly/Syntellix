@@ -35,7 +35,7 @@ class AgentApi(Resource):
         args = parser.parse_args()
 
         agent = AgentService.create_agent(
-            tenant_id=current_user.tenant_id, user_id=current_user.id, **args
+            tenant_id=current_user.current_tenant_id, user_id=current_user.id, **args
         )
         return agent, 201
 

@@ -1,10 +1,14 @@
 from flask import request
 from flask_login import current_user
-from flask_restful import Resource, marshal, reqparse
+from flask_restful import Resource, marshal, marshal_with, reqparse
+from syntellix_api.controllers.api_errors import KnowledgeBaseNameDuplicateError
 from syntellix_api.controllers.console import api
 from syntellix_api.libs.login import login_required
 from syntellix_api.models.dataset_model import KnowledgeBasePermissionEnum
-from syntellix_api.response.knowledge_base_response import knowledge_base_detail_fields
+from syntellix_api.response.knowledge_base_response import (
+    knowledge_base_base_info_fields,
+    knowledge_base_detail_fields,
+)
 from syntellix_api.services.dataset_service import (
     KnowledgeBasePermissionService,
     KonwledgeBaseService,
@@ -14,7 +18,6 @@ from syntellix_api.services.errors.dataset import (
     DatasetInUseError,
     DatasetNameDuplicateError,
 )
-from syntellix_api.controllers.api_errors import KnowledgeBaseNameDuplicateError
 from werkzeug.exceptions import Forbidden, NotFound
 
 
@@ -106,6 +109,17 @@ class KnowledgeBaseListApi(Resource):
         return marshal(knowledge_base, knowledge_base_detail_fields), 201
 
 
+class KnowledgeBaseBaseInfoListApi(Resource):
+
+    @login_required
+    @marshal_with(knowledge_base_base_info_fields)
+    def get(self):
+        knowledge_bases = KonwledgeBaseService.get_knowledge_bases_base_info(
+            current_user.current_tenant_id, current_user
+        )
+        return knowledge_bases
+
+
 class KnowledgeBaseApi(Resource):
 
     @login_required
@@ -179,6 +193,7 @@ class KnowledgeBasePermissionUserListApi(Resource):
 
 
 api.add_resource(KnowledgeBaseListApi, "/knowledge-bases")
+api.add_resource(KnowledgeBaseBaseInfoListApi, "/knowledge-bases/base-info")
 api.add_resource(KnowledgeBaseApi, "/knowledge-bases/<int:knowledge_base_id>")
 api.add_resource(
     KnowledgeBasePermissionUserListApi,

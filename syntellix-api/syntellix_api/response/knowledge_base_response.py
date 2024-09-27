@@ -11,6 +11,12 @@ knowledge_base_fields = {
     "created_at": fields.DateTime,
 }
 
+knowledge_base_base_info_fields = {
+    "id": fields.Integer,
+    "name": fields.String,
+    "description": fields.String,
+}
+
 knowledge_base_detail_fields = {
     "id": fields.Integer,
     "name": fields.String,
