@@ -1,7 +1,7 @@
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { ArrowPathIcon } from '@heroicons/react/24/solid';
 import axios from 'axios';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import syntellixLogo from '../assets/syntellix_login_logo.png';
 
@@ -13,16 +13,64 @@ function SystemInit({ setIsInitialized }) {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [nameError, setNameError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [isFormValid, setIsFormValid] = useState(false);
+
+  useEffect(() => {
+    validateForm();
+  }, [email, name, password]);
+
+  const validateForm = () => {
+    let isValid = true;
+    
+    // Name validation
+    if (!name.trim()) {
+      setNameError('用户名不能为空');
+      isValid = false;
+    } else {
+      setNameError('');
+    }
+
+    // Email validation
+    if (!email) {
+      setEmailError('邮箱不能为空');
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      setEmailError('请输入有效的邮箱地址');
+      isValid = false;
+    } else {
+      setEmailError('');
+    }
+
+    // Password validation
+    if (!password) {
+      setPasswordError('密码不能为空');
+      isValid = false;
+    } else if (password.length < 8) {
+      setPasswordError('密码长度至少为8个字符');
+      isValid = false;
+    } else if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(password)) {
+      setPasswordError('密码必须包含至少一个字母和一个数字');
+      isValid = false;
+    } else {
+      setPasswordError('');
+    }
+
+    setIsFormValid(isValid);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!isFormValid) return;
     setIsLoading(true);
     setError('');
     try {
       const response = await axios.post('/console/api/sys_init', { email, name, password });
       if (response.data.result === 'success') {
-        setIsInitialized(true); // Update the initialization status
-        navigate('/'); // Navigate to the login page
+        setIsInitialized(true);
+        navigate('/');
       } else {
         setError('Unexpected response from server. Please try again.');
       }
@@ -110,10 +158,11 @@ function SystemInit({ setIsInitialized }) {
                 name="name"
                 type="text"
                 autoComplete="name"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light"
+                className={`mt-1 block w-full px-3 py-2 border ${nameError ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light`}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
+              {nameError && <p className="mt-1 text-sm text-red-600">{nameError}</p>}
             </div>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 font-noto-sans-sc">
@@ -124,10 +173,11 @@ function SystemInit({ setIsInitialized }) {
                 name="email"
                 type="email"
                 autoComplete="email"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light"
+                className={`mt-1 block w-full px-3 py-2 border ${emailError ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light`}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
+              {emailError && <p className="mt-1 text-sm text-red-600">{emailError}</p>}
             </div>
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 font-noto-sans-sc">
@@ -139,7 +189,7 @@ function SystemInit({ setIsInitialized }) {
                   name="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light pr-10"
+                  className={`mt-1 block w-full px-3 py-2 border ${passwordError ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light pr-10`}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -155,14 +205,15 @@ function SystemInit({ setIsInitialized }) {
                   )}
                 </button>
               </div>
+              {passwordError && <p className="mt-1 text-sm text-red-600">{passwordError}</p>}
               <p className="mt-1 text-xs text-gray-500 font-noto-sans-sc">密码必须包含字母和数字，且长度不小于8位</p>
             </div>
             {error && <p className="text-sm text-danger">{error}</p>}
             <div>
               <button
                 type="submit"
-                disabled={isLoading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-light transition duration-150 ease-in-out"
+                disabled={isLoading || !isFormValid}
+                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${isFormValid ? 'bg-primary hover:bg-primary-dark' : 'bg-gray-400 cursor-not-allowed'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-light transition duration-150 ease-in-out`}
               >
                 {isLoading ? (
                   <ArrowPathIcon className="animate-spin h-5 w-5" />

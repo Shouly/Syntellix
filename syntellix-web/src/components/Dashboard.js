@@ -95,10 +95,6 @@ function Dashboard({ setIsAuthenticated }) {
     setShowMenu(false);
   };
 
-  const handleLogoClick = () => {
-    navigate('/dashboard');
-  };
-
   const handleProfileUpdate = (updatedProfile) => {
     setUserProfile(prevProfile => ({
       ...prevProfile,
@@ -249,8 +245,7 @@ function Dashboard({ setIsAuthenticated }) {
             <img
               src={syntellixLogo}
               alt="Syntellix"
-              className="h-8 w-auto object-contain cursor-pointer transition-all duration-300 hover:scale-105"
-              onClick={handleLogoClick}
+              className="h-8 w-auto object-contain"
             />
           </div>
 
