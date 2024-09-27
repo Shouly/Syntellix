@@ -141,6 +141,16 @@ function Agent({ onCreateNew, onAgentClick }) {
 
     const AgentCard = ({ agent, onAgentClick, onDeleteClick }) => {
         const [showActions, setShowActions] = useState(false);
+        const [avatarUrl, setAvatarUrl] = useState('');
+
+        useEffect(() => {
+            if (agent.avatar) {
+                setAvatarUrl(agent.avatar);
+            } else {
+                // 如果后端没有返回 avatar，可以使用一个默认图片或者生成一个默认头像
+                setAvatarUrl('/path/to/default/avatar.png');
+            }
+        }, [agent.avatar]);
 
         return (
             <div
@@ -150,7 +160,7 @@ function Agent({ onCreateNew, onAgentClick }) {
                 className="bg-white rounded-lg shadow-sm overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-md flex flex-col h-64 relative"
             >
                 <div className="h-2/3 bg-primary/10 flex items-center justify-center">
-                    <ChatBubbleLeftRightIcon className="w-20 h-20 text-primary" />
+                    <img src={avatarUrl} alt={agent.name}/>
                 </div>
                 <div className="p-4 flex-grow flex flex-col justify-between">
                     <h3 className="text-base font-semibold text-text-body group-hover:text-primary transition-colors duration-300 truncate">{agent.name}</h3>

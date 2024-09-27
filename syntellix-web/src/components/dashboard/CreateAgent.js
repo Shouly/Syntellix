@@ -1,13 +1,11 @@
-import { ArrowLeftIcon, InformationCircleIcon, CheckIcon } from '@heroicons/react/24/outline';
-import { ArrowPathIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid';
+import { ArrowLeftIcon, CheckIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import axios from 'axios';
-import React, { useState, useEffect } from 'react';
+import { debounce } from 'lodash';
+import React, { useEffect, useState } from 'react';
 import Select from 'react-select';
 import { useToast } from '../../components/Toast';
 import CreateAgentAdvancedConfig from './CreateAgentAdvancedConfig';
-import { createAvatar } from '@dicebear/core';
-import { initials } from '@dicebear/collection';
-import { debounce } from 'lodash';
 
 function CreateAgent({ onBack, onCreated }) {
     const [agentName, setAgentName] = useState('');
@@ -16,7 +14,7 @@ function CreateAgent({ onBack, onCreated }) {
     const [errors, setErrors] = useState({});
     const { showToast } = useToast();
     const [avatar, setAvatar] = useState(null);
-    const [avatarBase64, setAvatarBase64] = useState(null);
+    const [avatarFile, setAvatarFile] = useState(null);
     const [greeting, setGreeting] = useState('你好！我是你的助理，有什么可以帮到你的吗？');
     const [showCitation, setShowCitation] = useState(true);
     const [emptyResponse, setEmptyResponse] = useState('我没有找到相关的信息，请问您可以换个问题吗？');
@@ -46,14 +44,6 @@ function CreateAgent({ onBack, onCreated }) {
         }
     };
 
-    const generateDefaultAvatar = (name) => {
-        const avatar = createAvatar(initials, {
-            seed: name,
-            backgroundColor: ['#92A1C6', '#146A7C', '#F0AB3D', '#C271B4', '#C20D90'],
-        });
-        return avatar.toDataUri();
-    };
-
     const checkAgentName = debounce(async (name) => {
         if (!name.trim()) {
             setIsNameAvailable(true);
@@ -72,7 +62,6 @@ function CreateAgent({ onBack, onCreated }) {
         setAgentName(newName);
         checkAgentName(newName);
 
-        // 清除名称相关的错误
         if (newName.trim()) {
             setErrors(prevErrors => ({ ...prevErrors, name: null }));
         }
@@ -84,16 +73,16 @@ function CreateAgent({ onBack, onCreated }) {
         if (!agentName.trim()) errors.name = "智能体名称不能为空";
         if (!isNameAvailable) errors.name = "智能体名称已存在";
         if (selectedKnowledgeBases.length === 0) errors.knowledgeBase = "请选择至少一个知识库";
-        
+
         if (Object.keys(errors).length > 0) {
             setErrors(errors);
             return;
         }
 
-        let finalAvatar = avatarBase64;
-        if (!finalAvatar) {
-            const defaultAvatarUri = await generateDefaultAvatar(agentName);
-            finalAvatar = defaultAvatarUri.split(',')[1]; // Remove the "data:image/svg+xml;base64," prefix
+        // Update avatar handling
+        let finalAvatar = null;
+        if (avatarFile) {
+            finalAvatar = await convertFileToBase64(avatarFile);
         }
 
         // Save basic settings data
@@ -148,14 +137,20 @@ function CreateAgent({ onBack, onCreated }) {
     const handleAvatarChange = (e) => {
         const file = e.target.files[0];
         if (file) {
+            setAvatarFile(file);
+            setAvatar(URL.createObjectURL(file));
+        }
+    };
+
+    const convertFileToBase64 = (file) => {
+        return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onloadend = () => {
-                const base64String = reader.result.split(',')[1];
-                setAvatarBase64(base64String);
-                setAvatar(URL.createObjectURL(file));
+                resolve(reader.result.split(',')[1]);
             };
+            reader.onerror = reject;
             reader.readAsDataURL(file);
-        }
+        });
     };
 
     const customStyles = {
@@ -227,7 +222,7 @@ function CreateAgent({ onBack, onCreated }) {
                         <p className="text-sm text-text-secondary font-sans-sc -mt-1">
                             智能体是可定制的AI助手，根据您的设置执行特定任务。
                         </p>
-                        
+
                         <form className="space-y-6">
                             <div className="grid grid-cols-3 gap-6">
                                 <div className="col-span-1">
@@ -250,22 +245,24 @@ function CreateAgent({ onBack, onCreated }) {
                                     )}
                                 </div>
 
-                                <div className="col-span-2 flex items-center">
+                                <div className="col-span-2 flex items-center pl-8">
                                     <label className="block text-sm font-medium text-text-body mr-4 font-sans-sc">
                                         智能体头像
                                     </label>
-                                    <div className="w-16 h-16 border-2 border-dashed border-bg-secondary rounded-full flex items-center justify-center cursor-pointer hover:border-primary transition-colors duration-200">
-                                        {avatar ? (
-                                            <img src={avatar} alt="Agent Avatar" className="w-full h-full object-cover rounded-full" />
-                                        ) : (
-                                            <span className="text-2xl text-bg-secondary">+</span>
-                                        )}
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleAvatarChange}
-                                            className="hidden"
-                                        />
+                                    <div className="flex items-center">
+                                        <div className="w-16 h-16 border-2 border-dashed border-bg-secondary rounded-full flex items-center justify-center cursor-pointer hover:border-primary transition-colors duration-200 mr-4">
+                                            {avatar ? (
+                                                <img src={avatar} alt="Agent Avatar" className="w-full h-full object-cover rounded-full" />
+                                            ) : (
+                                                <span className="text-2xl text-bg-secondary">+</span>
+                                            )}
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleAvatarChange}
+                                                className="hidden"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -344,7 +341,7 @@ function CreateAgent({ onBack, onCreated }) {
                                     )}
                                 </div>
 
-                                <div className="col-span-2 sm:col-span-1 flex items-center">
+                                <div className="col-span-2 sm:col-span-1 flex items-center pl-8">
                                     <label htmlFor="showCitation" className="flex items-center cursor-pointer">
                                         <div className="relative">
                                             <input
