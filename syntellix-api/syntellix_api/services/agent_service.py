@@ -57,3 +57,7 @@ class AgentService:
             raise KonwledgeBaseIdEmptyError("Knowledge base ids is empty")
 
         return agent
+
+    @staticmethod
+    def is_agent_name_exists(tenant_id: int, name: str) -> bool:
+        return Agent.query.filter_by(name=name, tenant_id=tenant_id).first() is not None

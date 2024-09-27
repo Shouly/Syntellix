@@ -56,4 +56,19 @@ class AgentApi(Resource):
         return agent, 201
 
 
+class AgentNameExistsApi(Resource):
+    @login_required
+    def get(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument("name", type=str, required=True, location="args")
+        args = parser.parse_args()
+
+        exists = AgentService.is_agent_name_exists(
+            tenant_id=current_user.current_tenant_id, name=args["name"]
+        )
+
+        return {"exists": exists}, 200
+
+
+api.add_resource(AgentNameExistsApi, "/agents/name-exists")
 api.add_resource(AgentApi, "/agents")

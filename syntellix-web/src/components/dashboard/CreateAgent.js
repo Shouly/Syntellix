@@ -7,6 +7,7 @@ import { useToast } from '../../components/Toast';
 import CreateAgentAdvancedConfig from './CreateAgentAdvancedConfig';
 import { createAvatar } from '@dicebear/core';
 import { initials } from '@dicebear/collection';
+import { debounce } from 'lodash';
 
 function CreateAgent({ onBack, onCreated }) {
     const [agentName, setAgentName] = useState('');
@@ -25,6 +26,7 @@ function CreateAgent({ onBack, onCreated }) {
     const [selectedKnowledgeBases, setSelectedKnowledgeBases] = useState([]);
     const [isLoadingKnowledgeBases, setIsLoadingKnowledgeBases] = useState(true);
     const [advancedConfig, setAdvancedConfig] = useState({});
+    const [isNameAvailable, setIsNameAvailable] = useState(true);
 
     useEffect(() => {
         fetchKnowledgeBases();
@@ -51,10 +53,35 @@ function CreateAgent({ onBack, onCreated }) {
         return avatar.toDataUri();
     };
 
+    const checkAgentName = debounce(async (name) => {
+        if (!name.trim()) {
+            setIsNameAvailable(true);
+            return;
+        }
+        try {
+            const response = await axios.get(`/console/api/agents/name-exists?name=${encodeURIComponent(name)}`);
+            setIsNameAvailable(!response.data.exists);
+        } catch (error) {
+            console.error('Error checking agent name:', error);
+        }
+    }, 300);
+
+    const handleAgentNameChange = (e) => {
+        const newName = e.target.value;
+        setAgentName(newName);
+        checkAgentName(newName);
+
+        // 清除名称相关的错误
+        if (newName.trim()) {
+            setErrors(prevErrors => ({ ...prevErrors, name: null }));
+        }
+    };
+
     const handleNextStep = async () => {
         // Validation
         const errors = {};
         if (!agentName.trim()) errors.name = "智能体名称不能为空";
+        if (!isNameAvailable) errors.name = "智能体名称已存在";
         if (selectedKnowledgeBases.length === 0) errors.knowledgeBase = "请选择至少一个知识库";
         
         if (Object.keys(errors).length > 0) {
@@ -99,7 +126,12 @@ function CreateAgent({ onBack, onCreated }) {
             onCreated(response.data);
         } catch (error) {
             console.error('Error creating agent:', error);
-            setErrors({ general: error.response?.data?.message || '创建智能体失败，请重试。' });
+            const backendErrors = error.response?.data?.errors || {};
+            setErrors(prevErrors => ({
+                ...prevErrors,
+                ...backendErrors,
+                general: backendErrors.general || error.response?.data?.message || '创建智能体失败，请重试。'
+            }));
             showToast('创建失败', 'error');
         } finally {
             setIsLoading(false);
@@ -128,18 +160,43 @@ function CreateAgent({ onBack, onCreated }) {
     };
 
     const customStyles = {
-        control: (provided) => ({
+        control: (provided, state) => ({
             ...provided,
             backgroundColor: 'bg-bg-secondary',
             borderColor: 'bg-bg-secondary',
+            boxShadow: state.isFocused ? '0 0 0 2px text-primary' : 'none',
             '&:hover': {
-                borderColor: 'primary',
+                borderColor: 'text-primary',
             },
+            transition: 'all 0.2s ease',
+            fontFamily: 'Montserrat, "Noto Sans SC", sans-serif', // 添加字体样式
         }),
         option: (provided, state) => ({
             ...provided,
-            backgroundColor: state.isSelected ? 'primary' : state.isFocused ? 'bg-bg-secondary' : 'white',
-            color: state.isSelected ? 'white' : 'text-text-body',
+            backgroundColor: state.isSelected ? 'bg-primary' : state.isFocused ? 'bg-bg-secondary' : 'bg-white',
+            color: state.isSelected ? 'text-white' : 'text-text-body',
+            fontFamily: 'Montserrat, "Noto Sans SC", sans-serif', // 添加字体样式
+        }),
+        singleValue: (provided) => ({
+            ...provided,
+            fontFamily: 'Montserrat, "Noto Sans SC", sans-serif', // 添加字体样式
+        }),
+        placeholder: (provided) => ({
+            ...provided,
+            fontFamily: 'Inter, "Noto Sans SC", sans-serif', // 添加字体样式
+        }),
+        menu: (provided) => ({
+            ...provided,
+            zIndex: 10000,
+            fontFamily: 'Inter, "Noto Sans SC", sans-serif', // 添加字体样式
+        }),
+        menuList: (provided) => ({
+            ...provided,
+            fontFamily: 'Inter, "Noto Sans SC", sans-serif', // 添加字体样式
+        }),
+        menuPortal: (provided) => ({
+            ...provided,
+            zIndex: 10001,
         }),
     };
 
@@ -158,7 +215,7 @@ function CreateAgent({ onBack, onCreated }) {
                 <ol className="space-y-4 relative">
                     <div className="absolute left-3 top-6 bottom-0 w-0.5 bg-bg-secondary"></div>
                     <StepItem number={1} text="基础设置" active={currentStep === 1} completed={currentStep > 1} />
-                    <StepItem number={2} text="高级配置" active={currentStep === 2} completed={currentStep > 2} />
+                    <StepItem number={2} text="高级配" active={currentStep === 2} completed={currentStep > 2} />
                 </ol>
             </div>
 
@@ -182,14 +239,14 @@ function CreateAgent({ onBack, onCreated }) {
                                         type="text"
                                         id="agentName"
                                         value={agentName}
-                                        onChange={(e) => setAgentName(e.target.value)}
+                                        onChange={handleAgentNameChange}
                                         placeholder="如：财务助理、医疗助理等"
-                                        className="w-full p-3 text-sm font-tech bg-bg-secondary border border-bg-secondary rounded-md text-text-body focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                                        className={`w-full p-3 text-sm font-tech bg-bg-secondary border ${errors.name || !isNameAvailable ? 'border-red-500' : 'border-bg-secondary'} rounded-md text-text-body focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200`}
                                     />
-                                    {errors.name && (
+                                    {(errors.name || !isNameAvailable) && (
                                         <p className="mt-1 text-xs text-red-500 flex items-center">
                                             <ExclamationCircleIcon className="h-3 w-3 mr-1" />
-                                            {errors.name}
+                                            {errors.name || (isNameAvailable ? '' : '该名称已被使用')}
                                         </p>
                                     )}
                                 </div>
@@ -262,18 +319,24 @@ function CreateAgent({ onBack, onCreated }) {
                                         知识库 <span className="text-red-500">*</span>
                                         <InfoIcon tooltip="选择智能体使用的知识库，这将决定智能体的专业领域和回答能力。可以选择多个知识库。" />
                                     </label>
-                                    <Select
-                                        options={knowledgeBases}
-                                        value={selectedKnowledgeBases}
-                                        onChange={handleKnowledgeBaseChange}
-                                        placeholder={isLoadingKnowledgeBases ? "加载中..." : "请选择知识库"}
-                                        isDisabled={isLoadingKnowledgeBases}
-                                        isMulti={true}
-                                        isClearable={true}
-                                        isSearchable={true}
-                                        styles={customStyles}
-                                        className="text-sm font-tech"
-                                    />
+                                    <div className="relative z-[9999]">
+                                        <Select
+                                            options={knowledgeBases}
+                                            value={selectedKnowledgeBases}
+                                            onChange={handleKnowledgeBaseChange}
+                                            placeholder={isLoadingKnowledgeBases ? "加载中..." : "请选择知识库"}
+                                            isDisabled={isLoadingKnowledgeBases}
+                                            isMulti={true}
+                                            isClearable={true}
+                                            isSearchable={true}
+                                            styles={customStyles}
+                                            className="text-sm font-tech"
+                                            menuPlacement="auto"
+                                            menuPosition="fixed"
+                                            menuPortalTarget={document.body}
+                                            classNamePrefix="react-select"
+                                        />
+                                    </div>
                                     {errors.knowledgeBase && (
                                         <p className="mt-1 text-xs text-red-500 flex items-center">
                                             <ExclamationCircleIcon className="h-3 w-3 mr-1" />
@@ -357,7 +420,7 @@ function InfoIcon({ tooltip }) {
     return (
         <div className="group relative inline-block ml-2">
             <InformationCircleIcon className="h-4 w-4 text-gray-400 cursor-help" />
-            <div className="opacity-0 bg-black text-white text-xs rounded py-1 px-2 absolute z-10 bottom-full left-1/2 transform -translate-x-1/2 -translate-y-2 group-hover:opacity-100 transition-opacity duration-300 w-48 text-center">
+            <div className="opacity-0 bg-black text-white text-xs rounded py-1 px-2 absolute z-[10002] bottom-full left-1/2 transform -translate-x-1/2 -translate-y-2 group-hover:opacity-100 transition-opacity duration-300 w-48 text-center pointer-events-none">
                 {tooltip}
                 <svg className="absolute text-black h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255">
                     <polygon className="fill-current" points="0,0 127.5,127.5 255,0" />
