@@ -8,7 +8,7 @@ const CustomSlider = styled(Slider)(({ theme }) => ({
     // ... (保留与 TextSplitting.js 中相同的样式)
 }));
 
-function CreateAgentAdvancedConfig({ onBack, onComplete, initialConfig }) {
+function CreateAgentAdvancedConfig({ onBack, onComplete, initialConfig, error }) {
     const [advancedConfig, setAdvancedConfig] = useState({
         similarity_threshold: initialConfig.similarity_threshold || 0.7,
         top_n: initialConfig.top_n || 3,
@@ -19,7 +19,6 @@ function CreateAgentAdvancedConfig({ onBack, onComplete, initialConfig }) {
         presence_penalty: initialConfig.presence_penalty || 0
     });
     const [isProcessing, setIsProcessing] = useState(false);
-    const [error, setError] = useState('');
 
     const handleConfigChange = (name, value) => {
         setAdvancedConfig(prevConfig => ({
@@ -29,13 +28,11 @@ function CreateAgentAdvancedConfig({ onBack, onComplete, initialConfig }) {
     };
 
     const handleComplete = async () => {
-        setError('');
         setIsProcessing(true);
         try {
             await onComplete(advancedConfig);
         } catch (error) {
             console.error('Error completing agent creation:', error);
-            setError(error.message || '保存失败，请重试。');
         } finally {
             setIsProcessing(false);
         }

@@ -27,6 +27,7 @@ function CreateAgent({ onBack, onCreated }) {
     const [isLoadingKnowledgeBases, setIsLoadingKnowledgeBases] = useState(true);
     const [advancedConfig, setAdvancedConfig] = useState({});
     const [isNameAvailable, setIsNameAvailable] = useState(true);
+    const [advancedConfigError, setAdvancedConfigError] = useState(null);
 
     useEffect(() => {
         fetchKnowledgeBases();
@@ -115,6 +116,7 @@ function CreateAgent({ onBack, onCreated }) {
 
     const handleComplete = async (advancedConfigData) => {
         setIsLoading(true);
+        setAdvancedConfigError(null);
         try {
             const completeAgentData = {
                 ...agentData,
@@ -127,11 +129,8 @@ function CreateAgent({ onBack, onCreated }) {
         } catch (error) {
             console.error('Error creating agent:', error);
             const backendErrors = error.response?.data?.errors || {};
-            setErrors(prevErrors => ({
-                ...prevErrors,
-                ...backendErrors,
-                general: backendErrors.general || error.response?.data?.message || '创建智能体失败，请重试。'
-            }));
+            const errorMessage = backendErrors.general || error.response?.data?.message || '创建智能体失败，请重试。';
+            setAdvancedConfigError(errorMessage);
             showToast('创建失败', 'error');
         } finally {
             setIsLoading(false);
@@ -215,7 +214,7 @@ function CreateAgent({ onBack, onCreated }) {
                 <ol className="space-y-4 relative">
                     <div className="absolute left-3 top-6 bottom-0 w-0.5 bg-bg-secondary"></div>
                     <StepItem number={1} text="基础设置" active={currentStep === 1} completed={currentStep > 1} />
-                    <StepItem number={2} text="高级配" active={currentStep === 2} completed={currentStep > 2} />
+                    <StepItem number={2} text="高级配置" active={currentStep === 2} completed={currentStep > 2} />
                 </ol>
             </div>
 
@@ -398,6 +397,7 @@ function CreateAgent({ onBack, onCreated }) {
                         onBack={handlePreviousStep}
                         onComplete={handleComplete}
                         initialConfig={advancedConfig}
+                        error={advancedConfigError}
                     />
                 )}
             </div>
