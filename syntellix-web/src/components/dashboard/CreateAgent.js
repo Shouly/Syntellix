@@ -72,7 +72,7 @@ function CreateAgent({ onBack, onCreated }) {
                 <div className="max-w-3xl mx-auto">
                     <h3 className="text-xl font-semibold text-text-body font-sans-sc mb-2">创建智能体</h3>
                     <p className="text-sm text-text-secondary font-sans-sc mb-8">
-                        智能体是可定制的AI助手，根据您的设置执行特定任务。请填写以下信息来创建您的专属智能体。
+                        智能体是可定制的AI助手，根据您的设置执行特定任务。
                     </p>
                     
                     <form onSubmit={handleSubmit} className="space-y-6">
