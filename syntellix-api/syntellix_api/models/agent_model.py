@@ -6,7 +6,6 @@ class Agent(db.Model):
     __tablename__ = "t_sys_agent"
     __table_args__ = (
         db.Index("idx_agent_tenant_id", "tenant_id"),
-        db.Index("idx_agent_status", "status"),
     )
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
