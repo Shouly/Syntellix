@@ -124,9 +124,9 @@ function Agent({ onCreateNew, onAgentClick }) {
         </div>
     );
 
-    const NewAgentCard = ({ onCreateNew }) => (
+    const NewAgentCard = () => (
         <div
-            onClick={onCreateNew}
+            onClick={handleCreateAgent}
             className="bg-white rounded-lg shadow-sm overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-md flex flex-col h-64"
         >
             <div className="bg-gradient-to-r from-primary-light/30 to-secondary-light h-2/3 flex items-center justify-center">
@@ -252,6 +252,10 @@ function Agent({ onCreateNew, onAgentClick }) {
                 ))}
             </>
         );
+    };
+
+    const handleCreateAgent = () => {
+        onCreateNew();
     };
 
     return (

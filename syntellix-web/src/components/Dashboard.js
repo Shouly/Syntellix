@@ -30,6 +30,7 @@ import Settings from './dashboard/Settings';
 import CreateKnowledgeBase from './dashboard/CreateKnowledgeBase';
 import KnowledgeBaseDetail from './dashboard/KnowledgeBaseDetail';
 import UploadFiles from './dashboard/UploadFiles';
+import CreateAgent from './dashboard/CreateAgent';
 import syntellixLogo from '../assets/syntellix_logo.png';
 
 function Dashboard({ setIsAuthenticated }) {
@@ -44,6 +45,8 @@ function Dashboard({ setIsAuthenticated }) {
   const [isCreatingKnowledgeBase, setIsCreatingKnowledgeBase] = useState(false);
   const [selectedKnowledgeBaseId, setSelectedKnowledgeBaseId] = useState(null);
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
+  const [isCreatingAgent, setIsCreatingAgent] = useState(false);
+  const [selectedAgentId, setSelectedAgentId] = useState(null);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -109,6 +112,19 @@ function Dashboard({ setIsAuthenticated }) {
       setIsCreatingKnowledgeBase(false);
       setSelectedKnowledgeBaseId(null);
     }
+    if (menuName === 'Agent') {
+      setIsCreatingAgent(false);
+      setSelectedAgentId(null);
+    }
+  };
+
+  const handleAgentClick = (id) => {
+    setSelectedAgentId(id);
+  };
+
+  const handleBackToAgent = () => {
+    setSelectedAgentId(null);
+    setIsCreatingAgent(false);
   };
 
   const handleKnowledgeBaseClick = (id) => {
@@ -140,7 +156,27 @@ function Dashboard({ setIsAuthenticated }) {
       case 'Chat':
         return <Chat />;
       case 'Agent':
-        return <Agent />;
+        if (isCreatingAgent) {
+          return (
+            <CreateAgent
+              onBack={handleBackToAgent}
+              onCreated={(newAgent) => {
+                setIsCreatingAgent(false);
+                // Add logic to update agent list
+              }}
+            />
+          );
+        } else if (selectedAgentId) {
+          // Add logic for displaying agent details
+          return null;
+        } else {
+          return (
+            <Agent
+              onCreateNew={() => setIsCreatingAgent(true)}
+              onAgentClick={handleAgentClick}
+            />
+          );
+        }
       case 'KnowledgeBase':
         if (isCreatingKnowledgeBase) {
           return (
