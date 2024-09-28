@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react';
 import Select from 'react-select';
 import { useToast } from '../../components/Toast';
 import CreateAgentAdvancedConfig from './CreateAgentAdvancedConfig';
+import AgentAvatarSelector from '../AgentAvatarSelector';
 
 function CreateAgent({ onBack, onCreated }) {
     const [agentName, setAgentName] = useState('');
@@ -14,7 +15,6 @@ function CreateAgent({ onBack, onCreated }) {
     const [errors, setErrors] = useState({});
     const { showToast } = useToast();
     const [avatar, setAvatar] = useState(null);
-    const [avatarFile, setAvatarFile] = useState(null);
     const [greeting, setGreeting] = useState('你好！我是你的助理，有什么可以帮到你的吗？');
     const [showCitation, setShowCitation] = useState(true);
     const [emptyResponse, setEmptyResponse] = useState('我没有找到相关的信息，请问您可以换个问题吗？');
@@ -80,10 +80,7 @@ function CreateAgent({ onBack, onCreated }) {
         }
 
         // Update avatar handling
-        let finalAvatar = null;
-        if (avatarFile) {
-            finalAvatar = await convertFileToBase64(avatarFile);
-        }
+        const finalAvatar = typeof avatar === 'string' ? avatar : JSON.stringify(avatar);
 
         // Save basic settings data
         setAgentData({
@@ -112,6 +109,8 @@ function CreateAgent({ onBack, onCreated }) {
                 advanced_config: advancedConfigData
             };
 
+            // avatar 数据已经是字符串形式，无需额外处理
+
             const response = await axios.post('/console/api/agents', completeAgentData);
             showToast('智能体创建成功', 'success');
             onCreated(response.data);
@@ -134,23 +133,8 @@ function CreateAgent({ onBack, onCreated }) {
         }
     };
 
-    const handleAvatarChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setAvatarFile(file);
-            setAvatar(URL.createObjectURL(file));
-        }
-    };
-
-    const convertFileToBase64 = (file) => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                resolve(reader.result.split(',')[1]);
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
+    const handleAvatarChange = (newAvatar) => {
+        setAvatar(newAvatar);
     };
 
     const customStyles = {
@@ -249,21 +233,10 @@ function CreateAgent({ onBack, onCreated }) {
                                     <label className="block text-sm font-medium text-text-body mr-4 font-sans-sc">
                                         智能体头像
                                     </label>
-                                    <div className="flex items-center">
-                                        <div className="w-16 h-16 border-2 border-dashed border-bg-secondary rounded-full flex items-center justify-center cursor-pointer hover:border-primary transition-colors duration-200 mr-4">
-                                            {avatar ? (
-                                                <img src={avatar} alt="Agent Avatar" className="w-full h-full object-cover rounded-full" />
-                                            ) : (
-                                                <span className="text-2xl text-bg-secondary">+</span>
-                                            )}
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={handleAvatarChange}
-                                                className="hidden"
-                                            />
-                                        </div>
-                                    </div>
+                                    <AgentAvatarSelector
+                                        selectedAvatar={avatar}
+                                        onAvatarChange={handleAvatarChange}
+                                    />
                                 </div>
 
                                 <div className="col-span-3">
