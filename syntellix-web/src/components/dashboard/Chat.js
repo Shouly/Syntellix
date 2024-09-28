@@ -58,7 +58,7 @@ function Chat({ onBack }) {
   };
 
   return (
-    <div className="h-full flex overflow-hidden gap-4">
+    <div className="h-full flex overflow-hidden gap-6 p-3">
       {/* Left sidebar */}
       <div className="w-64 flex flex-col bg-bg-primary overflow-hidden rounded-lg shadow-sm">
         <div className="p-6 flex-shrink-0">

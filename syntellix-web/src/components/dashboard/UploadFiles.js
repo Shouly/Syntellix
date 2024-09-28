@@ -218,7 +218,7 @@ function UploadFiles({ onUploadComplete, onBack, knowledgeBaseId }) {
     };
 
     return (
-        <div className="flex gap-4 h-full">
+        <div className="flex gap-6 h-full p-3">
             {/* Left sidebar */}
             <div className="bg-bg-primary rounded-lg shadow-sm p-6 w-64">
                 <div className="mb-10 mt-5">
