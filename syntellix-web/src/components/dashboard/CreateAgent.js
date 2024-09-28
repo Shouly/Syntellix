@@ -80,7 +80,11 @@ function CreateAgent({ onBack, onCreated }) {
         }
 
         // Update avatar handling
-        const finalAvatar = typeof avatar === 'string' ? avatar : JSON.stringify(avatar);
+        const defaultAvatar = JSON.stringify({
+            icon: 'ScienceIcon',
+            color: '#1976d2'  // You can adjust this color as needed
+        });
+        const finalAvatar = avatar ? (typeof avatar === 'string' ? avatar : JSON.stringify(avatar)) : defaultAvatar;
 
         // Save basic settings data
         setAgentData({

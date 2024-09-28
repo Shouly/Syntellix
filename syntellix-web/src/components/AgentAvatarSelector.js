@@ -1,5 +1,5 @@
 import AddAPhotoIcon from '@mui/icons-material/AddAPhoto';
-import ScienceIcon from '@mui/icons-material/Person';
+import ScienceIcon from '@mui/icons-material/Science';
 import { Avatar, Dialog, DialogContent, DialogTitle, Grid, IconButton } from '@mui/material';
 import React, { useState } from 'react';
 import { presetAvatars } from '../utils/iconMap';
@@ -47,7 +47,7 @@ function AgentAvatarSelector({ selectedAvatar, onAvatarChange }) {
                 onClick={handleOpen}
                 size="large"
                 sx={{ position: 'relative' }}
-                aria-label="Select avatar" // Add this line
+                aria-label="Select avatar"
             >
                 <Avatar
                     sx={{
@@ -56,12 +56,15 @@ function AgentAvatarSelector({ selectedAvatar, onAvatarChange }) {
                         bgcolor: selectedAvatar ? JSON.parse(selectedAvatar).color : 'primary.main',
                     }}
                 >
-                    {selectedAvatar && JSON.parse(selectedAvatar).icon ?
-                        (presetAvatars.find(a => a.name === JSON.parse(selectedAvatar).icon) ?
+                    {selectedAvatar && JSON.parse(selectedAvatar).icon ? (
+                        presetAvatars.find(a => a.name === JSON.parse(selectedAvatar).icon) ? (
                             React.createElement(presetAvatars.find(a => a.name === JSON.parse(selectedAvatar).icon).icon, { sx: { fontSize: 40, color: 'white' } })
-                            : <img src={`data:image/png;base64,${JSON.parse(selectedAvatar).icon}`} alt="Custom avatar" style={{ width: '100%', height: '100%' }} />
+                        ) : (
+                            <img src={`data:image/png;base64,${JSON.parse(selectedAvatar).icon}`} alt="Custom avatar" style={{ width: '100%', height: '100%' }} />
                         )
-                        : <ScienceIcon sx={{ fontSize: 40 }} />}
+                    ) : (
+                        <ScienceIcon sx={{ fontSize: 40 }} />
+                    )}
                 </Avatar>
                 <Avatar
                     sx={{
