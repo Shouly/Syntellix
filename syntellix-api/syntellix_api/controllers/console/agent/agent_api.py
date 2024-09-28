@@ -1,5 +1,5 @@
 from flask_login import current_user
-from flask_restful import Resource, marshal_with, reqparse, fields
+from flask_restful import Resource, marshal_with, reqparse
 from syntellix_api.controllers.api_errors import (
     AgentNameDuplicateError as api_agent_name_duplicate_error,
 )
@@ -12,8 +12,11 @@ from syntellix_api.response.agent_response import agent_fields, agent_list_field
 from syntellix_api.services.agent_service import AgentService
 from syntellix_api.services.errors.agent import (
     AgentNameDuplicateError,
+    AgentNotBelongToUserError,
+    AgentNotFoundError,
     KonwledgeBaseIdEmptyError,
 )
+from werkzeug.exceptions import Forbidden, NotFound
 
 
 class AgentApi(Resource):
@@ -75,21 +78,40 @@ class AgentListApi(Resource):
     @marshal_with(agent_list_fields)
     def get(self):
         parser = reqparse.RequestParser()
-        parser.add_argument("limit", type=int, default=10, location="args")
-        parser.add_argument("cursor", type=str, required=False, location="args")
+        parser.add_argument("page", type=int, default=1, location="args")
+        parser.add_argument("page_size", type=int, default=10, location="args")
         parser.add_argument("search", type=str, required=False, location="args")
         args = parser.parse_args()
 
         result = AgentService.get_agents(
             tenant_id=current_user.current_tenant_id,
             user_id=current_user.id,
-            limit=args['limit'],
-            cursor=args.get('cursor'),
-            search=args.get('search')
+            page=args["page"],
+            page_size=args["page_size"],
+            search=args.get("search"),
         )
 
         return result
 
+
+class AgentOperationApi(Resource):
+    @login_required
+    def delete(self, agent_id):
+        try:
+            AgentService.delete_agent(
+                tenant_id=current_user.current_tenant_id,
+                user_id=current_user.id,
+                agent_id=agent_id,
+            )
+        except AgentNotBelongToUserError:
+            raise Forbidden()
+        except AgentNotFoundError:
+            raise NotFound()
+
+        return {"result": "success"}, 204
+
+
 api.add_resource(AgentListApi, "/agents/list")
 api.add_resource(AgentNameExistsApi, "/agents/name-exists")
 api.add_resource(AgentApi, "/agents")
+api.add_resource(AgentOperationApi, "/agents/<int:agent_id>")

@@ -10,4 +10,7 @@ class KonwledgeBaseIdEmptyError(BaseServiceError):
 class AgentNotFoundError(BaseServiceError):
     pass
 
+class AgentNotBelongToUserError(BaseServiceError):
+    pass
+
 

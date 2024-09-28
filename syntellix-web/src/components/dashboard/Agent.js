@@ -1,5 +1,5 @@
 import { ChevronDownIcon, Cog6ToothIcon, ExclamationCircleIcon, FunnelIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import { PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
+import { PlusIcon,ChevronLeftIcon,ChevronRightIcon, TrashIcon } from '@heroicons/react/24/solid';
 import { Avatar } from '@mui/material';
 import axios from 'axios';
 import { formatDistanceToNow } from 'date-fns';
@@ -60,6 +60,34 @@ const renderAvatar = (avatarData, agentName) => {
     }
 };
 
+const PaginationCard = ({ currentPage, totalPages, onPageChange, isLoading }) => (
+    <div className="bg-white rounded-lg shadow-sm overflow-hidden flex items-center justify-center h-64 px-4">
+        {isLoading ? (
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        ) : (
+            <div className="flex items-center space-x-4">
+                <button
+                    onClick={() => onPageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-full text-primary hover:bg-primary-light transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    <ChevronLeftIcon className="w-6 h-6" />
+                </button>
+                <span className="text-sm text-text-secondary">
+                    {currentPage} / {totalPages}
+                </span>
+                <button
+                    onClick={() => onPageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="p-2 rounded-full text-primary hover:bg-primary-light transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    <ChevronRightIcon className="w-6 h-6" />
+                </button>
+            </div>
+        )}
+    </div>
+);
+
 function Agent({ onCreateNew, onAgentClick }) {
     const [agents, setAgents] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -74,25 +102,26 @@ function Agent({ onCreateNew, onAgentClick }) {
     const [selectedTag, setSelectedTag] = useState('全部标签');
     const navigate = useNavigate();
 
-    const [cursor, setCursor] = useState(null);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const [search, setSearch] = useState('');
 
-    const fetchAgents = async (newSearch = false) => {
+    const fetchAgents = async (pageNumber = 1, newSearch = false) => {
         setIsLoading(true);
         setError(null);
         try {
             const response = await axios.get('/console/api/agents/list', {
                 params: {
-                    limit: 10,
-                    cursor: newSearch ? null : cursor,
+                    page: pageNumber,
+                    page_size: 8,
                     search: search
                 }
             });
-            const newAgents = response.data.items;
-            setAgents(prevAgents => newSearch ? newAgents : [...prevAgents, ...newAgents]);
-            setCursor(response.data.cursor);
-            setHasMore(response.data.has_more);
+            setAgents(response.data.items);
+            setPage(response.data.page);
+            setTotalPages(response.data.total_pages);
+            setHasMore(response.data.has_next);
         } catch (error) {
             console.error('Error fetching agents:', error);
             setError('智能体获取失败');
@@ -103,21 +132,22 @@ function Agent({ onCreateNew, onAgentClick }) {
     };
 
     useEffect(() => {
-        fetchAgents(true);
+        fetchAgents(1, true);
     }, []);
+
+    const handlePageChange = (newPage) => {
+        if (newPage >= 1 && newPage <= totalPages) {
+            setPage(newPage);
+            fetchAgents(newPage);
+        }
+    };
 
     const handleSearchChange = (e) => {
         setSearch(e.target.value);
     };
 
     const handleSearch = () => {
-        fetchAgents(true);
-    };
-
-    const handleLoadMore = () => {
-        if (!isLoading && hasMore) {
-            fetchAgents();
-        }
+        fetchAgents(1, true);
     };
 
     const handleDeleteClick = (agent) => {
@@ -129,10 +159,10 @@ function Agent({ onCreateNew, onAgentClick }) {
         if (agentToDelete) {
             setIsDeleting(true);
             try {
-                // Simulate API call delay
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                setAgents(agents.filter(a => a.id !== agentToDelete.id));
+                await axios.delete(`/console/api/agents/${agentToDelete.id}`);
                 showToast('智能体删除成功', 'success');
+                // Refetch agents after successful deletion
+                fetchAgents(page);
             } catch (error) {
                 console.error('Error deleting agent:', error);
                 showToast('智能体删除失败', 'error');
@@ -204,14 +234,14 @@ function Agent({ onCreateNew, onAgentClick }) {
                 onMouseLeave={() => setShowActions(false)}
                 className="bg-white rounded-lg shadow-sm overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-md flex flex-col h-64 relative"
             >
-                <div className="h-2/3 flex items-center justify-center">
+                <div className="h-2/3 flex items-center justify-center bg-gradient-to-br from-primary-light/10 to-primary-light/30">
                     {avatarContent}
                 </div>
                 <div className="p-4 flex-grow flex flex-col justify-between">
-                    <h3 className="text-base font-semibold text-text-body group-hover:text-primary transition-colors duration-300 truncate">{agent.name}</h3>
+                    <h3 className="text-lg font-semibold text-text-body group-hover:text-primary transition-colors duration-300 truncate">{agent.name}</h3>
                     <div className="flex flex-wrap gap-1 mt-2">
                         {agent.tags && agent.tags.slice(0, 2).map((tag, index) => (
-                            <span key={index} className="text-xs bg-bg-secondary text-text-secondary px-1.5 py-0.5 rounded-full">{tag}</span>
+                            <span key={index} className="text-xs bg-bg-secondary text-text-secondary px-2 py-1 rounded-full">{tag}</span>
                         ))}
                         {agent.tags && agent.tags.length > 2 && (
                             <span className="text-xs text-text-secondary">+{agent.tags.length - 2}</span>
@@ -225,7 +255,7 @@ function Agent({ onCreateNew, onAgentClick }) {
                                 e.stopPropagation();
                                 console.log('Settings clicked for', agent.name);
                             }}
-                            className="text-text-muted hover:text-primary transition-colors duration-200"
+                            className="text-text-muted hover:text-primary transition-colors duration-200 p-1 rounded-full hover:bg-primary-light/20"
                         >
                             <Cog6ToothIcon className="w-5 h-5" />
                         </button>
@@ -234,7 +264,7 @@ function Agent({ onCreateNew, onAgentClick }) {
                                 e.stopPropagation();
                                 onDeleteClick(agent);
                             }}
-                            className="text-text-muted hover:text-danger transition-colors duration-200"
+                            className="text-text-muted hover:text-danger transition-colors duration-200 p-1 rounded-full hover:bg-danger-light/20"
                         >
                             <TrashIcon className="w-5 h-5" />
                         </button>
@@ -303,20 +333,13 @@ function Agent({ onCreateNew, onAgentClick }) {
                 {agents.map((agent) => (
                     <AgentCard key={agent.id} agent={agent} onAgentClick={onAgentClick} onDeleteClick={handleDeleteClick} />
                 ))}
-                {hasMore && !isLoading && (
-                    <div className="col-span-full flex justify-center">
-                        <button
-                            onClick={handleLoadMore}
-                            className="px-4 py-2 bg-primary text-bg-primary rounded-md hover:bg-primary-dark transition-colors duration-200"
-                        >
-                            加载更多
-                        </button>
-                    </div>
-                )}
-                {isLoading && agents.length > 0 && (
-                    <div className="col-span-full flex justify-center">
-                        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-                    </div>
+                {totalPages > 1 && (
+                    <PaginationCard
+                        currentPage={page}
+                        totalPages={totalPages}
+                        onPageChange={handlePageChange}
+                        isLoading={isLoading}
+                    />
                 )}
             </>
         );

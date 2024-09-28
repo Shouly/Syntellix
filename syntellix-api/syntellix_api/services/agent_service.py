@@ -1,14 +1,16 @@
 import logging
+from math import ceil
 from typing import Optional
 
+from sqlalchemy import or_
 from syntellix_api.extensions.ext_database import db
 from syntellix_api.models.agent_model import Agent, AgentKnowledgeBase
 from syntellix_api.services.errors.agent import (
     AgentNameDuplicateError,
+    AgentNotBelongToUserError,
+    AgentNotFoundError,
     KonwledgeBaseIdEmptyError,
 )
-from sqlalchemy import or_
-import base64
 
 logger = logging.getLogger(__name__)
 
@@ -65,38 +67,53 @@ class AgentService:
         return Agent.query.filter_by(name=name, tenant_id=tenant_id).first() is not None
 
     @staticmethod
+    def delete_agent(tenant_id: int, user_id: int, agent_id: int) -> None:
+        agent = Agent.query.filter_by(id=agent_id, tenant_id=tenant_id).first()
+        if agent:
+            db.session.delete(agent)
+            db.session.commit()
+
+            AgentKnowledgeBase.query.filter_by(agent_id=agent_id).delete()
+            db.session.commit()
+        else:
+            raise AgentNotFoundError(f"Agent with id '{agent_id}' not found.")
+
+        if agent.created_by != user_id:
+            raise AgentNotBelongToUserError(f"You do not have permission to delete this agent.")
+
+    @staticmethod
     def get_agents(
         tenant_id: int,
         user_id: int,
-        limit: int = 10,
-        cursor: Optional[str] = None,
-        search: Optional[str] = None
+        page: int = 1,
+        page_size: int = 10,
+        search: Optional[str] = None,
     ):
         query = Agent.query.filter_by(tenant_id=tenant_id, created_by=user_id)
 
         if search:
-            query = query.filter(or_(
-                Agent.name.ilike(f"%{search}%"),
-                Agent.description.ilike(f"%{search}%")
-            ))
+            query = query.filter(
+                or_(
+                    Agent.name.ilike(f"%{search}%"),
+                    Agent.description.ilike(f"%{search}%"),
+                )
+            )
 
-        if cursor:
-            last_id = int(base64.b64decode(cursor.encode()).decode())
-            query = query.filter(Agent.id < last_id)
+        total = query.count()
+        total_pages = ceil(total / page_size)
 
         query = query.order_by(Agent.id.desc())
-        agents = query.limit(limit + 1).all()
+        agents = query.offset((page - 1) * page_size).limit(page_size).all()
 
-        has_more = len(agents) > limit
-        if has_more:
-            agents = agents[:limit]
-
-        next_cursor = None
-        if has_more:
-            next_cursor = base64.b64encode(str(agents[-1].id).encode()).decode()
+        has_next = page < total_pages
+        has_prev = page > 1
 
         return {
-            'items': agents,
-            'has_more': has_more,
-            'cursor': next_cursor
+            "items": agents,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": total_pages,
+            "has_next": has_next,
+            "has_prev": has_prev,
         }

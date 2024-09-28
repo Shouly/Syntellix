@@ -17,6 +17,10 @@ agent_fields = {
 
 agent_list_fields = {
     'items': fields.List(fields.Nested(agent_fields)),
-    'has_more': fields.Boolean,
-    'cursor': fields.String,
+    'total': fields.Integer,
+    'page': fields.Integer,
+    'page_size': fields.Integer,
+    'total_pages': fields.Integer,
+    'has_next': fields.Boolean,
+    'has_prev': fields.Boolean,
 }
