@@ -250,11 +250,11 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
   };
 
   return (
-    <div className="space-y-6 pt-4">
+    <div className="bg-bg-secondary min-h-screen p-3 space-y-6">
       {/* Header */}
-      <header className="flex items-center justify-between px-6">
+      <header className="bg-bg-primary rounded-xl shadow-sm p-4 flex items-center justify-between">
         <div className="flex items-end space-x-4">
-          <h2 className="text-xl font-bold text-primary font-noto-sans-sc">知识库</h2>
+          <h2 className="text-lg font-bold text-primary font-noto-sans-sc">知识库</h2>
         </div>
         <div className="flex items-center space-x-4">
           <TagSelector tags={tags} selectedTag={selectedTag} setSelectedTag={setSelectedTag} />
@@ -263,9 +263,12 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
       </header>
 
       {/* Content */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 px-6">
-        {renderContent()}
+      <div className="bg-bg-primary rounded-xl shadow-sm p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {renderContent()}
+        </div>
       </div>
+      
       <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
