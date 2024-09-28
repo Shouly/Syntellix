@@ -204,7 +204,7 @@ function Agent({ onCreateNew, onAgentClick }) {
                 onMouseLeave={() => setShowActions(false)}
                 className="bg-white rounded-lg shadow-sm overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-md flex flex-col h-64 relative"
             >
-                <div className="h-2/3 flex items-center justify-center" style={{ backgroundColor: avatarBgColor }}>
+                <div className="h-2/3 flex items-center justify-center">
                     {avatarContent}
                 </div>
                 <div className="p-4 flex-grow flex flex-col justify-between">
