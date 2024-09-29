@@ -109,16 +109,19 @@ function Chat({ onBack }) {
       </div>
 
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden rounded-lg shadow-sm">
-        <div className="flex items-center justify-between p-6 flex-shrink-0">
-          <h3 className="text-lg font-semibold text-text-body font-sans-sc">{chatName}</h3>
-          <button className="text-text-muted hover:text-text-body">
-            <EllipsisHorizontalIcon className="w-6 h-6" />
-          </button>
+      <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden rounded-lg shadow-sm relative">
+        {/* Chat header */}
+        <div className="flex items-center justify-between p-3 flex-shrink-0 border-b border-secondary">
+          <h3 className="text-base font-semibold text-text-body font-sans-sc truncate">{chatName}</h3>
+          <div className="flex items-center">
+            <button className="text-text-muted hover:text-text-body p-1 rounded-full hover:bg-bg-secondary transition-colors duration-200 ml-2">
+              <EllipsisHorizontalIcon className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Chat messages */}
-        <div className="flex-1 overflow-y-auto px-6" ref={chatContainerRef}>
+        <div className="flex-1 overflow-y-auto px-6 pb-24" ref={chatContainerRef}>
           {messages.map((message, index) => (
             <div key={index} className={`mb-4 flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
               {message.sender === 'ai' && (
@@ -146,18 +149,18 @@ function Chat({ onBack }) {
         </div>
 
         {/* Input area */}
-        <div className="p-6 flex-shrink-0">
+        <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-bg-primary via-bg-primary to-transparent">
           <div className="relative">
             <input
               type="text"
               placeholder="输入您的问题..."
-              className="w-full p-3 pr-12 rounded-lg border border-secondary bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full p-4 pr-12 rounded-lg border border-secondary bg-white text-text-primary focus:outline-none focus:ring-2 focus:ring-primary shadow-lg transition-all duration-300 hover:shadow-xl"
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
             />
             <button
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-primary hover:text-primary-dark transition-colors duration-200"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-primary hover:text-primary-dark transition-colors duration-200"
               onClick={handleSendMessage}
             >
               <PaperAirplaneIcon className="h-6 w-6" />
