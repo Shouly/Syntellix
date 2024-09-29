@@ -219,7 +219,7 @@ function Agent({ onCreateNew, onAgentClick }) {
                     <AgentAvatar avatarData={agent.avatar} agentName={agent.name} size="large" />
                 </div>
                 <div className="p-4 flex-grow flex flex-col justify-between">
-                    <h3 className="text-lg font-semibold text-text-body group-hover:text-primary transition-colors duration-300 truncate">{agent.name}</h3>
+                    <h3 className="text-base font-semibold text-text-body group-hover:text-primary transition-colors duration-300 truncate">{agent.name}</h3>
                     <div className="flex flex-wrap gap-1 mt-2">
                         {agent.tags && agent.tags.slice(0, 2).map((tag, index) => (
                             <span key={index} className="text-xs bg-bg-secondary text-text-secondary px-2 py-1 rounded-full">{tag}</span>

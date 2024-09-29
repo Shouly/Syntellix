@@ -30,6 +30,8 @@ recent_chat_status_fields = {
 }
 
 agent_chat_details_fields = {
+    "has_recent_conversation": fields.Boolean,
+    "agent_id": fields.Integer,
     "latest_conversation": fields.Nested(conversation_fields),
     "agent_info": fields.Nested(agent_base_info_fields),
     "latest_conversation_messages": fields.Nested(conversation_message_fields),

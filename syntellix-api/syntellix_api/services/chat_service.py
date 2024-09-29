@@ -126,7 +126,7 @@ class ChatService:
 
         pinned_conversations = (
             Conversation.query.filter_by(
-                user_id=user_id, agent_id=agent_id, is_pinned=True
+                user_id=user_id, agent_id=agent_id, pinned=True
             )
             .order_by(Conversation.updated_at.desc())
             .offset(offset)

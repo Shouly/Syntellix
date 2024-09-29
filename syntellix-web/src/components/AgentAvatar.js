@@ -4,6 +4,7 @@ import { MuiIcons } from '../utils/iconMap';
 
 function AgentAvatar({ avatarData, agentName, size = 'medium' }) {
     const sizeMap = {
+        xs: { width: 32, height: 32, iconSize: 20 },
         small: { width: 48, height: 48, iconSize: 24 },
         medium: { width: 64, height: 64, iconSize: 32 },
         large: { width: 80, height: 80, iconSize: 48 },
@@ -46,7 +47,6 @@ function AgentAvatar({ avatarData, agentName, size = 'medium' }) {
             </Avatar>
         );
     } catch (error) {
-        console.error(`Error parsing avatar data for agent ${agentName}:`, error);
         return (
             <Avatar sx={{ width, height, bgcolor: 'primary.main' }}>
                 {agentName.charAt(0).toUpperCase()}

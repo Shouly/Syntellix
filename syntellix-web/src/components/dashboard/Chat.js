@@ -1,73 +1,78 @@
 import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { ChatBubbleLeftRightIcon, UserCircleIcon, PaperAirplaneIcon, PlusIcon, BookmarkIcon, ClockIcon } from '@heroicons/react/24/outline';
-import { EllipsisHorizontalIcon } from '@heroicons/react/24/solid';
+import { EllipsisHorizontalIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import NewChatPrompt from './NewChatPrompt';
+import { useToast } from '../../components/Toast';
+import AgentAvatar from '../AgentAvatar';
 
 function Chat() {
-  const [recentChatStatus, setRecentChatStatus] = useState(null);
   const [chatDetails, setChatDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [inputMessage, setInputMessage] = useState('');
   const chatContainerRef = useRef(null);
+  const { showToast } = useToast();
 
   useEffect(() => {
-    fetchRecentChatStatus();
+    fetchChatDetails();
   }, []);
 
-  const fetchRecentChatStatus = async () => {
+  const fetchChatDetails = async (agentId = null) => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      const response = await axios.get('/console/api/recent-chat-status');
-      setRecentChatStatus(response.data);
-      if (response.data.has_recent_conversation) {
-        fetchAgentChatDetails(response.data.agent_id);
-      } else {
-        setLoading(false);
-      }
-    } catch (error) {
-      console.error('Failed to fetch recent chat status:', error);
-      setError('Failed to load chat status. Please try again.');
-      setLoading(false);
-    }
-  };
-
-  const fetchAgentChatDetails = async (agentId) => {
-    try {
-      const response = await axios.get(`/console/api/agent-chat-details/${agentId}`);
+      const url = agentId 
+        ? `/console/api/agent-chat-details/${agentId}`
+        : '/console/api/agent-chat-details';
+      const response = await axios.get(url);
       setChatDetails(response.data);
-      setLoading(false);
     } catch (error) {
-      console.error('Failed to fetch agent chat details:', error);
-      setError('Failed to load chat details. Please try again.');
+      console.error('Failed to fetch chat details:', error);
+      setError('对话内容获取失败');
+      showToast('对话内容获取失败', 'error');
+    } finally {
       setLoading(false);
     }
   };
 
   const handleSendMessage = async () => {
     if (inputMessage.trim() !== '') {
-      // TODO: Implement sending message to backend
-      setInputMessage('');
+      try {
+        // TODO: Implement sending message to backend
+        // const response = await axios.post('/api/send-message', { message: inputMessage });
+        // Update chat details with new message
+        setInputMessage('');
+        showToast('消息发送成功', 'success');
+      } catch (error) {
+        console.error('Failed to send message:', error);
+        showToast('消息发送失败', 'error');
+      }
     }
   };
 
   const handleSelectAgent = async (agentId) => {
-    // TODO: Implement logic to start a new chat with the selected agent
-    console.log('Starting new chat with agent:', agentId);
-    // You might want to create a new conversation here and then redirect to it
+    await fetchChatDetails(agentId);
   };
 
-  if (loading) {
-    return <div className="flex items-center justify-center h-full">Loading...</div>;
-  }
-
   if (error) {
-    return <div className="flex items-center justify-center h-full">{error}</div>;
+    return (
+      <div className="flex flex-col items-center justify-center h-full bg-danger-light bg-opacity-50 backdrop-filter backdrop-blur-sm rounded-xl p-6">
+        <ExclamationCircleIcon className="w-12 h-12 text-danger mb-4" />
+        <div className="text-danger font-semibold text-lg mb-2">对话内容获取失败</div>
+        <div className="text-danger-dark text-sm mb-4">{error}</div>
+        <button
+          onClick={() => fetchChatDetails()}
+          className="px-4 py-2 bg-danger text-bg-primary rounded-md hover:bg-danger-dark transition-colors duration-200"
+        >
+          重试
+        </button>
+      </div>
+    );
   }
 
-  if (!recentChatStatus?.has_recent_conversation) {
-    return <NewChatPrompt onSelectAgent={handleSelectAgent} />;
+  if (!chatDetails?.has_recent_conversation && !loading) {
+    return <NewChatPrompt onSelectAgent={handleSelectAgent} setLoading={setLoading} />;
   }
 
   return (
@@ -77,8 +82,12 @@ function Chat() {
         <div className="p-6 flex-shrink-0">
           <div className="mb-10 mt-5">
             <div className="flex items-center mb-10 cursor-pointer group">
-              <div className="w-10 h-10 bg-primary bg-opacity-10 rounded-full flex items-center justify-center mr-3 transition-colors duration-200 group-hover:bg-opacity-20">
-                <ChatBubbleLeftRightIcon className="w-6 h-6 text-primary" />
+              <div className="mr-3">
+                <AgentAvatar
+                  avatarData={chatDetails?.agent_info?.avatar}
+                  agentName={chatDetails?.agent_info?.name || '智能助手'}
+                  size="small"
+                />
               </div>
               <h1 className="text-lg font-semibold text-text-body font-sans-sc truncate">
                 {chatDetails?.agent_info?.name || '智能助手'}
@@ -137,29 +146,43 @@ function Chat() {
 
         {/* Chat messages */}
         <div className="flex-1 overflow-y-auto px-6 pb-24" ref={chatContainerRef}>
-          {chatDetails?.latest_conversation_messages.map((message, index) => (
-            <div key={index} className={`mb-4 flex ${message.message_type === 'user' ? 'justify-end' : 'justify-start'}`}>
-              {message.message_type === 'agent' && (
-                <ChatBubbleLeftRightIcon className="w-8 h-8 text-primary mr-2 self-end" />
-              )}
-              <div className={`inline-block p-3 rounded-xl ${message.message_type === 'user'
-                ? 'bg-primary text-white'
-                : 'bg-bg-tertiary text-text-primary'
-                } max-w-[70%]`}
-              >
-                <p className={`text-sm leading-relaxed ${message.message_type === 'user'
-                  ? 'font-sans-sc font-medium'
-                  : 'font-sans-sc font-normal'
-                  }`}
+          {loading ? (
+            <ChatSkeleton />
+          ) : (
+            chatDetails?.latest_conversation_messages.map((message, index) => (
+              <div key={index} className={`mb-4 flex ${message.message_type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                {message.message_type === 'agent' && (
+                  <div className="w-8 h-8 mr-2 self-end">
+                    <AgentAvatar
+                      avatarData={chatDetails?.agent_info?.avatar}
+                      agentName={chatDetails?.agent_info?.name || '智能助手'}
+                      size="small"
+                    />
+                  </div>
+                )}
+                <div className={`inline-block p-3 rounded-xl ${
+                  message.message_type === 'user'
+                    ? 'bg-primary text-white'
+                    : 'bg-bg-tertiary text-text-primary'
+                  } max-w-[70%]`}
                 >
-                  {message.message}
-                </p>
+                  <p className={`text-sm leading-relaxed ${
+                    message.message_type === 'user'
+                      ? 'font-sans-sc font-medium'
+                      : 'font-sans-sc font-normal'
+                    }`}
+                  >
+                    {message.message}
+                  </p>
+                </div>
+                {message.message_type === 'user' && (
+                  <div className="w-8 h-8 ml-2 self-end">
+                    <UserCircleIcon className="w-full h-full text-primary" />
+                  </div>
+                )}
               </div>
-              {message.message_type === 'user' && (
-                <UserCircleIcon className="w-8 h-8 text-primary ml-2 self-end" />
-              )}
-            </div>
-          ))}
+            ))
+          )}
         </div>
 
         {/* Input area */}
@@ -181,6 +204,23 @@ function Chat() {
             </button>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function ChatSkeleton() {
+  return (
+    <div className="flex-1 overflow-y-auto px-6 pb-24 animate-pulse">
+      <div className="space-y-4 py-4">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className={`flex ${i % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
+            <div className={`inline-block p-3 rounded-xl ${i % 2 === 0 ? 'bg-bg-tertiary' : 'bg-primary'} max-w-[70%]`}>
+              <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
+              <div className="h-4 bg-gray-300 rounded"></div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

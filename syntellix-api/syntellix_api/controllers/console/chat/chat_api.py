@@ -116,21 +116,23 @@ class ConversationMessageApi(Resource):
         return messages, 200
 
 
-class RecentChatStatusApi(Resource):
-    @login_required
-    @marshal_with(recent_chat_status_fields)
-    def get(self):
-        agent_id = ChatService.get_latest_agent(user_id=current_user.id)
-        return {
-            "has_recent_conversation": agent_id is not None,
-            "agent_id": agent_id,
-        }, 200
-
-
 class AgentChatDetailsApi(Resource):
     @login_required
     @marshal_with(agent_chat_details_fields)
-    def get(self, agent_id):
+    def get(self, agent_id=None):
+        if agent_id is None:
+            # 获取最近的 agent_id
+            agent_id = ChatService.get_latest_agent(user_id=current_user.id)
+            if agent_id is None:
+                return {
+                    "has_recent_conversation": False,
+                    "agent_id": None,
+                    "latest_conversation": None,
+                    "agent_info": None,
+                    "latest_conversation_messages": [],
+                    "pinned_conversations": [],
+                    "conversation_history": [],
+                }, 200
 
         agent = AgentService.get_agent_base_info_by_id(
             agent_id=agent_id,
@@ -142,12 +144,11 @@ class AgentChatDetailsApi(Resource):
             agent_id=agent_id,
         )
 
-        if not latest_conversation:
-            return {"latest_conversation": None}, 200
-
-        latest_conversation_messages = ChatService.get_conversation_messages(
-            conversation_id=latest_conversation.id,
-        )
+        latest_conversation_messages = []
+        if latest_conversation:
+            latest_conversation_messages = ChatService.get_conversation_messages(
+                conversation_id=latest_conversation.id,
+            )
 
         pinned_conversations = ChatService.get_pinned_conversations(
             agent_id=agent_id,
@@ -160,6 +161,8 @@ class AgentChatDetailsApi(Resource):
         )
 
         return {
+            "has_recent_conversation": True,
+            "agent_id": agent_id,
             "latest_conversation": latest_conversation,
             "agent_info": agent,
             "latest_conversation_messages": latest_conversation_messages,
@@ -168,7 +171,8 @@ class AgentChatDetailsApi(Resource):
         }, 200
 
 
-api.add_resource(RecentChatStatusApi, "/recent-chat-status")
-api.add_resource(AgentChatDetailsApi, "/agent-chat-details/<int:agent_id>")
+api.add_resource(
+    AgentChatDetailsApi, "/agent-chat-details", "/agent-chat-details/<int:agent_id>"
+)
 api.add_resource(ConversationApi, "/conversations")
 api.add_resource(ConversationMessageApi, "/conversation-messages")
