@@ -159,3 +159,12 @@ class AgentService:
     @staticmethod
     def get_agent_by_id(agent_id: int, tenant_id: int):
         return Agent.query.filter_by(id=agent_id, tenant_id=tenant_id).first()
+
+    @staticmethod
+    def get_recent_agents(tenant_id: int, user_id: int):
+        return (
+            Agent.query.filter_by(tenant_id=tenant_id, created_by=user_id)
+            .order_by(Agent.updated_at.desc())
+            .limit(10)
+            .all()
+        )

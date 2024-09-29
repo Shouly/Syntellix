@@ -1,61 +1,74 @@
-import { BookmarkIcon, BriefcaseIcon, ChatBubbleLeftRightIcon, ClockIcon, Cog6ToothIcon, DocumentTextIcon, PaperAirplaneIcon, PlusIcon, StarIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import React, { useEffect, useState, useRef } from 'react';
+import axios from 'axios';
+import { ChatBubbleLeftRightIcon, UserCircleIcon, PaperAirplaneIcon, PlusIcon, BookmarkIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { EllipsisHorizontalIcon } from '@heroicons/react/24/solid';
-import React, { useEffect, useRef, useState } from 'react';
+import NewChatPrompt from './NewChatPrompt';
 
-function Chat({ onBack }) {
-  const [currentAgent, setCurrentAgent] = useState({ id: 1, name: '人力资源助手', avatar: '/path/to/avatar.jpg' });
-  const [chatName, setChatName] = useState('未命名会话');
-  const [messages, setMessages] = useState([
-    { text: "您好!我是Tesla HR助手。我可以帮您解答有关人力资源的问题。请问有什么我可以帮到您的吗?", sender: 'ai' },
-    { text: "你好,我想了解一下我的年假余额。", sender: 'user' },
-    { text: "当然可以。根据我们的记录,您目前的年假余额是15天。您可以在公司的HR系统中查看详细信息,包括已使用的天数和即将到期的天数。您是否需要我帮您查看更多细节?", sender: 'ai' },
-    { text: "谢谢,这个信息已经足够了。我还有一个问题,关于加班补偿的政策是怎样的?", sender: 'user' },
-    { text: "关于加班补偿,Tesla的政策如下:\n\n1. 工作日加班:可选择调休或领取加班工资,加班工资为平时工资的1.5倍。\n2. 周末加班:可获得双倍工资或选择调休。\n3. 法定节假日加班:可获得三倍工资。\n\n请注意,所有加班都需要提前得到主管批准。您还有其他问题吗?", sender: 'ai' },
-  ]);
+function Chat() {
+  const [recentChatStatus, setRecentChatStatus] = useState(null);
+  const [chatDetails, setChatDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [inputMessage, setInputMessage] = useState('');
-  const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
 
-  const pinnedChats = [
-    { id: 1, title: '查询年假余额' },
-    { id: 2, title: '办公环境投诉' },
-  ];
-
-  const recentChats = [
-    { id: 3, title: '加班时间计算错误' },
-    { id: 4, title: '晋升机会咨询' },
-    { id: 5, title: '技能提升培训申请' },
-  ];
-
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]); // This will trigger scrollToBottom whenever messages change
+    fetchRecentChatStatus();
+  }, []);
 
-  const scrollToBottom = () => {
-    if (chatContainerRef.current) {
-      const scrollContainer = chatContainerRef.current;
-      const scrollHeight = scrollContainer.scrollHeight;
-      const height = scrollContainer.clientHeight;
-      const maxScrollTop = scrollHeight - height;
+  const fetchRecentChatStatus = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('/console/api/recent-chat-status');
+      setRecentChatStatus(response.data);
+      if (response.data.has_recent_conversation) {
+        fetchAgentChatDetails(response.data.agent_id);
+      } else {
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Failed to fetch recent chat status:', error);
+      setError('Failed to load chat status. Please try again.');
+      setLoading(false);
+    }
+  };
 
-      scrollContainer.scrollTo({
-        top: maxScrollTop,
-        behavior: 'smooth'
-      });
+  const fetchAgentChatDetails = async (agentId) => {
+    try {
+      const response = await axios.get(`/console/api/agent-chat-details/${agentId}`);
+      setChatDetails(response.data);
+      setLoading(false);
+    } catch (error) {
+      console.error('Failed to fetch agent chat details:', error);
+      setError('Failed to load chat details. Please try again.');
+      setLoading(false);
     }
   };
 
   const handleSendMessage = async () => {
     if (inputMessage.trim() !== '') {
-      setMessages([...messages, { text: inputMessage, sender: 'user' }]);
+      // TODO: Implement sending message to backend
       setInputMessage('');
-
-      // Simulating AI response
-      setTimeout(() => {
-        setMessages(prev => [...prev, { text: "This is a simulated AI response. In a real application, this should call a backend API to get the actual AI response.", sender: 'ai' }]);
-      }, 1000);
     }
   };
+
+  const handleSelectAgent = async (agentId) => {
+    // TODO: Implement logic to start a new chat with the selected agent
+    console.log('Starting new chat with agent:', agentId);
+    // You might want to create a new conversation here and then redirect to it
+  };
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-full">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="flex items-center justify-center h-full">{error}</div>;
+  }
+
+  if (!recentChatStatus?.has_recent_conversation) {
+    return <NewChatPrompt onSelectAgent={handleSelectAgent} />;
+  }
 
   return (
     <div className="h-full flex overflow-hidden gap-6 p-3">
@@ -63,18 +76,18 @@ function Chat({ onBack }) {
       <div className="w-64 flex flex-col bg-bg-primary overflow-hidden rounded-lg shadow-sm">
         <div className="p-6 flex-shrink-0">
           <div className="mb-10 mt-5">
-            <div className="flex items-center mb-10 cursor-pointer group" onClick={onBack}>
+            <div className="flex items-center mb-10 cursor-pointer group">
               <div className="w-10 h-10 bg-primary bg-opacity-10 rounded-full flex items-center justify-center mr-3 transition-colors duration-200 group-hover:bg-opacity-20">
                 <ChatBubbleLeftRightIcon className="w-6 h-6 text-primary" />
               </div>
               <h1 className="text-lg font-semibold text-text-body font-sans-sc truncate">
-                {currentAgent.name}
+                {chatDetails?.agent_info?.name || '智能助手'}
               </h1>
             </div>
           </div>
 
           <button
-            onClick={() => {/* Handle new chat */ }}
+            onClick={() => {/* Handle new chat */}}
             className="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center transition-colors duration-200 text-sm mb-6"
           >
             <PlusIcon className="w-4 h-4 mr-2" />
@@ -89,8 +102,8 @@ function Chat({ onBack }) {
               固定对话
             </h3>
             <ul className="space-y-1">
-              {pinnedChats.map(chat => (
-                <SidebarItem key={chat.id} text={chat.title} />
+              {chatDetails?.pinned_conversations.map(chat => (
+                <SidebarItem key={chat.id} text={chat.name} />
               ))}
             </ul>
           </div>
@@ -100,8 +113,8 @@ function Chat({ onBack }) {
               最近对话
             </h3>
             <ul className="space-y-1">
-              {recentChats.map(chat => (
-                <SidebarItem key={chat.id} text={chat.title} />
+              {chatDetails?.conversation_history.map(chat => (
+                <SidebarItem key={chat.id} text={chat.name} />
               ))}
             </ul>
           </div>
@@ -112,7 +125,9 @@ function Chat({ onBack }) {
       <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden rounded-lg shadow-sm relative">
         {/* Chat header */}
         <div className="flex items-center justify-between p-3 flex-shrink-0 border-b border-secondary">
-          <h3 className="text-base font-semibold text-text-body font-sans-sc truncate">{chatName}</h3>
+          <h3 className="text-base font-semibold text-text-body font-sans-sc truncate">
+            {chatDetails?.latest_conversation?.name || '新对话'}
+          </h3>
           <div className="flex items-center">
             <button className="text-text-muted hover:text-text-body p-1 rounded-full hover:bg-bg-secondary transition-colors duration-200 ml-2">
               <EllipsisHorizontalIcon className="w-5 h-5" />
@@ -122,30 +137,29 @@ function Chat({ onBack }) {
 
         {/* Chat messages */}
         <div className="flex-1 overflow-y-auto px-6 pb-24" ref={chatContainerRef}>
-          {messages.map((message, index) => (
-            <div key={index} className={`mb-4 flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-              {message.sender === 'ai' && (
+          {chatDetails?.latest_conversation_messages.map((message, index) => (
+            <div key={index} className={`mb-4 flex ${message.message_type === 'user' ? 'justify-end' : 'justify-start'}`}>
+              {message.message_type === 'agent' && (
                 <ChatBubbleLeftRightIcon className="w-8 h-8 text-primary mr-2 self-end" />
               )}
-              <div className={`inline-block p-3 rounded-xl ${message.sender === 'user'
+              <div className={`inline-block p-3 rounded-xl ${message.message_type === 'user'
                 ? 'bg-primary text-white'
                 : 'bg-bg-tertiary text-text-primary'
                 } max-w-[70%]`}
               >
-                <p className={`text-sm leading-relaxed ${message.sender === 'user'
+                <p className={`text-sm leading-relaxed ${message.message_type === 'user'
                   ? 'font-sans-sc font-medium'
                   : 'font-sans-sc font-normal'
                   }`}
                 >
-                  {message.text}
+                  {message.message}
                 </p>
               </div>
-              {message.sender === 'user' && (
+              {message.message_type === 'user' && (
                 <UserCircleIcon className="w-8 h-8 text-primary ml-2 self-end" />
               )}
             </div>
           ))}
-          <div ref={messagesEndRef} />
         </div>
 
         {/* Input area */}

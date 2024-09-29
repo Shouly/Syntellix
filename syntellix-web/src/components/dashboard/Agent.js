@@ -1,64 +1,13 @@
-import { ChevronDownIcon, Cog6ToothIcon, ExclamationCircleIcon, FunnelIcon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ChevronDownIcon, Cog6ToothIcon, ExclamationCircleIcon, FunnelIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { ChevronLeftIcon, ChevronRightIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
-import { Avatar } from '@mui/material';
 import axios from 'axios';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../components/Toast';
-import { MuiIcons } from '../../utils/iconMap';
+import AgentAvatar from '../AgentAvatar';
 import DeleteConfirmationModal from '../DeleteConfirmationModal';
-
-const renderAvatar = (avatarData, agentName) => {
-    if (!avatarData) {
-        return (
-            <Avatar sx={{ width: 80, height: 80, bgcolor: 'primary.main' }}>
-                {agentName.charAt(0).toUpperCase()}
-            </Avatar>
-        );
-    }
-
-    try {
-        const { icon, color } = JSON.parse(avatarData);
-
-        if (icon && MuiIcons[icon]) {
-            // Preset icon
-            const IconComponent = MuiIcons[icon];
-            return (
-                <Avatar sx={{ width: 80, height: 80, bgcolor: color || 'primary.main' }}>
-                    <IconComponent sx={{ fontSize: 48, color: 'white' }} />
-                </Avatar>
-            );
-        } else if (typeof icon === 'string' && icon.startsWith('data:image')) {
-            console.log(2)
-            // Uploaded image (base64)
-            return (
-                <Avatar
-                    src={icon}
-                    sx={{ width: 80, height: 80, bgcolor: color || 'primary.main' }}
-                >
-                    {agentName.charAt(0).toUpperCase()}
-                </Avatar>
-            );
-        }
-
-        // Fallback to default avatar
-        console.warn(`Unexpected avatar data for agent ${agentName}:`, avatarData);
-        return (
-            <Avatar sx={{ width: 80, height: 80, bgcolor: color || 'primary.main' }}>
-                {agentName.charAt(0).toUpperCase()}
-            </Avatar>
-        );
-    } catch (error) {
-        console.error(`Error parsing avatar data for agent ${agentName}:`, error);
-        return (
-            <Avatar sx={{ width: 80, height: 80, bgcolor: 'primary.main' }}>
-                {agentName.charAt(0).toUpperCase()}
-            </Avatar>
-        );
-    }
-};
 
 const PaginationCard = ({ currentPage, totalPages, onPageChange, isLoading }) => (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden flex items-center justify-center h-64 px-4">
@@ -258,9 +207,6 @@ function Agent({ onCreateNew, onAgentClick }) {
 
     const AgentCard = ({ agent, onAgentClick, onDeleteClick }) => {
         const [showActions, setShowActions] = useState(false);
-        const avatarData = agent.avatar ? JSON.parse(agent.avatar) : null;
-        const avatarBgColor = avatarData?.color || 'primary.main';
-        const avatarContent = renderAvatar(agent.avatar, agent.name);
 
         return (
             <div
@@ -270,7 +216,7 @@ function Agent({ onCreateNew, onAgentClick }) {
                 className="bg-white rounded-lg shadow-sm overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-md flex flex-col h-64 relative"
             >
                 <div className="h-2/3 flex items-center justify-center bg-gradient-to-br from-primary-light/10 to-primary-light/30">
-                    {avatarContent}
+                    <AgentAvatar avatarData={agent.avatar} agentName={agent.name} size="large" />
                 </div>
                 <div className="p-4 flex-grow flex flex-col justify-between">
                     <h3 className="text-lg font-semibold text-text-body group-hover:text-primary transition-colors duration-300 truncate">{agent.name}</h3>

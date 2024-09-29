@@ -3,6 +3,7 @@ import ScienceIcon from '@mui/icons-material/Science';
 import { Avatar, Dialog, DialogContent, DialogTitle, Grid, IconButton } from '@mui/material';
 import React, { useState } from 'react';
 import { presetAvatars } from '../utils/iconMap';
+import AgentAvatar from './AgentAvatar';
 
 function AgentAvatarSelector({ selectedAvatar, onAvatarChange }) {
     const [open, setOpen] = useState(false);
@@ -47,29 +48,16 @@ function AgentAvatarSelector({ selectedAvatar, onAvatarChange }) {
                 onClick={handleOpen}
                 size="large"
                 sx={{ position: 'relative' }}
-                aria-label="Select avatar" // Add this line
+                aria-label="Select avatar"
             >
-                <Avatar
-                    sx={{
-                        width: 64,
-                        height: 64,
-                        bgcolor: selectedAvatar ? JSON.parse(selectedAvatar).color : 'primary.main',
-                    }}
-                >
-                    {selectedAvatar && JSON.parse(selectedAvatar).icon ?
-                        (presetAvatars.find(a => a.name === JSON.parse(selectedAvatar).icon) ?
-                            React.createElement(presetAvatars.find(a => a.name === JSON.parse(selectedAvatar).icon).icon, { sx: { fontSize: 40, color: 'white' } })
-                            : <img src={`data:image/png;base64,${JSON.parse(selectedAvatar).icon}`} alt="Custom avatar" style={{ width: '100%', height: '100%' }} />
-                        )
-                        : <ScienceIcon sx={{ fontSize: 40 }} />}
-                </Avatar>
+                <AgentAvatar avatarData={selectedAvatar} agentName="" size="medium" />
                 <Avatar
                     sx={{
                         width: 24,
                         height: 24,
                         bgcolor: 'secondary.main',
                         position: 'absolute',
-                        bottom: 8, // 将这个值从 0 改为 4，使图标向上移动
+                        bottom: 8,
                         right: 0,
                     }}
                 >

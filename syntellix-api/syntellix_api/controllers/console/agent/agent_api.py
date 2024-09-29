@@ -125,7 +125,18 @@ class AgentOperationApi(Resource):
         return agent, 200
 
 
+class RecentAgentsApi(Resource):
+    @login_required
+    @marshal_with(agent_base_info_fields)
+    def get(self):
+        agents = AgentService.get_recent_agents(
+            tenant_id=current_user.current_tenant_id, user_id=current_user.id
+        )
+        return agents, 200
+
+
 api.add_resource(AgentListApi, "/agents/list")
 api.add_resource(AgentNameExistsApi, "/agents/name-exists")
 api.add_resource(AgentApi, "/agents")
 api.add_resource(AgentOperationApi, "/agents/<int:agent_id>")
+api.add_resource(RecentAgentsApi, "/agents/recent")
