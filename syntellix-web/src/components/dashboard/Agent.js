@@ -1,10 +1,10 @@
-import { ChevronDownIcon, Cog6ToothIcon, ExclamationCircleIcon, FunnelIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import { PlusIcon,ChevronLeftIcon,ChevronRightIcon, TrashIcon } from '@heroicons/react/24/solid';
+import { ChevronDownIcon, Cog6ToothIcon, ExclamationCircleIcon, FunnelIcon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ChevronLeftIcon, ChevronRightIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
 import { Avatar } from '@mui/material';
 import axios from 'axios';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../components/Toast';
 import { MuiIcons } from '../../utils/iconMap';
@@ -21,7 +21,7 @@ const renderAvatar = (avatarData, agentName) => {
 
     try {
         const { icon, color } = JSON.parse(avatarData);
-        
+
         if (icon && MuiIcons[icon]) {
             // Preset icon
             const IconComponent = MuiIcons[icon];
@@ -105,9 +105,10 @@ function Agent({ onCreateNew, onAgentClick }) {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [hasMore, setHasMore] = useState(true);
-    const [search, setSearch] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const inputRef = useRef(null);
 
-    const fetchAgents = async (pageNumber = 1, newSearch = false) => {
+    const fetchAgents = useCallback(async (pageNumber = 1, searchTerm = '') => {
         setIsLoading(true);
         setError(null);
         try {
@@ -115,7 +116,7 @@ function Agent({ onCreateNew, onAgentClick }) {
                 params: {
                     page: pageNumber,
                     page_size: 8,
-                    search: search
+                    search: searchTerm
                 }
             });
             setAgents(response.data.items);
@@ -129,25 +130,31 @@ function Agent({ onCreateNew, onAgentClick }) {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [showToast]);
 
     useEffect(() => {
-        fetchAgents(1, true);
-    }, []);
+        fetchAgents(1, '');
+    }, [fetchAgents]);
+
+    const handleSearch = useCallback(() => {
+        fetchAgents(1, searchTerm);
+    }, [fetchAgents, searchTerm]);
+
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
 
     const handlePageChange = (newPage) => {
         if (newPage >= 1 && newPage <= totalPages) {
             setPage(newPage);
             fetchAgents(newPage);
         }
-    };
-
-    const handleSearchChange = (e) => {
-        setSearch(e.target.value);
-    };
-
-    const handleSearch = () => {
-        fetchAgents(1, true);
     };
 
     const handleDeleteClick = (agent) => {
@@ -190,21 +197,49 @@ function Agent({ onCreateNew, onAgentClick }) {
         </div>
     );
 
-    const SearchBox = () => (
-        <div className="relative">
-            <input
-                type="text"
-                placeholder="搜索..."
-                value={search}
-                onChange={handleSearchChange}
-                className="pl-10 pr-4 py-2 text-sm rounded-md bg-bg-primary border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 w-48 font-noto-sans-sc text-text-body"
-            />
-            <MagnifyingGlassIcon
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-primary cursor-pointer"
-                onClick={handleSearch}
-            />
-        </div>
-    );
+    const SearchBox = () => {
+        const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
+
+        useEffect(() => {
+            setLocalSearchTerm(searchTerm);
+        }, [searchTerm]);
+
+        const handleLocalSearchChange = (e) => {
+            setLocalSearchTerm(e.target.value);
+        };
+
+        const handleLocalKeyDown = (e) => {
+            if (e.key === 'Enter') {
+                setSearchTerm(localSearchTerm);
+                handleSearch();
+            }
+        };
+
+        const handleSearchClick = () => {
+            setSearchTerm(localSearchTerm);
+            handleSearch();
+        };
+
+        return (
+            <div className="relative">
+                <input
+                    ref={inputRef}
+                    type="text"
+                    placeholder="搜索..."
+                    value={localSearchTerm}
+                    onChange={handleLocalSearchChange}
+                    onKeyDown={handleLocalKeyDown}
+                    className="pl-3 pr-10 py-2 text-sm rounded-md bg-bg-primary border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 w-48 font-noto-sans-sc text-text-body"
+                />
+                <button
+                    onClick={handleSearchClick}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-primary hover:text-primary-dark transition-colors duration-200"
+                >
+                    <MagnifyingGlassIcon className="w-5 h-5" />
+                </button>
+            </div>
+        );
+    };
 
     const NewAgentCard = () => (
         <div
@@ -368,7 +403,7 @@ function Agent({ onCreateNew, onAgentClick }) {
                     {renderContent()}
                 </div>
             </div>
-            
+
             <DeleteConfirmationModal
                 isOpen={isDeleteModalOpen}
                 onClose={() => setIsDeleteModalOpen(false)}
@@ -382,4 +417,3 @@ function Agent({ onCreateNew, onAgentClick }) {
 }
 
 export default Agent;
-
