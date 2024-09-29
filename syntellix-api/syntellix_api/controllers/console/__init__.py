@@ -8,3 +8,4 @@ api = ExternalApi(bp)
 from . import account_api, login_api, sys_init_api
 from .dataset import file_api, knowledge_base_api, knowledge_base_document_api
 from .agent import agent_api
+from .chat import chat_api

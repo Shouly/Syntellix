@@ -8,7 +8,11 @@ from syntellix_api.controllers.api_errors import (
 )
 from syntellix_api.controllers.console import api
 from syntellix_api.libs.login import login_required
-from syntellix_api.response.agent_response import agent_fields, agent_list_fields
+from syntellix_api.response.agent_response import (
+    agent_base_info_fields,
+    agent_fields,
+    agent_list_fields,
+)
 from syntellix_api.services.agent_service import AgentService
 from syntellix_api.services.errors.agent import (
     AgentNameDuplicateError,
@@ -109,6 +113,16 @@ class AgentOperationApi(Resource):
             raise NotFound()
 
         return {"result": "success"}, 204
+
+    @login_required
+    @marshal_with(agent_base_info_fields)
+    def get(self, agent_id):
+        agent = AgentService.get_agent_base_info_by_id(
+            agent_id=agent_id, tenant_id=current_user.current_tenant_id
+        )
+        if not agent:
+            raise NotFound()
+        return agent, 200
 
 
 api.add_resource(AgentListApi, "/agents/list")

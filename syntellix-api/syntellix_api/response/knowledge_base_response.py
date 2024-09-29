@@ -14,6 +14,7 @@ knowledge_base_fields = {
 knowledge_base_base_info_fields = {
     "id": fields.Integer,
     "name": fields.String,
+    "avatar": fields.String,
     "description": fields.String,
 }
 

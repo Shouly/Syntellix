@@ -5,6 +5,7 @@ from typing import Optional
 from sqlalchemy import or_
 from syntellix_api.extensions.ext_database import db
 from syntellix_api.models.agent_model import Agent, AgentKnowledgeBase
+from syntellix_api.models.dataset_model import KnowledgeBase
 from syntellix_api.services.errors.agent import (
     AgentNameDuplicateError,
     AgentNotBelongToUserError,
@@ -79,7 +80,9 @@ class AgentService:
             raise AgentNotFoundError(f"Agent with id '{agent_id}' not found.")
 
         if agent.created_by != user_id:
-            raise AgentNotBelongToUserError(f"You do not have permission to delete this agent.")
+            raise AgentNotBelongToUserError(
+                f"You do not have permission to delete this agent."
+            )
 
     @staticmethod
     def get_agents(
@@ -117,3 +120,42 @@ class AgentService:
             "has_next": has_next,
             "has_prev": has_prev,
         }
+
+    @staticmethod
+    def get_agent_base_info_by_id(agent_id: int, tenant_id: int):
+        result = (
+            db.session.query(Agent, KnowledgeBase)
+            .join(AgentKnowledgeBase, Agent.id == AgentKnowledgeBase.agent_id)
+            .join(
+                KnowledgeBase, AgentKnowledgeBase.knowledge_base_id == KnowledgeBase.id
+            )
+            .filter(Agent.id == agent_id, Agent.tenant_id == tenant_id)
+            .all()
+        )
+
+        if not result:
+            return None
+
+        agent_info = {
+            "id": result[0][0].id,
+            "name": result[0][0].name,
+            "avatar": result[0][0].avatar,
+            "description": result[0][0].description,
+            "knowledge_bases": [],
+        }
+
+        for _, kb in result:
+            agent_info["knowledge_bases"].append(
+                {
+                    "id": kb.id,
+                    "name": kb.name,
+                    "icon": kb.avatar,
+                    "description": kb.description,
+                }
+            )
+
+        return agent_info
+
+    @staticmethod
+    def get_agent_by_id(agent_id: int, tenant_id: int):
+        return Agent.query.filter_by(id=agent_id, tenant_id=tenant_id).first()

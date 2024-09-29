@@ -95,3 +95,9 @@ class KonwledgeBaseIdEmptyError(BaseHTTPException):
     error_code = "knowledge_base_id_empty"
     description = "知识库ID不能为空"
     code = 400
+
+
+class AgentNotFoundError(BaseHTTPException):
+    error_code = "agent_not_found"
+    description = "智能体不存在"
+    code = 400
