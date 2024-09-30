@@ -36,6 +36,7 @@ function Chat() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
 
   useEffect(() => {
     fetchChatDetails();
@@ -69,7 +70,7 @@ function Chat() {
 
   const fetchConversationMessages = useCallback(async (conversationId, page = 1, perPage = 7) => {
     if (conversationId === currentConversationId && isMessagesLoaded) {
-      return; // 如果消息已经加载，则不重复加���
+      return; // 如果消息已经加载，则不重复加
     }
     setIsChatMessagesLoading(true);
     try {
@@ -263,9 +264,15 @@ function Chat() {
     }
   }, [currentConversationId, handleDeleteConversation]);
 
-  const handleRenameCurrentConversation = useCallback((newName) => {
+  const handleRenameCurrentConversation = useCallback(async (newName) => {
     if (currentConversationId) {
-      handleRenameConversation(currentConversationId, newName);
+      setIsRenaming(true);
+      try {
+        await handleRenameConversation(currentConversationId, newName);
+      } finally {
+        setIsRenaming(false);
+        setIsRenameModalOpen(false);
+      }
     }
   }, [currentConversationId, handleRenameConversation]);
 
@@ -515,6 +522,7 @@ function Chat() {
         onRename={handleRenameCurrentConversation}
         currentName={conversationName || ''}
         itemType="对话"
+        isLoading={isRenaming}
       />
     </div>
   );

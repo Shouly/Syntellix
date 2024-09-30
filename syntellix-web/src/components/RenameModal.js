@@ -3,7 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { PencilSquareIcon } from '@heroicons/react/24/outline';
 
-function RenameModal({ isOpen, onClose, onRename, currentName, itemType }) {
+function RenameModal({ isOpen, onClose, onRename, currentName, itemType, isLoading }) {
   const [newName, setNewName] = useState(currentName);
 
   useEffect(() => {
@@ -13,7 +13,6 @@ function RenameModal({ isOpen, onClose, onRename, currentName, itemType }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     onRename(newName);
-    onClose();
   };
 
   return (
@@ -76,8 +75,9 @@ function RenameModal({ isOpen, onClose, onRename, currentName, itemType }) {
                     <button
                       type="submit"
                       className="inline-flex justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-colors duration-200 font-sans-sc"
+                      disabled={isLoading}
                     >
-                      确认
+                      {isLoading ? '重命名中...' : '确认'}
                     </button>
                   </div>
                 </form>
