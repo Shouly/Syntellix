@@ -12,7 +12,7 @@ import ConversationActionMenu from './ConversationActionMenu';
 import KnowledgeBaseDetail from './KnowledgeBaseDetail';
 import NewChatPrompt from './NewChatPrompt';
 
-function Chat() {
+function Chat({ selectedAgentId }) {
   const [chatDetails, setChatDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -39,8 +39,12 @@ function Chat() {
   const [isRenaming, setIsRenaming] = useState(false);
 
   useEffect(() => {
-    fetchChatDetails();
-  }, []);
+    if (selectedAgentId) {
+      fetchChatDetails(selectedAgentId);
+    } else {
+      fetchChatDetails();
+    }
+  }, [selectedAgentId]);
 
   const fetchChatDetails = async (agentId = null) => {
     setIsAgentInfoLoading(true);

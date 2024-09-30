@@ -47,6 +47,7 @@ function Dashboard({ setIsAuthenticated }) {
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const [isCreatingAgent, setIsCreatingAgent] = useState(false);
   const [selectedAgentId, setSelectedAgentId] = useState(null);
+  const [selectedAgentForChat, setSelectedAgentForChat] = useState(null);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -119,7 +120,8 @@ function Dashboard({ setIsAuthenticated }) {
   };
 
   const handleAgentClick = (id) => {
-    setSelectedAgentId(id);
+    setSelectedAgentForChat(id);
+    setActiveMenu('Chat');
   };
 
   const handleBackToAgent = () => {
@@ -154,7 +156,7 @@ function Dashboard({ setIsAuthenticated }) {
   const renderContent = () => {
     switch (activeMenu) {
       case 'Chat':
-        return <Chat />;
+        return <Chat selectedAgentId={selectedAgentForChat} />;
       case 'Agent':
         if (isCreatingAgent) {
           return (
