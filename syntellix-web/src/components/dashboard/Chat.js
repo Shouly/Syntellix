@@ -1,10 +1,12 @@
-import { BookmarkIcon, ClockIcon, PaperAirplaneIcon, PlusIcon, UserCircleIcon } from '@heroicons/react/24/outline';
-import { EllipsisHorizontalIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid';
+import { Menu, Transition } from '@headlessui/react';
+import { ClockIcon, PaperAirplaneIcon, PlusIcon, TrashIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import { ChatBubbleLeftRightIcon, EllipsisHorizontalIcon, ExclamationCircleIcon, TagIcon } from '@heroicons/react/24/solid';
 import axios from 'axios';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../components/Toast';
 import AgentAvatar from '../AgentAvatar';
+import DeleteConfirmationModal from '../DeleteConfirmationModal';
 import { AgentInfoSkeleton, ChatAreaSkeleton, ConversationListSkeleton } from './ChatSkeletons';
 import KnowledgeBaseDetail from './KnowledgeBaseDetail';
 import NewChatPrompt from './NewChatPrompt';
@@ -190,6 +192,54 @@ function Chat() {
     }
   }, [chatDetails, showToast, fetchConversationHistory]);
 
+  const handleDeleteConversation = async (conversationId) => {
+    try {
+      await axios.delete('/console/api/chat/conversations', {
+        data: { conversation_id: conversationId }
+      });
+      showToast('对话已删除', 'success');
+      // Remove the deleted conversation from the list
+      setConversationHistory(prevHistory => prevHistory.filter(conv => conv.id !== conversationId));
+      // If the deleted conversation was the current one, reset the current conversation
+      if (currentConversationId === conversationId) {
+        setCurrentConversationId(null);
+        setConversationMessages([]);
+        setIsMessagesLoaded(false);
+        setConversationName('');
+      }
+      // If this was the last conversation, fetch the latest agent
+      if (conversationHistory.length === 1) {
+        fetchChatDetails();
+      }
+    } catch (error) {
+      console.error('Failed to delete conversation:', error);
+      showToast('删除对话失败', 'error');
+    }
+  };
+
+  const handleRenameConversation = async (conversationId, newName) => {
+    try {
+      const response = await axios.put('/console/api/chat/conversations', {
+        conversation_id: conversationId,
+        new_name: newName
+      });
+      showToast('对话已重命名', 'success');
+      // Update the conversation name in the list
+      setConversationHistory(prevHistory =>
+        prevHistory.map(conv =>
+          conv.id === conversationId ? { ...conv, name: response.data.name } : conv
+        )
+      );
+      // If the renamed conversation is the current one, update the conversation name
+      if (currentConversationId === conversationId) {
+        setConversationName(response.data.name);
+      }
+    } catch (error) {
+      console.error('Failed to rename conversation:', error);
+      showToast('重命名对话失败', 'error');
+    }
+  };
+
   if (selectedKnowledgeBaseId) {
     return (
       <KnowledgeBaseDetail
@@ -298,7 +348,7 @@ function Chat() {
                   <ConversationListSkeleton />
                 ) : (
                   <>
-                    <div className="flex-1 overflow-y-auto max-h-[calc(100vh-400px)]">
+                    <div className="flex-1 overflow-y-auto max-h-[calc(100vh-400px)] space-y-1">
                       {conversationHistory.map(chat => (
                         <SidebarItem
                           key={chat.id}
@@ -308,6 +358,8 @@ function Chat() {
                             setCurrentConversationId(chat.id);
                             fetchConversationMessages(chat.id);
                           }}
+                          onRename={(newName) => handleRenameConversation(chat.id, newName)}
+                          onDelete={() => handleDeleteConversation(chat.id)}
                         />
                       ))}
                     </div>
@@ -332,7 +384,7 @@ function Chat() {
       <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden rounded-lg shadow-sm relative">
         {isChatMessagesLoading ? (
           <ChatAreaSkeleton />
-        ) : (
+        ) : currentConversationId ? (
           <>
             <div className="flex items-center justify-between p-3 flex-shrink-0 border-b border-secondary">
               <h3 className="text-base font-semibold text-text-body font-sans-sc truncate">
@@ -398,22 +450,136 @@ function Chat() {
               </div>
             </div>
           </>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full bg-white bg-opacity-50 text-center px-4">
+            <div className="flex flex-col items-center -mt-40">
+              <ChatBubbleLeftRightIcon className="w-16 h-16 text-primary mb-4" />
+              <h3 className="text-base font-semibold text-text-primary mb-2 font-sans-sc">开始新的对话</h3>
+              <p className="text-sm text-text-muted mb-6 max-w-md font-sans-sc">
+                您可以选择历史对话或开启一个新的对话
+              </p>
+              <button
+                onClick={handleNewChat}
+                className="flex items-center justify-center px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors duration-200 text-sm font-semibold font-sans-sc"
+              >
+                <PlusIcon className="w-5 h-5 mr-2" />
+                开启新对话
+              </button>
+            </div>
+          </div>
         )}
       </div>
     </div>
   );
 }
 
-function SidebarItem({ text, isActive = false, onClick }) {
+function SidebarItem({ text, isActive = false, onClick, onRename, onDelete }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [newName, setNewName] = useState(text);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleRename = () => {
+    if (isEditing) {
+      onRename(newName);
+      setIsEditing(false);
+    } else {
+      setIsEditing(true);
+    }
+  };
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    await onDelete();
+    setIsDeleting(false);
+    setIsDeleteModalOpen(false);
+  };
+
   return (
-    <li 
-      className={`py-2 px-3 rounded-lg transition-colors duration-200 cursor-pointer ${
-        isActive ? 'bg-primary bg-opacity-10 text-primary' : 'text-text-body hover:bg-bg-secondary'
-      }`}
-      onClick={onClick}
-    >
-      <span className={`font-sans-sc text-sm ${isActive ? 'font-semibold' : ''} truncate`}>{text}</span>
-    </li>
+    <>
+      <li
+        className={`py-1 px-3 rounded-lg transition-colors duration-200 cursor-pointer ${isActive ? 'bg-primary bg-opacity-10 text-primary' : 'text-text-body hover:bg-bg-secondary'
+          } flex items-center justify-between group mb-1`}
+        onClick={onClick}
+      >
+        {isEditing ? (
+          <input
+            type="text"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleRename();
+              }
+            }}
+            className="bg-transparent border-none focus:outline-none text-sm font-sans-sc flex-grow mr-2"
+            autoFocus
+            onClick={(e) => e.stopPropagation()}
+          />
+        ) : (
+          <span className={`font-sans-sc text-sm ${isActive ? 'font-semibold' : ''} truncate flex-grow mr-2`}>{text}</span>
+        )}
+        <Menu as="div" className="relative inline-block text-left">
+          <div>
+            <Menu.Button className="text-text-muted hover:text-primary p-1 rounded-full hover:bg-bg-secondary transition-colors duration-200 opacity-0 group-hover:opacity-100">
+              <EllipsisHorizontalIcon className="w-5 h-5" />
+            </Menu.Button>
+          </div>
+          <Transition
+            as={Fragment}
+            enter="transition ease-out duration-100"
+            enterFrom="transform opacity-0 scale-95"
+            enterTo="transform opacity-100 scale-100"
+            leave="transition ease-in duration-75"
+            leaveFrom="transform opacity-100 scale-100"
+            leaveTo="transform opacity-0 scale-95"
+          >
+            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+              <div className="px-1 py-1">
+                <Menu.Item>
+                  {({ active }) => (
+                    <button
+                      className={`${active ? 'bg-primary text-white' : 'text-gray-900'
+                        } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRename();
+                      }}
+                    >
+                      <TagIcon className="mr-2 h-5 w-5" aria-hidden="true" />
+                      重命名
+                    </button>
+                  )}
+                </Menu.Item>
+                <Menu.Item>
+                  {({ active }) => (
+                    <button
+                      className={`${active ? 'bg-danger text-white' : 'text-gray-900'
+                        } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsDeleteModalOpen(true);
+                      }}
+                    >
+                      <TrashIcon className="mr-2 h-5 w-5" aria-hidden="true" />
+                      删除
+                    </button>
+                  )}
+                </Menu.Item>
+              </div>
+            </Menu.Items>
+          </Transition>
+        </Menu>
+      </li>
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+        itemType="对话"
+        itemName={text}
+        isLoading={isDeleting}
+      />
+    </>
   );
 }
 

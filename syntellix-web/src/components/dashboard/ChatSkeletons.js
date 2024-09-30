@@ -27,11 +27,14 @@ export function AgentInfoSkeleton() {
 export function ConversationListSkeleton() {
   return (
     <nav className="flex-1 overflow-y-auto px-6 pb-6 animate-pulse">
-      <div>
-        <div className="h-5 bg-secondary rounded w-1/2 mb-2"></div>
-        <div className="space-y-1">
+      <div className="flex flex-col h-full">
+        <div className="h-5 bg-secondary rounded w-1/2 mb-4"></div>
+        <div className="flex-1 space-y-2">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-8 bg-bg-secondary rounded-lg"></div>
+            <div key={i} className="flex items-center justify-between py-1.5 px-3 rounded-lg bg-bg-secondary">
+              <div className="h-4 bg-secondary rounded w-3/4"></div>
+              <div className="w-5 h-5 bg-secondary rounded-full"></div>
+            </div>
           ))}
         </div>
       </div>
