@@ -28,7 +28,6 @@ export function ConversationListSkeleton() {
   return (
     <nav className="flex-1 overflow-y-auto px-6 pb-6 animate-pulse">
       <div className="flex flex-col h-full">
-        <div className="h-5 bg-secondary rounded w-1/2 mb-4"></div>
         <div className="flex-1 space-y-2">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="flex items-center justify-between py-1.5 px-3 rounded-lg bg-bg-secondary">

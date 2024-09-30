@@ -197,7 +197,7 @@ function Chat() {
       await axios.delete('/console/api/chat/conversations', {
         data: { conversation_id: conversationId }
       });
-      showToast('对话已删除', 'success');
+      showToast('对话删除成功', 'success');
       // Remove the deleted conversation from the list
       setConversationHistory(prevHistory => prevHistory.filter(conv => conv.id !== conversationId));
       // If the deleted conversation was the current one, reset the current conversation
@@ -362,16 +362,18 @@ function Chat() {
                           onDelete={() => handleDeleteConversation(chat.id)}
                         />
                       ))}
+                      {hasMoreConversations && (
+                        <li
+                          onClick={() => fetchConversationHistory(chatDetails.agent_info.id, conversationHistory[conversationHistory.length - 1]?.id)}
+                          className="py-2 px-3 rounded-lg transition-colors duration-200 cursor-pointer text-primary hover:bg-primary hover:bg-opacity-10 flex items-center justify-center group mb-1"
+                        >
+                          <span className="font-sans-sc text-sm font-semibold flex items-center">
+                            <PlusIcon className="w-4 h-4 mr-2" />
+                            加载更多
+                          </span>
+                        </li>
+                      )}
                     </div>
-                    {hasMoreConversations && (
-                      <button
-                        onClick={() => fetchConversationHistory(chatDetails.agent_info.id, conversationHistory[conversationHistory.length - 1]?.id)}
-                        className="w-full text-sm text-primary hover:text-primary-dark font-semibold py-2 px-3 rounded-lg transition-colors duration-200 hover:bg-bg-secondary mt-2 flex items-center justify-center"
-                      >
-                        <PlusIcon className="w-4 h-4 mr-2" />
-                        加载更多
-                      </button>
-                    )}
                   </>
                 )}
               </div>
