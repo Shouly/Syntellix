@@ -27,18 +27,10 @@ export function AgentInfoSkeleton() {
 export function ConversationListSkeleton() {
   return (
     <nav className="flex-1 overflow-y-auto px-6 pb-6 animate-pulse">
-      <div className="mb-6">
-        <div className="h-5 bg-secondary rounded w-1/2 mb-2"></div>
-        <div className="space-y-1">
-          {[...Array(2)].map((_, i) => (
-            <div key={i} className="h-8 bg-bg-secondary rounded-lg"></div>
-          ))}
-        </div>
-      </div>
       <div>
         <div className="h-5 bg-secondary rounded w-1/2 mb-2"></div>
         <div className="space-y-1">
-          {[...Array(3)].map((_, i) => (
+          {[...Array(5)].map((_, i) => (
             <div key={i} className="h-8 bg-bg-secondary rounded-lg"></div>
           ))}
         </div>

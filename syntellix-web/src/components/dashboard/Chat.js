@@ -24,7 +24,6 @@ function Chat() {
   const [conversationHistory, setConversationHistory] = useState([]);
   const [conversationPage, setConversationPage] = useState(1);
   const [hasMoreConversations, setHasMoreConversations] = useState(true);
-  const [pinnedConversations, setPinnedConversations] = useState([]);
   const [currentConversationId, setCurrentConversationId] = useState(null);
   const [isMessagesLoaded, setIsMessagesLoaded] = useState(false);
   const [isAgentInfoLoading, setIsAgentInfoLoading] = useState(true);
@@ -50,7 +49,6 @@ function Chat() {
         fetchConversationMessages(response.data.latest_conversation_id);
       }
       if (response.data.agent_id) {
-        fetchPinnedConversations(response.data.agent_id);
         fetchConversationHistory(response.data.agent_id);
       }
       setIsAgentInfoLoading(false);
@@ -127,19 +125,8 @@ function Chat() {
     setSelectedKnowledgeBaseId(null);
   };
 
-  const fetchPinnedConversations = useCallback(async (agentId) => {
-    setIsConversationListLoading(true);
-    try {
-      const response = await axios.get(`/console/api/chat/agent/${agentId}/pinned-conversations`);
-      setPinnedConversations(response.data);
-      setIsConversationListLoading(false);
-    } catch (error) {
-      console.error('Failed to fetch pinned conversations:', error);
-      showToast('固定对话获取失败', 'error');
-    }
-  }, [showToast]);
-
   const fetchConversationHistory = useCallback(async (agentId, lastId = null, limit = 10) => {
+    setIsConversationListLoading(true);
     try {
       const response = await axios.get(`/console/api/chat/agent/${agentId}/conversation-history`, {
         params: { last_id: lastId, limit }
@@ -154,8 +141,16 @@ function Chat() {
     } catch (error) {
       console.error('Failed to fetch conversation history:', error);
       showToast('历史对话获取失败', 'error');
+    } finally {
+      setIsConversationListLoading(false);
     }
   }, [showToast]);
+
+  useEffect(() => {
+    if (chatDetails?.agent_info?.id) {
+      fetchConversationHistory(chatDetails.agent_info.id);
+    }
+  }, [chatDetails, fetchConversationHistory]);
 
   const handleNewChat = useCallback(async () => {
     if (!chatDetails?.agent_info?.id) {
@@ -293,51 +288,42 @@ function Chat() {
               </button>
             </div>
 
-            {isConversationListLoading ? (
-              <ConversationListSkeleton />
-            ) : (
-              <nav className="flex-1 overflow-y-auto px-6 pb-6">
-                <div className="mb-6">
-                  <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-2 flex items-center">
-                    <BookmarkIcon className="w-5 h-5 mr-2" />
-                    固定对话
-                  </h3>
-                  <ul className="space-y-1">
-                    {pinnedConversations.map(chat => (
-                      <SidebarItem
-                        key={chat.id}
-                        text={chat.name}
-                        isActive={chat.id === currentConversationId}
-                      />
-                    ))}
-                  </ul>
-                </div>
-                <div className="flex flex-col h-full">
-                  <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-2 flex items-center">
-                    <ClockIcon className="w-5 h-5 mr-2" />
-                    最近对话
-                  </h3>
-                  <div className="flex-1 overflow-y-auto max-h-[calc(100vh-400px)]">
-                    {conversationHistory.map(chat => (
-                      <SidebarItem
-                        key={chat.id}
-                        text={chat.name}
-                        isActive={chat.id === currentConversationId}
-                      />
-                    ))}
-                  </div>
-                  {hasMoreConversations && (
-                    <button
-                      onClick={() => fetchConversationHistory(chatDetails.agent_id, conversationHistory[conversationHistory.length - 1]?.id)}
-                      className="w-full text-sm text-primary hover:text-primary-dark font-semibold py-2 px-3 rounded-lg transition-colors duration-200 hover:bg-bg-secondary mt-2 flex items-center justify-center"
-                    >
-                      <PlusIcon className="w-4 h-4 mr-2" />
-                      加载更多
-                    </button>
-                  )}
-                </div>
-              </nav>
-            )}
+            <nav className="flex-1 overflow-y-auto px-6 pb-6">
+              <div className="flex flex-col h-full">
+                <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-2 flex items-center">
+                  <ClockIcon className="w-5 h-5 mr-2" />
+                  最近对话
+                </h3>
+                {isConversationListLoading ? (
+                  <ConversationListSkeleton />
+                ) : (
+                  <>
+                    <div className="flex-1 overflow-y-auto max-h-[calc(100vh-400px)]">
+                      {conversationHistory.map(chat => (
+                        <SidebarItem
+                          key={chat.id}
+                          text={chat.name}
+                          isActive={chat.id === currentConversationId}
+                          onClick={() => {
+                            setCurrentConversationId(chat.id);
+                            fetchConversationMessages(chat.id);
+                          }}
+                        />
+                      ))}
+                    </div>
+                    {hasMoreConversations && (
+                      <button
+                        onClick={() => fetchConversationHistory(chatDetails.agent_info.id, conversationHistory[conversationHistory.length - 1]?.id)}
+                        className="w-full text-sm text-primary hover:text-primary-dark font-semibold py-2 px-3 rounded-lg transition-colors duration-200 hover:bg-bg-secondary mt-2 flex items-center justify-center"
+                      >
+                        <PlusIcon className="w-4 h-4 mr-2" />
+                        加载更多
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            </nav>
           </>
         )}
       </div>
@@ -418,10 +404,14 @@ function Chat() {
   );
 }
 
-function SidebarItem({ text, isActive = false }) {
+function SidebarItem({ text, isActive = false, onClick }) {
   return (
-    <li className={`py-2 px-3 rounded-lg transition-colors duration-200 ${isActive ? 'bg-primary bg-opacity-10 text-primary' : 'text-text-body hover:bg-bg-secondary'
-      }`}>
+    <li 
+      className={`py-2 px-3 rounded-lg transition-colors duration-200 cursor-pointer ${
+        isActive ? 'bg-primary bg-opacity-10 text-primary' : 'text-text-body hover:bg-bg-secondary'
+      }`}
+      onClick={onClick}
+    >
       <span className={`font-sans-sc text-sm ${isActive ? 'font-semibold' : ''} truncate`}>{text}</span>
     </li>
   );
