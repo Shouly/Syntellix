@@ -73,8 +73,8 @@ function NewChatPrompt({ onSelectAgent, setLoading }) {
             <div className="max-w-5xl mx-auto">
                 <div className="text-center mb-10">
                     <ChatBubbleLeftRightIcon className="w-16 h-16 text-primary mx-auto mb-4" />
-                    <h1 className="text-2xl font-semibold mb-2 text-text-body font-sans-sc">开启第一次对话</h1>
-                    <p className="text-xm text-text-muted">选择一个智能体，点击开始AI对话之旅</p>
+                    <h1 className="text-2xl font-semibold mb-2 text-text-body font-sans-sc">开始第一次对话</h1>
+                    <p className="text-xm text-text-muted">请选择一个智能体，点击后开启对话</p>
                 </div>
 
                 {isLoading ? (
