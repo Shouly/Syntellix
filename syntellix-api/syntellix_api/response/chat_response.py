@@ -1,5 +1,6 @@
 from flask_restful import fields
 from syntellix_api.response.agent_response import agent_base_info_fields
+from syntellix_api.models.chat_model import ConversationMessageType
 
 conversation_fields = {
     "id": fields.Integer,
@@ -16,7 +17,7 @@ conversation_message_fields = {
     "user_id": fields.Integer,
     "agent_id": fields.Integer,
     "message": fields.String,
-    "message_type": fields.String,
+    "message_type": fields.String(attribute=lambda x: x.message_type.value),
     "citation": fields.Raw,
     "pre_message_id": fields.Integer,
     "next_message_id": fields.Integer,
@@ -34,7 +35,4 @@ agent_chat_details_fields = {
     "agent_id": fields.Integer,
     "latest_conversation": fields.Nested(conversation_fields),
     "agent_info": fields.Nested(agent_base_info_fields),
-    "latest_conversation_messages": fields.Nested(conversation_message_fields),
-    "pinned_conversations": fields.Nested(conversation_fields),
-    "conversation_history": fields.Nested(conversation_fields),
 }

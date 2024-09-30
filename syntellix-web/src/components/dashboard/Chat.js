@@ -290,16 +290,19 @@ function Chat() {
           </div>
 
           {/* Chat messages */}
-          <div className="flex-1 overflow-y-auto px-6 pb-24" ref={chatContainerRef}>
+          <div className="flex-1 overflow-y-auto px-6 py-6 pb-24" ref={chatContainerRef}>
             {conversationMessages.map((message, index) => (
               <div key={index} className={`mb-4 flex ${message.message_type === 'user' ? 'justify-end' : 'justify-start'}`}>
                 {message.message_type === 'agent' && (
-                  <div className="w-8 h-8 mr-2 self-end">
-                    <AgentAvatar
-                      avatarData={chatDetails?.agent_info?.avatar}
-                      agentName={chatDetails?.agent_info?.name || '智能助手'}
-                      size="small"
-                    />
+                  <div className="flex flex-col items-center mr-2">
+                    <div className="w-8 h-8 mb-1">
+                      <AgentAvatar
+                        avatarData={chatDetails?.agent_info?.avatar}
+                        agentName={chatDetails?.agent_info?.name || '智能助手'}
+                        size="small"
+                      />
+                    </div>
+                    <span className="text-xs text-text-muted">{chatDetails?.agent_info?.name || '智能助手'}</span>
                   </div>
                 )}
                 <div className={`inline-block p-3 rounded-xl ${message.message_type === 'user'
