@@ -1,12 +1,12 @@
-import React, { useEffect, useState, useRef } from 'react';
-import axios from 'axios';
-import { ChatBubbleLeftRightIcon, UserCircleIcon, PaperAirplaneIcon, PlusIcon, BookmarkIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { BookmarkIcon, ClockIcon, PaperAirplaneIcon, PlusIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 import { EllipsisHorizontalIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid';
-import NewChatPrompt from './NewChatPrompt';
+import axios from 'axios';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../components/Toast';
 import AgentAvatar from '../AgentAvatar';
-import { useNavigate } from 'react-router-dom';
 import KnowledgeBaseDetail from './KnowledgeBaseDetail';
+import NewChatPrompt from './NewChatPrompt';
 
 function Chat() {
   const [chatDetails, setChatDetails] = useState(null);
@@ -17,6 +17,14 @@ function Chat() {
   const { showToast } = useToast();
   const navigate = useNavigate();
   const [selectedKnowledgeBaseId, setSelectedKnowledgeBaseId] = useState(null);
+  const [conversationMessages, setConversationMessages] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const [conversationHistory, setConversationHistory] = useState([]);
+  const [conversationPage, setConversationPage] = useState(1);
+  const [hasMoreConversations, setHasMoreConversations] = useState(true);
+  const [pinnedConversations, setPinnedConversations] = useState([]);
+  const [currentConversationId, setCurrentConversationId] = useState(null);
 
   useEffect(() => {
     fetchChatDetails();
@@ -26,11 +34,19 @@ function Chat() {
     setLoading(true);
     setError(null);
     try {
-      const url = agentId 
-        ? `/console/api/agent-chat-details/${agentId}`
-        : '/console/api/agent-chat-details';
+      const url = agentId
+        ? `/console/api/chat/agent/${agentId}`
+        : '/console/api/chat/agent';
       const response = await axios.get(url);
       setChatDetails(response.data);
+      if (response.data.latest_conversation) {
+        fetchConversationMessages(response.data.latest_conversation.id);
+        setCurrentConversationId(response.data.latest_conversation.id);
+      }
+      if (response.data.agent_id) {
+        fetchPinnedConversations(response.data.agent_id);
+        fetchConversationHistory(response.data.agent_id);
+      }
     } catch (error) {
       console.error('Failed to fetch chat details:', error);
       setError('对话内容获取失败');
@@ -39,6 +55,36 @@ function Chat() {
       setLoading(false);
     }
   };
+
+  const fetchConversationMessages = useCallback(async (conversationId, page = 1, perPage = 7) => {
+    try {
+      const response = await axios.get(`/console/api/chat/conversation/${conversationId}/messages`, {
+        params: { page, per_page: perPage }
+      });
+      if (page === 1) {
+        setConversationMessages(response.data);
+      } else {
+        setConversationMessages(prevMessages => [...prevMessages, ...response.data]);
+      }
+      setHasMoreMessages(response.data.length === perPage);
+      setCurrentPage(page);
+    } catch (error) {
+      console.error('Failed to fetch conversation messages:', error);
+      showToast('消息获取失败', 'error');
+    }
+  }, [showToast]);
+
+  const loadMoreMessages = () => {
+    if (chatDetails?.latest_conversation && hasMoreMessages) {
+      fetchConversationMessages(chatDetails.latest_conversation.id, currentPage + 1);
+    }
+  };
+
+  useEffect(() => {
+    if (chatDetails?.latest_conversation) {
+      fetchConversationMessages(chatDetails.latest_conversation.id);
+    }
+  }, [chatDetails, fetchConversationMessages]);
 
   const handleSendMessage = async () => {
     if (inputMessage.trim() !== '') {
@@ -66,6 +112,34 @@ function Chat() {
   const handleBackFromKnowledgeBaseDetail = () => {
     setSelectedKnowledgeBaseId(null);
   };
+
+  const fetchPinnedConversations = useCallback(async (agentId) => {
+    try {
+      const response = await axios.get(`/console/api/chat/agent/${agentId}/pinned-conversations`);
+      setPinnedConversations(response.data);
+    } catch (error) {
+      console.error('Failed to fetch pinned conversations:', error);
+      showToast('固定对话获取失败', 'error');
+    }
+  }, [showToast]);
+
+  const fetchConversationHistory = useCallback(async (agentId, lastId = null, limit = 10) => {
+    try {
+      const response = await axios.get(`/console/api/chat/agent/${agentId}/conversation-history`, {
+        params: { last_id: lastId, limit }
+      });
+      if (lastId === null) {
+        setConversationHistory(response.data);
+      } else {
+        setConversationHistory(prevHistory => [...prevHistory, ...response.data]);
+      }
+      setHasMoreConversations(response.data.length === limit);
+      setConversationPage(prevPage => prevPage + 1);
+    } catch (error) {
+      console.error('Failed to fetch conversation history:', error);
+      showToast('历史对话获取失败', 'error');
+    }
+  }, [showToast]);
 
   if (selectedKnowledgeBaseId) {
     return (
@@ -99,7 +173,7 @@ function Chat() {
   return (
     <div className="h-full flex overflow-hidden gap-6 p-3">
       {/* Left sidebar */}
-      <div className="w-64 flex flex-col bg-bg-primary overflow-hidden rounded-lg shadow-sm">
+      <div className="w-72 flex flex-col bg-bg-primary overflow-hidden rounded-lg shadow-sm">
         {loading ? (
           <LeftSidebarSkeleton />
         ) : (
@@ -130,8 +204,8 @@ function Chat() {
                     <h4 className="font-semibold mb-2 text-text-body">关联知识库:</h4>
                     <ul className="space-y-1">
                       {chatDetails.agent_info.knowledge_bases.map((kb) => (
-                        <li 
-                          key={kb.id} 
+                        <li
+                          key={kb.id}
                           className="flex items-center cursor-pointer hover:text-primary transition-colors duration-200"
                           onClick={() => handleKnowledgeBaseClick(kb.id)}
                         >
@@ -145,7 +219,7 @@ function Chat() {
               </div>
 
               <button
-                onClick={() => {/* Handle new chat */}}
+                onClick={() => {/* Handle new chat */ }}
                 className="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center transition-colors duration-200 text-sm mb-6"
               >
                 <PlusIcon className="w-4 h-4 mr-2" />
@@ -157,24 +231,41 @@ function Chat() {
               <div className="mb-6">
                 <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-2 flex items-center">
                   <BookmarkIcon className="w-5 h-5 mr-2" />
-                固定对话
+                  固定对话
                 </h3>
                 <ul className="space-y-1">
-                  {chatDetails?.pinned_conversations.map(chat => (
-                    <SidebarItem key={chat.id} text={chat.name} />
+                  {pinnedConversations.map(chat => (
+                    <SidebarItem
+                      key={chat.id}
+                      text={chat.name}
+                      isActive={chat.id === currentConversationId}
+                    />
                   ))}
                 </ul>
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-2 flex items-center">
                   <ClockIcon className="w-5 h-5 mr-2" />
-                最近对话
+                  最近对话
                 </h3>
-                <ul className="space-y-1">
-                  {chatDetails?.conversation_history.map(chat => (
-                    <SidebarItem key={chat.id} text={chat.name} />
+                <div className="flex-1 overflow-y-auto">
+                  {conversationHistory.map(chat => (
+                    <SidebarItem
+                      key={chat.id}
+                      text={chat.name}
+                      isActive={chat.id === currentConversationId}
+                    />
                   ))}
-                </ul>
+                  {hasMoreConversations && (
+                    <button
+                      onClick={() => fetchConversationHistory(chatDetails.agent_id, conversationHistory[conversationHistory.length - 1]?.id)}
+                      className="w-full text-sm text-primary hover:text-primary-dark font-semibold py-2 px-3 rounded-lg transition-colors duration-200 hover:bg-bg-secondary mt-2 flex items-center justify-center"
+                    >
+                      <PlusIcon className="w-4 h-4 mr-2" />
+                      加载更多
+                    </button>
+                  )}
+                </div>
               </div>
             </nav>
           </>
@@ -200,7 +291,7 @@ function Chat() {
 
           {/* Chat messages */}
           <div className="flex-1 overflow-y-auto px-6 pb-24" ref={chatContainerRef}>
-            {chatDetails?.latest_conversation_messages.map((message, index) => (
+            {conversationMessages.map((message, index) => (
               <div key={index} className={`mb-4 flex ${message.message_type === 'user' ? 'justify-end' : 'justify-start'}`}>
                 {message.message_type === 'agent' && (
                   <div className="w-8 h-8 mr-2 self-end">
@@ -211,16 +302,14 @@ function Chat() {
                     />
                   </div>
                 )}
-                <div className={`inline-block p-3 rounded-xl ${
-                  message.message_type === 'user'
-                    ? 'bg-primary text-white'
-                    : 'bg-bg-tertiary text-text-primary'
+                <div className={`inline-block p-3 rounded-xl ${message.message_type === 'user'
+                  ? 'bg-primary text-white'
+                  : 'bg-bg-tertiary text-text-primary'
                   } max-w-[70%]`}
                 >
-                  <p className={`text-sm leading-relaxed ${
-                    message.message_type === 'user'
-                      ? 'font-sans-sc font-medium'
-                      : 'font-sans-sc font-normal'
+                  <p className={`text-sm leading-relaxed ${message.message_type === 'user'
+                    ? 'font-sans-sc font-medium'
+                    : 'font-sans-sc font-normal'
                     }`}
                   >
                     {message.message}
@@ -277,9 +366,8 @@ function ChatSkeleton() {
               {i % 2 === 0 && (
                 <div className="w-8 h-8 rounded-full bg-secondary mr-2 flex-shrink-0"></div>
               )}
-              <div className={`inline-block p-3 rounded-xl ${
-                i % 2 === 0 ? 'bg-bg-tertiary' : 'bg-primary bg-opacity-10'
-              } ${i % 2 === 0 ? 'w-[50%]' : 'w-[50%]'}`}>
+              <div className={`inline-block p-3 rounded-xl ${i % 2 === 0 ? 'bg-bg-tertiary' : 'bg-primary bg-opacity-10'
+                } ${i % 2 === 0 ? 'w-[50%]' : 'w-[50%]'}`}>
                 <div className="h-4 bg-secondary rounded w-full"></div>
               </div>
               {i % 2 !== 0 && (
@@ -292,18 +380,17 @@ function ChatSkeleton() {
 
       {/* Input area */}
       <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-bg-primary via-bg-primary to-transparent">
-        <div className="h-12 bg-secondary rounded-lg w-full"></div>
+        <div className="h-14 bg-white rounded-lg w-full border border-secondary"></div>
       </div>
     </div>
   );
 }
 
-function SidebarItem({ text, active = false }) {
+function SidebarItem({ text, isActive = false }) {
   return (
-    <li className={`py-2 px-3 rounded-lg transition-colors duration-200 ${
-      active ? 'bg-primary bg-opacity-10 text-primary' : 'text-text-body hover:bg-bg-secondary'
-    }`}>
-      <span className={`font-sans-sc text-sm ${active ? 'font-semibold' : ''} truncate`}>{text}</span>
+    <li className={`py-2 px-3 rounded-lg transition-colors duration-200 ${isActive ? 'bg-primary bg-opacity-10 text-primary' : 'text-text-body hover:bg-bg-secondary'
+      }`}>
+      <span className={`font-sans-sc text-sm ${isActive ? 'font-semibold' : ''} truncate`}>{text}</span>
     </li>
   );
 }
@@ -312,26 +399,36 @@ function LeftSidebarSkeleton() {
   return (
     <div className="animate-pulse">
       <div className="p-6 flex-shrink-0">
-        <div className="mb-10 mt-5">
-          <div className="flex items-center mb-10">
+        <div className="mb-6">
+          <div className="flex items-center mb-4">
             <div className="w-10 h-10 rounded-full bg-secondary mr-3"></div>
             <div className="h-6 bg-secondary rounded w-3/4"></div>
           </div>
+          <div className="h-4 bg-secondary rounded w-full mb-2"></div>
+          <div className="h-4 bg-secondary rounded w-5/6 mb-4"></div>
+          <div className="bg-bg-secondary rounded-lg p-3">
+            <div className="h-4 bg-secondary rounded w-1/2 mb-2"></div>
+            <div className="space-y-1">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-3 bg-secondary rounded w-3/4"></div>
+              ))}
+            </div>
+          </div>
         </div>
-        <div className="w-full h-10 bg-primary rounded-lg"></div>
+        <div className="w-full h-10 bg-primary rounded-lg mb-6"></div>
       </div>
       <nav className="flex-1 overflow-y-auto px-6 pb-6">
         <div className="mb-6">
-          <div className="h-5 bg-secondary rounded w-1/2 mb-4"></div>
-          <div className="space-y-2">
+          <div className="h-5 bg-secondary rounded w-1/2 mb-2"></div>
+          <div className="space-y-1">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="h-8 bg-bg-secondary rounded-lg"></div>
             ))}
           </div>
         </div>
         <div>
-          <div className="h-5 bg-secondary rounded w-1/2 mb-4"></div>
-          <div className="space-y-2">
+          <div className="h-5 bg-secondary rounded w-1/2 mb-2"></div>
+          <div className="space-y-1">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="h-8 bg-bg-secondary rounded-lg"></div>
             ))}

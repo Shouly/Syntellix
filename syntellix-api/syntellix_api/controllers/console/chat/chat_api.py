@@ -21,7 +21,7 @@ from syntellix_api.services.errors.agent import AgentNotFoundError
 from werkzeug.exceptions import Forbidden, NotFound
 
 
-class ConversationApi(Resource):
+class ChatConversationApi(Resource):
     @login_required
     @marshal_with(conversation_fields)
     def post(self):
@@ -71,12 +71,11 @@ class ConversationApi(Resource):
         return conversation, 200
 
 
-class ConversationMessageApi(Resource):
+class ChatConversationMessageApi(Resource):
     @login_required
     @marshal_with(conversation_message_fields)
-    def post(self):
+    def post(self, conversation_id):
         parser = reqparse.RequestParser()
-        parser.add_argument("conversation_id", type=int, required=True)
         parser.add_argument("agent_id", type=int, required=True)
         parser.add_argument("message", type=str, required=True)
         parser.add_argument(
@@ -88,7 +87,7 @@ class ConversationMessageApi(Resource):
         args = parser.parse_args()
 
         message = ChatService.save_conversation_message(
-            conversation_id=args["conversation_id"],
+            conversation_id=conversation_id,
             user_id=current_user.id,
             agent_id=args["agent_id"],
             message=args["message"],
@@ -101,22 +100,21 @@ class ConversationMessageApi(Resource):
 
     @login_required
     @marshal_with(conversation_message_fields)
-    def get(self):
+    def get(self, conversation_id):
         parser = reqparse.RequestParser()
-        parser.add_argument("conversation_id", type=int, required=True)
-        parser.add_argument("page", type=int, default=1)
-        parser.add_argument("per_page", type=int, default=7)
+        parser.add_argument("page", type=int, location="args", default=1)
+        parser.add_argument("per_page", type=int, location="args", default=7)
         args = parser.parse_args()
 
         messages = ChatService.get_conversation_messages(
-            conversation_id=args["conversation_id"],
+            conversation_id=conversation_id,
             page=args["page"],
             per_page=args["per_page"],
         )
         return messages, 200
 
 
-class AgentChatDetailsApi(Resource):
+class ChatAgentConversationApi(Resource):
     @login_required
     @marshal_with(agent_chat_details_fields)
     def get(self, agent_id=None):
@@ -129,9 +127,6 @@ class AgentChatDetailsApi(Resource):
                     "agent_id": None,
                     "latest_conversation": None,
                     "agent_info": None,
-                    "latest_conversation_messages": [],
-                    "pinned_conversations": [],
-                    "conversation_history": [],
                 }, 200
 
         agent = AgentService.get_agent_base_info_by_id(
@@ -144,35 +139,67 @@ class AgentChatDetailsApi(Resource):
             agent_id=agent_id,
         )
 
-        latest_conversation_messages = []
-        if latest_conversation:
-            latest_conversation_messages = ChatService.get_conversation_messages(
-                conversation_id=latest_conversation.id,
+        if latest_conversation is None:
+
+            latest_conversation = ChatService.create_conversation(
+                user_id=current_user.id,
+                agent_id=agent_id,
+                name=f"新会话 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             )
-
-        pinned_conversations = ChatService.get_pinned_conversations(
-            agent_id=agent_id,
-            user_id=current_user.id,
-        )
-
-        conversation_history = ChatService.get_conversation_history(
-            agent_id=agent_id,
-            user_id=current_user.id,
-        )
+            ChatService.save_conversation_message(
+                conversation_id=latest_conversation.id,
+                user_id=current_user.id,
+                agent_id=agent_id,
+                message=agent.get("greeting_message", "Welcome!"),
+                message_type=ConversationMessageType.AGENT,
+            )
 
         return {
             "has_recent_conversation": True,
             "agent_id": agent_id,
             "latest_conversation": latest_conversation,
             "agent_info": agent,
-            "latest_conversation_messages": latest_conversation_messages,
-            "pinned_conversations": pinned_conversations,
-            "conversation_history": conversation_history,
         }, 200
 
 
+class ChatAgentConversationHistoryApi(Resource):
+    @login_required
+    @marshal_with(conversation_fields)
+    def get(self, agent_id):
+        parser = reqparse.RequestParser()
+        parser.add_argument("last_id", type=int, location="args")
+        parser.add_argument("limit", type=int, location="args", default=10)
+        args = parser.parse_args()
+
+        conversations = ChatService.get_conversation_history(
+            user_id=current_user.id,
+            agent_id=agent_id,
+            last_id=args["last_id"],
+            limit=args["limit"],
+        )
+
+        return conversations, 200
+
+
+class ChatAgentConversationPinnedApi(Resource):
+    @login_required
+    @marshal_with(conversation_fields)
+    def get(self, agent_id):
+        conversations = ChatService.get_all_pinned_conversations(
+            user_id=current_user.id,
+            agent_id=agent_id,
+        )
+        return conversations, 200
+
+
+api.add_resource(ChatAgentConversationApi, "/chat/agent", "/chat/agent/<int:agent_id>")
 api.add_resource(
-    AgentChatDetailsApi, "/agent-chat-details", "/agent-chat-details/<int:agent_id>"
+    ChatConversationMessageApi, "/chat/conversation/<int:conversation_id>/messages"
 )
-api.add_resource(ConversationApi, "/conversations")
-api.add_resource(ConversationMessageApi, "/conversation-messages")
+api.add_resource(ChatConversationApi, "/chat/conversations")
+api.add_resource(
+    ChatAgentConversationHistoryApi, "/chat/agent/<int:agent_id>/conversation-history"
+)
+api.add_resource(
+    ChatAgentConversationPinnedApi, "/chat/agent/<int:agent_id>/pinned-conversations"
+)

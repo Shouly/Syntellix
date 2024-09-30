@@ -119,35 +119,31 @@ class ChatService:
         return messages
 
     @staticmethod
-    def get_pinned_conversations(
-        agent_id: int, user_id: int, page: int = 1, per_page: int = 10
-    ):
-        offset = (page - 1) * per_page
-
-        pinned_conversations = (
+    def get_all_pinned_conversations(user_id: int, agent_id: int):
+        conversations = (
             Conversation.query.filter_by(
-                user_id=user_id, agent_id=agent_id, pinned=True
+                user_id=user_id, agent_id=agent_id, is_pinned=True
             )
             .order_by(Conversation.updated_at.desc())
-            .offset(offset)
-            .limit(per_page)
             .all()
         )
-
-        return pinned_conversations
+        return conversations
 
     @staticmethod
     def get_conversation_history(
-        agent_id: int, user_id: int, page: int = 1, per_page: int = 10
+        agent_id: int, user_id: int, last_id: int = None, limit: int = 10
     ):
-        offset = (page - 1) * per_page
+        query = Conversation.query.filter_by(user_id=user_id, agent_id=agent_id)
+
+        if last_id:
+            last_conversation = Conversation.query.get(last_id)
+            if last_conversation:
+                query = query.filter(
+                    Conversation.updated_at < last_conversation.updated_at
+                )
 
         conversations = (
-            Conversation.query.filter_by(user_id=user_id, agent_id=agent_id)
-            .order_by(Conversation.updated_at.desc())
-            .offset(offset)
-            .limit(per_page)
-            .all()
+            query.order_by(Conversation.updated_at.desc()).limit(limit).all()
         )
 
         return conversations

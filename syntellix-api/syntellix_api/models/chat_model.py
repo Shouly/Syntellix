@@ -20,7 +20,7 @@ class Conversation(db.Model):
     user_id = db.Column(db.Integer, nullable=False)
     agent_id = db.Column(db.Integer, nullable=False)
     name = db.Column(db.String(255), nullable=False)
-    pinned = db.Column(db.Boolean, nullable=False, default=False)
+    is_pinned = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(
         db.DateTime, nullable=False, server_default=db.func.current_timestamp()
     )

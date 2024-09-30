@@ -140,6 +140,7 @@ class AgentService:
             "id": result[0][0].id,
             "name": result[0][0].name,
             "avatar": result[0][0].avatar,
+            "greeting_message": result[0][0].greeting_message,
             "description": result[0][0].description,
             "knowledge_bases": [],
         }
