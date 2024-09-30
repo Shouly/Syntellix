@@ -93,6 +93,10 @@ class ChatService:
     def get_conversation_messages(
         conversation_id: int, page: int = 1, per_page: int = 7
     ):
+        conversation = Conversation.query.get(conversation_id)
+        if not conversation:
+            return None
+        
         offset = (page - 1) * per_page
 
         messages = (
@@ -116,7 +120,7 @@ class ChatService:
             additional_messages.reverse()
             messages = additional_messages + messages
 
-        return messages
+        return conversation, messages
 
     @staticmethod
     def get_all_pinned_conversations(user_id: int, agent_id: int):

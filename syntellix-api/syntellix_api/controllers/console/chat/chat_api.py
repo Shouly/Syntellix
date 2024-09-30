@@ -13,12 +13,11 @@ from syntellix_api.response.chat_response import (
     agent_chat_details_fields,
     conversation_fields,
     conversation_message_fields,
-    recent_chat_status_fields,
+    conversation_with_messages_fields,
 )
 from syntellix_api.services.agent_service import AgentService
 from syntellix_api.services.chat_service import ChatService
-from syntellix_api.services.errors.agent import AgentNotFoundError
-from werkzeug.exceptions import Forbidden, NotFound
+from werkzeug.exceptions import Forbidden
 
 
 class ChatConversationApi(Resource):
@@ -99,19 +98,47 @@ class ChatConversationMessageApi(Resource):
         return message, 201
 
     @login_required
-    @marshal_with(conversation_message_fields)
+    @marshal_with(conversation_with_messages_fields)
     def get(self, conversation_id):
         parser = reqparse.RequestParser()
         parser.add_argument("page", type=int, location="args", default=1)
         parser.add_argument("per_page", type=int, location="args", default=7)
         args = parser.parse_args()
 
-        messages = ChatService.get_conversation_messages(
+        result = ChatService.get_conversation_messages(
             conversation_id=conversation_id,
             page=args["page"],
             per_page=args["per_page"],
         )
-        return messages, 200
+
+        if result is None:
+            return {"error": "Conversation not found"}, 404
+
+        conversation, messages = result
+
+        return {
+            "conversation": {
+                "id": conversation.id,
+                "name": conversation.name,
+                "user_id": conversation.user_id,
+                "agent_id": conversation.agent_id,
+                "created_at": conversation.created_at,
+                "updated_at": conversation.updated_at,
+            },
+            "messages": [
+                {
+                    "id": msg.id,
+                    "message": msg.message,
+                    "message_type": msg.message_type.value,
+                    "citation": msg.citation,
+                    "pre_message_id": msg.pre_message_id,
+                    "next_message_id": msg.next_message_id,
+                    "created_at": msg.created_at,
+                    "updated_at": msg.updated_at,
+                }
+                for msg in messages
+            ],
+        }, 200
 
 
 class ChatAgentConversationApi(Resource):
@@ -125,7 +152,7 @@ class ChatAgentConversationApi(Resource):
                 return {
                     "has_recent_conversation": False,
                     "agent_id": None,
-                    "latest_conversation": None,
+                    "latest_conversation_id": None,
                     "agent_info": None,
                 }, 200
 
@@ -157,7 +184,7 @@ class ChatAgentConversationApi(Resource):
         return {
             "has_recent_conversation": True,
             "agent_id": agent_id,
-            "latest_conversation": latest_conversation,
+            "latest_conversation_id": latest_conversation.id,
             "agent_info": agent,
         }, 200
 
