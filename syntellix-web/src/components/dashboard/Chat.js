@@ -1,13 +1,14 @@
-import { Menu, Transition } from '@headlessui/react';
-import { ClockIcon, PaperAirplaneIcon, PlusIcon, TrashIcon, UserCircleIcon } from '@heroicons/react/24/outline';
-import { ChatBubbleLeftRightIcon, EllipsisHorizontalIcon, ExclamationCircleIcon, TagIcon } from '@heroicons/react/24/solid';
+import { ClockIcon, PaperAirplaneIcon, PlusIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import { ChatBubbleLeftRightIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import axios from 'axios';
-import React, { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../components/Toast';
 import AgentAvatar from '../AgentAvatar';
 import DeleteConfirmationModal from '../DeleteConfirmationModal';
+import RenameModal from '../RenameModal';
 import { AgentInfoSkeleton, ChatAreaSkeleton, ConversationListSkeleton } from './ChatSkeletons';
+import ConversationActionMenu from './ConversationActionMenu';
 import KnowledgeBaseDetail from './KnowledgeBaseDetail';
 import NewChatPrompt from './NewChatPrompt';
 
@@ -32,6 +33,9 @@ function Chat() {
   const [isConversationListLoading, setIsConversationListLoading] = useState(true);
   const [isChatMessagesLoading, setIsChatMessagesLoading] = useState(true);
   const [conversationName, setConversationName] = useState('');
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchChatDetails();
@@ -65,7 +69,7 @@ function Chat() {
 
   const fetchConversationMessages = useCallback(async (conversationId, page = 1, perPage = 7) => {
     if (conversationId === currentConversationId && isMessagesLoaded) {
-      return; // 如果消息已经加载，则不重复加载
+      return; // 如果消息已经加载，则不重复加���
     }
     setIsChatMessagesLoading(true);
     try {
@@ -240,6 +244,24 @@ function Chat() {
     }
   };
 
+  const handleDeleteCurrentConversation = useCallback(async () => {
+    if (currentConversationId) {
+      setIsDeleting(true);
+      try {
+        await handleDeleteConversation(currentConversationId);
+      } finally {
+        setIsDeleting(false);
+        setIsDeleteModalOpen(false);
+      }
+    }
+  }, [currentConversationId, handleDeleteConversation]);
+
+  const handleRenameCurrentConversation = useCallback((newName) => {
+    if (currentConversationId) {
+      handleRenameConversation(currentConversationId, newName);
+    }
+  }, [currentConversationId, handleRenameConversation]);
+
   if (selectedKnowledgeBaseId) {
     return (
       <KnowledgeBaseDetail
@@ -392,11 +414,10 @@ function Chat() {
               <h3 className="text-base font-semibold text-text-body font-sans-sc truncate">
                 {conversationName || '新对话'}
               </h3>
-              <div className="flex items-center">
-                <button className="text-text-muted hover:text-text-body p-1 rounded-full hover:bg-bg-secondary transition-colors duration-200 ml-2">
-                  <EllipsisHorizontalIcon className="w-5 h-5" />
-                </button>
-              </div>
+              <ConversationActionMenu
+                onRename={() => setIsRenameModalOpen(true)}
+                onDelete={() => setIsDeleteModalOpen(true)}
+              />
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-6 pb-24" ref={chatContainerRef}>
@@ -456,7 +477,7 @@ function Chat() {
           <div className="flex flex-col items-center justify-center h-full bg-white bg-opacity-50 text-center px-4">
             <div className="flex flex-col items-center -mt-40">
               <ChatBubbleLeftRightIcon className="w-16 h-16 text-primary mb-4" />
-              <h3 className="text-base font-semibold text-text-primary mb-2 font-sans-sc">开始新的对话</h3>
+              <h3 className="text-lg font-semibold text-text-primary mb-2 font-sans-sc">开始新的对话</h3>
               <p className="text-sm text-text-muted mb-6 max-w-md font-sans-sc">
                 您可以选择历史对话或开启一个新的对话
               </p>
@@ -471,6 +492,23 @@ function Chat() {
           </div>
         )}
       </div>
+
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteCurrentConversation}
+        itemType="对话"
+        itemName={conversationName || '当前对话'}
+        isLoading={isDeleting}
+      />
+
+      <RenameModal
+        isOpen={isRenameModalOpen}
+        onClose={() => setIsRenameModalOpen(false)}
+        onRename={handleRenameCurrentConversation}
+        currentName={conversationName || ''}
+        itemType="对话"
+      />
     </div>
   );
 }
@@ -521,57 +559,10 @@ function SidebarItem({ text, isActive = false, onClick, onRename, onDelete }) {
         ) : (
           <span className={`font-sans-sc text-sm ${isActive ? 'font-semibold' : ''} truncate flex-grow mr-2`}>{text}</span>
         )}
-        <Menu as="div" className="relative inline-block text-left">
-          <div>
-            <Menu.Button className="text-text-muted hover:text-primary p-1 rounded-full hover:bg-bg-secondary transition-colors duration-200 opacity-0 group-hover:opacity-100">
-              <EllipsisHorizontalIcon className="w-5 h-5" />
-            </Menu.Button>
-          </div>
-          <Transition
-            as={Fragment}
-            enter="transition ease-out duration-100"
-            enterFrom="transform opacity-0 scale-95"
-            enterTo="transform opacity-100 scale-100"
-            leave="transition ease-in duration-75"
-            leaveFrom="transform opacity-100 scale-100"
-            leaveTo="transform opacity-0 scale-95"
-          >
-            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
-              <div className="px-1 py-1">
-                <Menu.Item>
-                  {({ active }) => (
-                    <button
-                      className={`${active ? 'bg-primary text-white' : 'text-gray-900'
-                        } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRename();
-                      }}
-                    >
-                      <TagIcon className="mr-2 h-5 w-5" aria-hidden="true" />
-                      重命名
-                    </button>
-                  )}
-                </Menu.Item>
-                <Menu.Item>
-                  {({ active }) => (
-                    <button
-                      className={`${active ? 'bg-danger text-white' : 'text-gray-900'
-                        } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsDeleteModalOpen(true);
-                      }}
-                    >
-                      <TrashIcon className="mr-2 h-5 w-5" aria-hidden="true" />
-                      删除
-                    </button>
-                  )}
-                </Menu.Item>
-              </div>
-            </Menu.Items>
-          </Transition>
-        </Menu>
+        <ConversationActionMenu
+          onRename={() => handleRename()}
+          onDelete={() => setIsDeleteModalOpen(true)}
+        />
       </li>
       <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}
