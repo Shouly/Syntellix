@@ -45,6 +45,15 @@ class ChatConversationApi(Resource):
         conversation = ChatService.create_conversation(
             user_id=current_user.id, agent_id=args["agent_id"], name=name
         )
+
+        ChatService.save_conversation_message(
+            conversation_id=conversation.id,
+            user_id=current_user.id,
+            agent_id=args["agent_id"],
+            message=agent.greeting_message,
+            message_type=ConversationMessageType.AGENT,
+        )
+
         return conversation, 201
 
     @login_required
@@ -171,7 +180,7 @@ class ChatAgentConversationApi(Resource):
             latest_conversation = ChatService.create_conversation(
                 user_id=current_user.id,
                 agent_id=agent_id,
-                name=f"新会话 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+                name=f"未命名会话 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             )
             ChatService.save_conversation_message(
                 conversation_id=latest_conversation.id,
@@ -226,7 +235,4 @@ api.add_resource(
 api.add_resource(ChatConversationApi, "/chat/conversations")
 api.add_resource(
     ChatAgentConversationHistoryApi, "/chat/agent/<int:agent_id>/conversation-history"
-)
-api.add_resource(
-    ChatAgentConversationPinnedApi, "/chat/agent/<int:agent_id>/pinned-conversations"
 )

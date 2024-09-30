@@ -174,7 +174,6 @@ function Chat({ selectedAgentId }) {
     try {
       const response = await axios.post('/console/api/chat/conversations', {
         agent_id: chatDetails.agent_info.id,
-        name: `新会话 ${new Date().toLocaleString()}`
       });
 
       const newConversation = response.data;
