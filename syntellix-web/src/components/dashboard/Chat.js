@@ -25,6 +25,7 @@ function Chat() {
   const [hasMoreConversations, setHasMoreConversations] = useState(true);
   const [pinnedConversations, setPinnedConversations] = useState([]);
   const [currentConversationId, setCurrentConversationId] = useState(null);
+  const [isMessagesLoaded, setIsMessagesLoaded] = useState(false);
 
   useEffect(() => {
     fetchChatDetails();
@@ -40,7 +41,6 @@ function Chat() {
       const response = await axios.get(url);
       setChatDetails(response.data);
       if (response.data.latest_conversation) {
-        fetchConversationMessages(response.data.latest_conversation.id);
         setCurrentConversationId(response.data.latest_conversation.id);
       }
       if (response.data.agent_id) {
@@ -57,6 +57,7 @@ function Chat() {
   };
 
   const fetchConversationMessages = useCallback(async (conversationId, page = 1, perPage = 7) => {
+    if (isMessagesLoaded) return; // 防止重复加载
     try {
       const response = await axios.get(`/console/api/chat/conversation/${conversationId}/messages`, {
         params: { page, per_page: perPage }
@@ -68,11 +69,12 @@ function Chat() {
       }
       setHasMoreMessages(response.data.length === perPage);
       setCurrentPage(page);
+      setIsMessagesLoaded(true);
     } catch (error) {
       console.error('Failed to fetch conversation messages:', error);
       showToast('消息获取失败', 'error');
     }
-  }, [showToast]);
+  }, [showToast, isMessagesLoaded]);
 
   const loadMoreMessages = () => {
     if (chatDetails?.latest_conversation && hasMoreMessages) {
@@ -81,10 +83,10 @@ function Chat() {
   };
 
   useEffect(() => {
-    if (chatDetails?.latest_conversation) {
+    if (chatDetails?.latest_conversation && !isMessagesLoaded) {
       fetchConversationMessages(chatDetails.latest_conversation.id);
     }
-  }, [chatDetails, fetchConversationMessages]);
+  }, [chatDetails, fetchConversationMessages, isMessagesLoaded]);
 
   const handleSendMessage = async () => {
     if (inputMessage.trim() !== '') {
@@ -294,32 +296,31 @@ function Chat() {
             {conversationMessages.map((message, index) => (
               <div key={index} className={`mb-4 flex ${message.message_type === 'user' ? 'justify-end' : 'justify-start'}`}>
                 {message.message_type === 'agent' && (
-                  <div className="flex flex-col items-center mr-2">
-                    <div className="w-8 h-8 mb-1">
-                      <AgentAvatar
-                        avatarData={chatDetails?.agent_info?.avatar}
-                        agentName={chatDetails?.agent_info?.name || '智能助手'}
-                        size="small"
-                      />
-                    </div>
-                    <span className="text-xs text-text-muted">{chatDetails?.agent_info?.name || '智能助手'}</span>
+                  <div className="mr-2">
+                    <AgentAvatar
+                      avatarData={chatDetails?.agent_info?.avatar}
+                      agentName={chatDetails?.agent_info?.name || '智能助手'}
+                      size="xs"
+                    />
                   </div>
                 )}
-                <div className={`inline-block p-3 rounded-xl ${message.message_type === 'user'
-                  ? 'bg-primary text-white'
-                  : 'bg-bg-tertiary text-text-primary'
-                  } max-w-[70%]`}
+                <div className={`inline-block p-3 rounded-xl ${
+                  message.message_type === 'user'
+                    ? 'bg-primary text-white'
+                    : 'bg-bg-tertiary text-text-primary'
+                } max-w-[70%]`}
                 >
-                  <p className={`text-sm leading-relaxed ${message.message_type === 'user'
-                    ? 'font-sans-sc font-medium'
-                    : 'font-sans-sc font-normal'
-                    }`}
+                  <p className={`text-sm leading-relaxed ${
+                    message.message_type === 'user'
+                      ? 'font-sans-sc font-medium'
+                      : 'font-sans-sc font-normal'
+                  }`}
                   >
                     {message.message}
                   </p>
                 </div>
                 {message.message_type === 'user' && (
-                  <div className="w-8 h-8 ml-2 self-end">
+                  <div className="w-8 h-8 ml-2">
                     <UserCircleIcon className="w-full h-full text-primary" />
                   </div>
                 )}
