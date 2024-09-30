@@ -55,19 +55,9 @@ CvModel = {
 
 
 ChatModel = {
-    "OpenAI": GptTurbo,
-    "Tongyi-Qianwen": QWenChat,
-    "LocalAI": LocalAIChat,
     "Moonshot": MoonshotChat,
     "DeepSeek": DeepSeekChat,
-    "VolcEngine": VolcEngineChat,
-    "MiniMax": MiniMaxChat,
-    "Minimax": MiniMaxChat,
     "OpenRouter": OpenRouterChat,
-    "StepFun": StepFunChat,
-    "NVIDIA": NvidiaChat,
-    "LM-Studio": LmStudioChat,
-    "OpenAI-API-Compatible": OpenAI_APIChat,
     "Anthropic": AnthropicChat,
 }
 
