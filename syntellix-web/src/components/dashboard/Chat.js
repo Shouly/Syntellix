@@ -312,12 +312,12 @@ function Chat() {
                     ))}
                   </ul>
                 </div>
-                <div>
+                <div className="flex flex-col h-full">
                   <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-2 flex items-center">
                     <ClockIcon className="w-5 h-5 mr-2" />
                     最近对话
                   </h3>
-                  <div className="flex-1 overflow-y-auto">
+                  <div className="flex-1 overflow-y-auto max-h-[calc(100vh-400px)]">
                     {conversationHistory.map(chat => (
                       <SidebarItem
                         key={chat.id}
@@ -325,16 +325,16 @@ function Chat() {
                         isActive={chat.id === currentConversationId}
                       />
                     ))}
-                    {hasMoreConversations && (
-                      <button
-                        onClick={() => fetchConversationHistory(chatDetails.agent_id, conversationHistory[conversationHistory.length - 1]?.id)}
-                        className="w-full text-sm text-primary hover:text-primary-dark font-semibold py-2 px-3 rounded-lg transition-colors duration-200 hover:bg-bg-secondary mt-2 flex items-center justify-center"
-                      >
-                        <PlusIcon className="w-4 h-4 mr-2" />
-                        加载更多
-                      </button>
-                    )}
                   </div>
+                  {hasMoreConversations && (
+                    <button
+                      onClick={() => fetchConversationHistory(chatDetails.agent_id, conversationHistory[conversationHistory.length - 1]?.id)}
+                      className="w-full text-sm text-primary hover:text-primary-dark font-semibold py-2 px-3 rounded-lg transition-colors duration-200 hover:bg-bg-secondary mt-2 flex items-center justify-center"
+                    >
+                      <PlusIcon className="w-4 h-4 mr-2" />
+                      加载更多
+                    </button>
+                  )}
                 </div>
               </nav>
             )}
