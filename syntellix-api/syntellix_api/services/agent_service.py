@@ -169,3 +169,7 @@ class AgentService:
             .limit(10)
             .all()
         )
+
+    @staticmethod
+    def ai_generate_config(tenant_id: int, user_id: int, user_description: str):
+        return {"user_description": user_description}

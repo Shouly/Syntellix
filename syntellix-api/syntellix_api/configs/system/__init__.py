@@ -181,6 +181,7 @@ class HttpConfig(BaseSettings):
         default=None,
     )
 
+
 class LoggingConfig(BaseSettings):
     """
     Logging configs
@@ -288,6 +289,7 @@ class ImageFormatConfig(BaseSettings):
         default="base64",
     )
 
+
 class EmbeddingConfig(BaseSettings):
     EMBEDDING_MODEL: str = Field(
         description="embedding model",
@@ -309,6 +311,33 @@ class EmbeddingConfig(BaseSettings):
         default="https://api.openai.com/v1",
     )
 
+
+class LLMConfig(BaseSettings):
+    """
+    LLM configs
+    """
+
+    LLM_MODEL: str = Field(
+        description="LLM model",
+        default="openai",
+    )
+
+    LLM_KEY: str = Field(
+        description="LLM key",
+        default="your_llm_key_here",
+    )
+
+    LLM_MODEL_NAME: str = Field(
+        description="LLM model name",
+        default="gpt-3.5-turbo",
+    )
+
+    LLM_BASE_URL: str = Field(
+        description="LLM base url",
+        default="https://api.openai.com/v1",
+    )
+
+
 class SystemConfig(
     AppExecutionConfig,
     DataSetConfig,
@@ -323,5 +352,6 @@ class SystemConfig(
     OAuthConfig,
     SecurityConfig,
     EmbeddingConfig,
+    LLMConfig,
 ):
     pass

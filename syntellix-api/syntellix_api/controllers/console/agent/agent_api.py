@@ -134,9 +134,22 @@ class RecentAgentsApi(Resource):
         )
         return agents, 200
 
+class AIGenerateConfigApi(Resource):
+    @login_required
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument("user_description", type=str, required=True, location="json")
+        args = parser.parse_args()
+
+        result = AgentService.ai_generate_config(
+            tenant_id=current_user.current_tenant_id, user_id=current_user.id, **args
+        )
+        return result, 200
+
 
 api.add_resource(AgentListApi, "/agents/list")
 api.add_resource(AgentNameExistsApi, "/agents/name-exists")
 api.add_resource(AgentApi, "/agents")
 api.add_resource(AgentOperationApi, "/agents/<int:agent_id>")
 api.add_resource(RecentAgentsApi, "/agents/recent")
+api.add_resource(AIGenerateConfigApi, "/agents/configs/ai-generate")

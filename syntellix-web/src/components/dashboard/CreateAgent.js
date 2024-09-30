@@ -1,4 +1,4 @@
-import { ArrowLeftIcon, CheckIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, CheckIcon, InformationCircleIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import axios from 'axios';
 import { debounce } from 'lodash';
@@ -7,6 +7,7 @@ import Select from 'react-select';
 import { useToast } from '../../components/Toast';
 import CreateAgentAdvancedConfig from './CreateAgentAdvancedConfig';
 import AgentAvatarSelector from '../AgentAvatarSelector';
+import AIGenerateModal from './AIGenerateModal';
 
 function CreateAgent({ onBack, onCreated }) {
     const [agentName, setAgentName] = useState('');
@@ -26,6 +27,8 @@ function CreateAgent({ onBack, onCreated }) {
     const [advancedConfig, setAdvancedConfig] = useState({});
     const [isNameAvailable, setIsNameAvailable] = useState(true);
     const [advancedConfigError, setAdvancedConfigError] = useState(null);
+    const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+    const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
     useEffect(() => {
         fetchKnowledgeBases();
@@ -137,6 +140,41 @@ function CreateAgent({ onBack, onCreated }) {
         setAvatar(newAvatar);
     };
 
+    const handleGenerateAI = async () => {
+        setIsGeneratingAI(true);
+        try {
+            // TODO: Implement AI generation logic
+            // This is a placeholder for the actual AI generation
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // For now, let's just set some dummy data
+            setAgentName("AI生成的智能体");
+            setAgentDescription("这是一个由AI自动生成的智能体描述。");
+            setGreeting("你好！我是AI生成的智能体，很高兴为您服务。");
+            
+            showToast('AI已生成智能体基础信息', 'success');
+        } catch (error) {
+            console.error('Error generating AI agent:', error);
+            showToast('AI生成智能体失败', 'error');
+        } finally {
+            setIsGeneratingAI(false);
+        }
+    };
+
+    const handleOpenAIModal = () => {
+        setIsAIModalOpen(true);
+    };
+
+    const handleCloseAIModal = () => {
+        setIsAIModalOpen(false);
+    };
+
+    const handleAIGenerate = (prompt) => {
+        // 这里处理AI生成逻辑
+        console.log("Generating with prompt:", prompt);
+        // TODO: 实现实际的AI生成逻辑
+    };
+
     const customStyles = {
         control: (provided, state) => ({
             ...provided,
@@ -165,7 +203,7 @@ function CreateAgent({ onBack, onCreated }) {
         }),
         menu: (provided) => ({
             ...provided,
-            zIndex: 10000,
+            zIndex: 1,
             fontFamily: 'Inter, "Noto Sans SC", sans-serif', // 添加字体样式
         }),
         menuList: (provided) => ({
@@ -174,7 +212,7 @@ function CreateAgent({ onBack, onCreated }) {
         }),
         menuPortal: (provided) => ({
             ...provided,
-            zIndex: 10001,
+            zIndex: 1, // 同样降低 z-index
         }),
     };
 
@@ -187,7 +225,7 @@ function CreateAgent({ onBack, onCreated }) {
                         <div className="w-8 h-8 bg-primary bg-opacity-90 rounded-full flex items-center justify-center mr-3 transition-colors duration-200 group-hover:bg-opacity-20">
                             <ArrowLeftIcon className="w-5 h-5 text-text-body transition-colors duration-200 group-hover:text-primary" />
                         </div>
-                        <span className="text-lg font-semibold text-text-body font-sans-sc truncate">新建智能体</span>
+                        <span className="text-base font-semibold text-text-body font-sans-sc truncate">新建智能体</span>
                     </div>
                 </div>
                 <ol className="space-y-4 relative">
@@ -201,8 +239,18 @@ function CreateAgent({ onBack, onCreated }) {
             <div className="flex-1 overflow-y-auto bg-white rounded-lg shadow-sm p-3">
                 {currentStep === 1 ? (
                     // 基础设置表单
-                    <div className="p-6 space-y-6">
-                        <h3 className="text-xl font-semibold text-text-body font-sans-sc mb-1">创建智能体</h3>
+                    <div className="p-6 pt-3 space-y-6">
+                        <div className="flex items-center mb-6">
+                            <h3 className="text-lg font-semibold text-text-body font-sans-sc mr-4">创建智能体</h3>
+                            <button
+                                onClick={handleOpenAIModal}
+                                className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full hover:from-purple-600 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hover:shadow-lg font-sans-sc flex items-center justify-center relative overflow-hidden group"
+                            >
+                                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-purple-400 to-indigo-500 opacity-0 group-hover:opacity-50 transition-opacity duration-300 ease-out"></span>
+                                <SparklesIcon className="w-5 h-5 mr-2 animate-pulse relative z-10" />
+                                <span className="relative z-10 font-sans-sc">AI自动创建</span>
+                            </button>
+                        </div>
                         <p className="text-sm text-text-secondary font-sans-sc -mt-1">
                             智能体是可定制的AI助手，根据您的设置执行特定任务。
                         </p>
@@ -301,7 +349,7 @@ function CreateAgent({ onBack, onCreated }) {
                                             styles={customStyles}
                                             className="text-sm font-tech"
                                             menuPlacement="auto"
-                                            menuPosition="fixed"
+                                            menuPosition="absolute" // 使用绝对定位而不是固定定位
                                             menuPortalTarget={document.body}
                                             classNamePrefix="react-select"
                                         />
@@ -371,6 +419,11 @@ function CreateAgent({ onBack, onCreated }) {
                     />
                 )}
             </div>
+            <AIGenerateModal
+                isOpen={isAIModalOpen}
+                onClose={handleCloseAIModal}
+                onGenerate={handleAIGenerate}
+            />
         </div>
     );
 }
