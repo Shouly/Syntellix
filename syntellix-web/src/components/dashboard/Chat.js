@@ -238,6 +238,13 @@ function Chat() {
       if (currentConversationId === conversationId) {
         setConversationName(response.data.name);
       }
+      // Update the chatDetails to reflect the change
+      setChatDetails(prevDetails => ({
+        ...prevDetails,
+        latest_conversation: prevDetails.latest_conversation && prevDetails.latest_conversation.id === conversationId
+          ? { ...prevDetails.latest_conversation, name: response.data.name }
+          : prevDetails.latest_conversation
+      }));
     } catch (error) {
       console.error('Failed to rename conversation:', error);
       showToast('重命名对话失败', 'error');
@@ -538,9 +545,10 @@ function SidebarItem({ text, isActive = false, onClick, onRename, onDelete }) {
   return (
     <>
       <li
-        className={`py-1 px-3 rounded-lg transition-colors duration-200 cursor-pointer ${isActive ? 'bg-primary bg-opacity-10 text-primary' : 'text-text-body hover:bg-bg-secondary'
-          } flex items-center justify-between group mb-1`}
-        onClick={onClick}
+        className={`py-1 px-3 rounded-lg transition-colors duration-200 cursor-pointer ${
+          isActive ? 'bg-primary bg-opacity-10 text-primary' : 'text-text-body hover:bg-bg-secondary'
+        } flex items-center justify-between group mb-1`}
+        onClick={isEditing ? undefined : onClick}
       >
         {isEditing ? (
           <input

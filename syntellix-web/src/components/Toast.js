@@ -34,11 +34,11 @@ export function ToastProvider({ children }) {
 
 function Toast({ message, type, onClose }) {
   const config = {
-    success: { icon: CheckCircleIcon, bgColor: 'bg-success-light', textColor: 'text-text-primary' },
-    error: { icon: ExclamationCircleIcon, bgColor: 'bg-danger-light', textColor: 'text-text-primary' },
-    info: { icon: InformationCircleIcon, bgColor: 'bg-info-light', textColor: 'text-text-primary' },
-    warning: { icon: ExclamationCircleIcon, bgColor: 'bg-warning-light', textColor: 'text-text-primary' },
-  }[type] || { icon: InformationCircleIcon, bgColor: 'bg-secondary-light', textColor: 'text-text-primary' };
+    success: { icon: CheckCircleIcon, bgColor: 'bg-success-DEFAULT', textColor: 'text-white' },
+    error: { icon: ExclamationCircleIcon, bgColor: 'bg-danger-DEFAULT', textColor: 'text-white' },
+    info: { icon: InformationCircleIcon, bgColor: 'bg-info-DEFAULT', textColor: 'text-white' },
+    warning: { icon: ExclamationCircleIcon, bgColor: 'bg-warning-DEFAULT', textColor: 'text-white' },
+  }[type] || { icon: InformationCircleIcon, bgColor: 'bg-secondary-DEFAULT', textColor: 'text-text-primary' };
 
   const Icon = config.icon;
 
