@@ -140,7 +140,7 @@ function CreateAgent({ onBack, onCreated }) {
     };
 
     const handleAIGenerate = (generatedConfig) => {
-        // 使用对象解构来获取所需的字段，并提供默认值
+        console.log(generatedConfig);
         const {
             name = '',
             description = '',
@@ -149,7 +149,6 @@ function CreateAgent({ onBack, onCreated }) {
             avatar
         } = generatedConfig;
 
-        // 更新状态，使用空字符串作为默认值
         setAgentName(name);
         setAgentDescription(description);
         setGreeting(greeting_message);
@@ -161,12 +160,12 @@ function CreateAgent({ onBack, onCreated }) {
                 const avatarData = typeof avatar === 'string' ? JSON.parse(avatar) : avatar;
                 if (avatarData && typeof avatarData === 'object' && 'icon' in avatarData && 'color' in avatarData) {
                     setAvatar(avatarData);
+                    console.log('Avatar updated:', avatarData); // 添加日志
                 } else {
                     throw new Error('Invalid avatar format');
                 }
             } catch (error) {
                 console.error('Error processing generated avatar:', error);
-                // 设置默认头像
                 setAvatar({ icon: 'FaceIcon', color: '#1976d2' });
             }
         }
@@ -290,8 +289,12 @@ function CreateAgent({ onBack, onCreated }) {
                                         智能体头像
                                     </label>
                                     <AgentAvatarSelector
-                                        selectedAvatar={avatar}
-                                        onAvatarChange={handleAvatarChange}
+                                        selectedAvatar={avatar ? JSON.stringify(avatar) : null}
+                                        onAvatarChange={(newAvatar) => {
+                                            const parsedAvatar = JSON.parse(newAvatar);
+                                            setAvatar(parsedAvatar);
+                                            console.log('Avatar changed:', parsedAvatar); // 添加日志
+                                        }}
                                     />
                                 </div>
 
@@ -304,7 +307,7 @@ function CreateAgent({ onBack, onCreated }) {
                                         id="agentDescription"
                                         value={agentDescription}
                                         onChange={(e) => setAgentDescription(e.target.value)}
-                                        placeholder="���句话描述智能体的主要功能和特点，如：可查询公司财务状况、可查询医疗报告等"
+                                        placeholder="一句话描述智能体的主要功能和特点，如：可查询公司财务状况、可查询医疗报告等"
                                         rows={1}
                                         className="w-full p-3 text-sm font-tech bg-bg-secondary border border-bg-secondary rounded-md text-text-body focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
                                     />
