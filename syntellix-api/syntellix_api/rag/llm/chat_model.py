@@ -27,9 +27,18 @@ class Base(ABC):
         self.client = OpenAI(api_key=key, base_url=base_url)
         self.model_name = model_name
 
+    def system_message(self, message: str) -> any:
+        return {"role": "system", "content": message}
+
+    def user_message(self, message: str) -> any:
+        return {"role": "user", "content": message}
+
+    def assistant_message(self, message: str) -> any:
+        return {"role": "assistant", "content": message}
+
     def chat(self, system, history, gen_conf):
         if system:
-            history.insert(0, {"role": "system", "content": system})
+            history.insert(0, self.system_message(system))
         try:
             response = self.client.chat.completions.create(
                 model=self.model_name, messages=history, **gen_conf
@@ -47,7 +56,7 @@ class Base(ABC):
 
     def chat_streamly(self, system, history, gen_conf):
         if system:
-            history.insert(0, {"role": "system", "content": system})
+            history.insert(0, self.system_message(system))
         ans = ""
         total_tokens = 0
         try:

@@ -1,6 +1,7 @@
 from typing import Annotated, Optional
 
-from pydantic import AliasChoices, Field, NonNegativeInt, PositiveInt, computed_field
+from pydantic import (AliasChoices, Field, NonNegativeInt, PositiveInt,
+                      computed_field)
 from pydantic_settings import BaseSettings
 
 
@@ -312,6 +313,72 @@ class EmbeddingConfig(BaseSettings):
     )
 
 
+class LLMConfig(BaseSettings):
+    """
+    LLM configs
+    """
+
+    MOONSHOT_API_KEY: str = Field(
+        description="moonshot api key",
+        default="",
+    )
+
+    MOONSHOT_MODEL_NAME: str = Field(
+        description="moonshot model name",
+        default="",
+    )
+
+    MOONSHOT_BASE_URL: str = Field(
+        description="moonshot base url",
+        default="",
+    )
+
+    DEEPSEEK_API_KEY: str = Field(
+        description="deepseek api key",
+        default="",
+    )
+
+    DEEPSEEK_MODEL_NAME: str = Field(
+        description="deepseek model name",
+        default="",
+    )
+
+    DEEPSEEK_BASE_URL: str = Field(
+        description="deepseek base url",
+        default="",
+    )
+
+    OPENROUTER_API_KEY: str = Field(
+        description="openrouter api key",
+        default="",
+    )
+
+    OPENROUTER_MODEL_NAME: str = Field(
+        description="openrouter model name",
+        default="",
+    )
+
+    OPENROUTER_BASE_URL: str = Field(
+        description="openrouter base url",
+        default="",
+    )
+
+    ANTHROPIC_API_KEY: str = Field(
+        description="anthropic api key",
+        default="",
+    )
+
+    ANTHROPIC_MODEL_NAME: str = Field(
+        description="anthropic model name",
+        default="",
+    )
+
+    ANTHROPIC_BASE_URL: str = Field(
+        description="anthropic base url",
+        default="",
+    )
+
+
 class SystemConfig(
     AppExecutionConfig,
     DataSetConfig,
@@ -326,5 +393,6 @@ class SystemConfig(
     OAuthConfig,
     SecurityConfig,
     EmbeddingConfig,
+    LLMConfig,
 ):
     pass

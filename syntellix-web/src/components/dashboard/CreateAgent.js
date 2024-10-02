@@ -5,9 +5,9 @@ import { debounce } from 'lodash';
 import React, { useEffect, useState } from 'react';
 import Select from 'react-select';
 import { useToast } from '../../components/Toast';
-import CreateAgentAdvancedConfig from './CreateAgentAdvancedConfig';
 import AgentAvatarSelector from '../AgentAvatarSelector';
 import AIGenerateModal from './AIGenerateModal';
+import CreateAgentAdvancedConfig from './CreateAgentAdvancedConfig';
 
 function CreateAgent({ onBack, onCreated }) {
     const [agentName, setAgentName] = useState('');
@@ -27,7 +27,6 @@ function CreateAgent({ onBack, onCreated }) {
     const [advancedConfig, setAdvancedConfig] = useState({});
     const [isNameAvailable, setIsNameAvailable] = useState(true);
     const [advancedConfigError, setAdvancedConfigError] = useState(null);
-    const [isGeneratingAI, setIsGeneratingAI] = useState(false);
     const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
     useEffect(() => {
@@ -140,25 +139,40 @@ function CreateAgent({ onBack, onCreated }) {
         setAvatar(newAvatar);
     };
 
-    const handleGenerateAI = async () => {
-        setIsGeneratingAI(true);
-        try {
-            // TODO: Implement AI generation logic
-            // This is a placeholder for the actual AI generation
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
-            // For now, let's just set some dummy data
-            setAgentName("AI生成的智能体");
-            setAgentDescription("这是一个由AI自动生成的智能体描述。");
-            setGreeting("你好！我是AI生成的智能体，很高兴为您服务。");
-            
-            showToast('AI已生成智能体基础信息', 'success');
-        } catch (error) {
-            console.error('Error generating AI agent:', error);
-            showToast('AI生成智能体失败', 'error');
-        } finally {
-            setIsGeneratingAI(false);
+    const handleAIGenerate = (generatedConfig) => {
+        // 使用对象解构来获取所需的字段，并提供默认值
+        const {
+            name = '',
+            description = '',
+            greeting_message = '',
+            empty_response = '',
+            avatar
+        } = generatedConfig;
+
+        // 更新状态，使用空字符串作为默认值
+        setAgentName(name);
+        setAgentDescription(description);
+        setGreeting(greeting_message);
+        setEmptyResponse(empty_response);
+
+        // 处理生成的 avatar
+        if (avatar) {
+            try {
+                const avatarData = typeof avatar === 'string' ? JSON.parse(avatar) : avatar;
+                if (avatarData && typeof avatarData === 'object' && 'icon' in avatarData && 'color' in avatarData) {
+                    setAvatar(avatarData);
+                } else {
+                    throw new Error('Invalid avatar format');
+                }
+            } catch (error) {
+                console.error('Error processing generated avatar:', error);
+                // 设置默认头像
+                setAvatar({ icon: 'FaceIcon', color: '#1976d2' });
+            }
         }
+
+        showToast('AI已生成智能体配置', 'success');
+        setIsAIModalOpen(false);
     };
 
     const handleOpenAIModal = () => {
@@ -167,12 +181,6 @@ function CreateAgent({ onBack, onCreated }) {
 
     const handleCloseAIModal = () => {
         setIsAIModalOpen(false);
-    };
-
-    const handleAIGenerate = (prompt) => {
-        // 这里处理AI生成逻辑
-        console.log("Generating with prompt:", prompt);
-        // TODO: 实现实际的AI生成逻辑
     };
 
     const customStyles = {
@@ -296,7 +304,7 @@ function CreateAgent({ onBack, onCreated }) {
                                         id="agentDescription"
                                         value={agentDescription}
                                         onChange={(e) => setAgentDescription(e.target.value)}
-                                        placeholder="一句话描述智能体的主要功能和特点，如：可查询公司财务状况、可查询医疗报告等"
+                                        placeholder="���句话描述智能体的主要功能和特点，如：可查询公司财务状况、可查询医疗报告等"
                                         rows={1}
                                         className="w-full p-3 text-sm font-tech bg-bg-secondary border border-bg-secondary rounded-md text-text-body focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
                                     />

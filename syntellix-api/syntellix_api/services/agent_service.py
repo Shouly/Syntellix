@@ -1,9 +1,13 @@
+import json
 import logging
+import re
 from math import ceil
 from typing import Optional
 
 from sqlalchemy import or_
 from syntellix_api.extensions.ext_database import db
+from syntellix_api.llm.llm_factory import LLMFactory
+from syntellix_api.llm.prompts.agent_prompt import GENERATE_AGENT_CONFIG_PROMPT
 from syntellix_api.models.agent_model import Agent, AgentKnowledgeBase
 from syntellix_api.models.dataset_model import KnowledgeBase
 from syntellix_api.services.errors.agent import (
@@ -172,4 +176,27 @@ class AgentService:
 
     @staticmethod
     def ai_generate_config(tenant_id: int, user_id: int, user_description: str):
-        return {"user_description": user_description}
+        llm = LLMFactory.get_deepseek_model()
+        user = llm.user_message(
+            GENERATE_AGENT_CONFIG_PROMPT.format(user_input=user_description)
+        )
+        history = [user]
+        gen_conf = {"max_tokens": 2048}
+        response, tokens = llm.chat(None, history, gen_conf)
+        print(response)
+        print(tokens)
+        return extract_json_from_response(response)
+
+
+def extract_json_from_response(response):
+    config_match = re.search(r"<config>(.*?)</config>", response, re.DOTALL)
+    if config_match:
+        json_str = config_match.group(1).strip()
+        try:
+            return json.loads(json_str)
+        except json.JSONDecodeError as e:
+            logger.error(f"找到了配置，但无法解析JSON: {e}")
+            return None
+    else:
+        logger.error("未找到<config>标签")
+        return None
