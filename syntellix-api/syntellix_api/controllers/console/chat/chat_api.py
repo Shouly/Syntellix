@@ -91,6 +91,7 @@ class ChatConversationMessageApi(Resource):
         def generate():
             try:
                 for chunk in ChatService.chat_stream(
+                    tenant_id=current_user.current_tenant_id,
                     conversation_id=conversation_id,
                     user_id=current_user.id,
                     agent_id=args["agent_id"],

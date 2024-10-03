@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from syntellix_api.rag.vector_database.elasticsearch.elasticsearch_vector import (
     ElasticSearchVector,
@@ -34,12 +35,32 @@ class VectorService:
         except Exception as e:
             logger.error(f"Error adding nodes: {str(e)}", exc_info=True)
 
-    def delete_by_knowledge_base_and_document_id(self, knowledge_base_id: str, document_id: str) -> None:
-        logger.info(f"Deleting document with knowledge_base_id {knowledge_base_id} and document_id {document_id}")
+    def query(
+        self,
+        query: dict,
+        custom_query: Optional[Callable[[Dict, Union[dict, None]], Dict]] = None,
+        es_filter: Optional[List[Dict]] = None,
+        **kwargs: Any,
+    ) -> list[BaseNode]:
+        logger.info(f"Querying vector database with query: {query}")
         try:
-            self._vector_processor.delete_by_knowledge_base_and_document_id(knowledge_base_id, document_id)
+            return self._vector_processor.query(
+                query, custom_query, es_filter, **kwargs
+            )
+        except Exception as e:
+            logger.error(f"Error querying vector database: {str(e)}", exc_info=True)
+            return []
+
+    def delete_by_knowledge_base_and_document_id(
+        self, knowledge_base_id: str, document_id: str
+    ) -> None:
+        logger.info(
+            f"Deleting document with knowledge_base_id {knowledge_base_id} and document_id {document_id}"
+        )
+        try:
+            self._vector_processor.delete_by_knowledge_base_and_document_id(
+                knowledge_base_id, document_id
+            )
             logger.info("Document deleted successfully")
         except Exception as e:
             logger.error(f"Error deleting document: {str(e)}", exc_info=True)
-
-    

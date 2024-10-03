@@ -1,1 +1,1 @@
-from syntellix_api.tasks import document_processing
+from syntellix_api.tasks import chat_tasks, document_processing

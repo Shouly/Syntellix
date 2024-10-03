@@ -21,9 +21,6 @@ class EmbeddingModel:
             show_progress_bar=True,
         )
 
-# Set the number of threads for OpenMP
-torch.set_num_threads(1)
-
 if __name__ == "__main__":
     model = EmbeddingModel(model_name=syntellix_config.EMBEDDING_MODEL_NAME)
     print(model.encode("ssss"))

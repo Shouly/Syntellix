@@ -31,5 +31,5 @@ USER_PROMPT_TEMPLATE = """
 {context_str}
 </context>
 
-用户问题：{query_str}
+用户问题：{question}
 """

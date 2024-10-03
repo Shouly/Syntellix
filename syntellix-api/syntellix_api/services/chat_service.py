@@ -1,16 +1,21 @@
 import json
 from typing import Generator
 
+from celery import chord, group
 from syntellix_api.extensions.ext_database import db
-from syntellix_api.llm.llm_factory import LLMFactory
+from syntellix_api.extensions.ext_redis import redis_client
 from syntellix_api.models.chat_model import (
     Conversation,
     ConversationMessage,
     ConversationMessageType,
 )
+from syntellix_api.services.agent_service import AgentService
+from syntellix_api.services.rag_service import RAGService
+from syntellix_api.tasks.chat_tasks import save_message_task, update_conversation_task
 
 
 class ChatService:
+    CONVERSATION_HISTORY_CACHE_KEY = "chat:conversation:history:{}"
 
     @staticmethod
     def create_conversation(user_id: int, agent_id: int, name: str):
@@ -158,70 +163,124 @@ class ChatService:
 
     @staticmethod
     def chat_stream(
-        conversation_id: int, user_id: int, agent_id: int, message: str
+        tenant_id: int, conversation_id: int, user_id: int, agent_id: int, message: str
     ) -> Generator[str, None, None]:
-        conversation = Conversation.query.get(conversation_id)
-        if not conversation:
-            yield json.dumps({"error": "Conversation not found"})
+        # 初始化检查
+        agent, conversation = ChatService._initialize_chat(
+            tenant_id, agent_id, conversation_id
+        )
+        if not agent or not conversation:
+            yield json.dumps({"error": "Agent or Conversation not found"})
             return
 
         # 保存用户消息
-        user_message = ConversationMessage(
+        ChatService._save_user_message(conversation_id, user_id, agent_id, message)
+
+        # 检索相关文档
+        context_str = RAGService.retrieve_relevant_documents(
+            tenant_id, agent_id, message
+        )
+
+        # 获取对话历史
+        conversation_history = ChatService.get_conversation_histories(conversation_id)
+
+        # 生成响应
+        full_response = ""
+        for chunk in RAGService.generate_response(
+            conversation_history, message, context_str
+        ):
+            full_response += chunk
+            yield json.dumps({"chunk": chunk})
+
+        # 保存AI响应并更新对话历史
+        ChatService._save_ai_response_and_update_history(
+            conversation_id, user_id, agent_id, message, full_response
+        )
+
+        yield json.dumps({"done": True})
+
+    @staticmethod
+    def _initialize_chat(tenant_id: int, agent_id: int, conversation_id: int):
+        agent = AgentService.get_agent_by_id(agent_id, tenant_id)
+        conversation = Conversation.query.get(conversation_id)
+        return agent, conversation
+
+    @staticmethod
+    def _save_user_message(
+        conversation_id: int, user_id: int, agent_id: int, message: str
+    ):
+        save_message_task.delay(
             conversation_id=conversation_id,
             user_id=user_id,
             agent_id=agent_id,
             message=message,
             message_type=ConversationMessageType.USER,
         )
-        db.session.add(user_message)
-        db.session.commit()
 
-        llm = LLMFactory.get_deepseek_model()
-
-        # 获取历史对话
-        history = ChatService.get_conversation_histories(conversation_id)
-
-        full_response = ""
-        system_message = ""  # 如果有系统消息，在这里设置
-
-        # 使用 chat_streamly 方法进行流式输出
-        for chunk in llm.chat_streamly(
-            system_message, history + [{"role": "user", "content": message}], {}
-        ):
-            if isinstance(chunk, str):
-                full_response += chunk
-                yield json.dumps({"chunk": chunk})
-            elif isinstance(chunk, int):
-                # 这是总token数，可以选择是否发送给客户端
-                yield json.dumps({"total_tokens": chunk})
-
-        # 保存完整的 AI 响应
-        ai_message = ConversationMessage(
+    @staticmethod
+    def _save_ai_response_and_update_history(
+        conversation_id: int,
+        user_id: int,
+        agent_id: int,
+        message: str,
+        full_response: str,
+    ):
+        save_message_task.delay(
             conversation_id=conversation_id,
             user_id=user_id,
             agent_id=agent_id,
             message=full_response,
             message_type=ConversationMessageType.AGENT,
         )
-        db.session.add(ai_message)
-        db.session.commit()
 
-        yield json.dumps({"done": True})
+        update_tasks = group(
+            ChatService.update_conversation_history_cache.s(
+                conversation_id, {"role": "user", "content": message}
+            ),
+            ChatService.update_conversation_history_cache.s(
+                conversation_id, {"role": "assistant", "content": full_response}
+            ),
+        )
+
+        chord(update_tasks)(update_conversation_task.s(conversation_id))
 
     @staticmethod
-    def get_conversation_histories(conversation_id: int):
-        # 获取对话历史
-        messages = (
-            ConversationMessage.query.filter_by(conversation_id=conversation_id)
-            .order_by(ConversationMessage.created_at)
-            .all()
-        )
-        history = []
-        for msg in messages:
-            role = (
-                "user"
-                if msg.message_type == ConversationMessageType.USER
-                else "assistant"
+    def get_conversation_histories(conversation_id: int, max_messages: int = 10):
+        # 使用类常量来生成 cache_key
+        cache_key = ChatService.CONVERSATION_HISTORY_CACHE_KEY.format(conversation_id)
+        cached_history = redis_client.lrange(cache_key, 0, -1)
+
+        if cached_history:
+            # 如果有缓存，直接返回
+            return [json.loads(msg) for msg in cached_history][-max_messages:]
+        else:
+            # 如果没有缓存，从数据库获取并缓存
+            messages = (
+                ConversationMessage.query.filter_by(conversation_id=conversation_id)
+                .order_by(ConversationMessage.created_at)
+                .limit(max_messages)
+                .all()
             )
-            history.append({"role": role, "content": msg.message})
-        return history
+            history = []
+            for msg in messages:
+                role = (
+                    "user"
+                    if msg.message_type == ConversationMessageType.USER
+                    else "assistant"
+                )
+                history_item = {"role": role, "content": msg.message}
+                history.append(history_item)
+                redis_client.rpush(cache_key, json.dumps(history_item))
+
+            # 设置缓存过期时间，例如 1 小时
+            redis_client.expire(cache_key, 3600)
+
+            return history
+
+    @staticmethod
+    def update_conversation_history_cache(conversation_id: int, message: dict):
+        # 使用类常量来生成 cache_key
+        cache_key = ChatService.CONVERSATION_HISTORY_CACHE_KEY.format(conversation_id)
+        redis_client.rpush(cache_key, json.dumps(message))
+        redis_client.ltrim(cache_key, -10, -1)  # 保留最新的 10 条消息
+        redis_client.expire(cache_key, 3600)  # 重新设置过期时间

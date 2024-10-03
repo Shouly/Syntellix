@@ -162,6 +162,15 @@ class AgentService:
         return agent_info
 
     @staticmethod
+    def get_agent_knowledge_base_ids(agent_id: int):
+        return [
+            kb.knowledge_base_id
+            for kb in db.session.query(AgentKnowledgeBase)
+            .filter_by(agent_id=agent_id)
+            .all()
+        ]
+
+    @staticmethod
     def get_agent_by_id(agent_id: int, tenant_id: int):
         return Agent.query.filter_by(id=agent_id, tenant_id=tenant_id).first()
 

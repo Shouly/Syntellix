@@ -312,6 +312,15 @@ class EmbeddingConfig(BaseSettings):
         default="https://api.openai.com/v1",
     )
 
+class RerankConfig(BaseSettings):
+    """
+    Rerank configs
+    """
+
+    RERANK_MODEL_NAME: str = Field(
+        description="rerank model name",
+        default="",
+    )
 
 class LLMConfig(BaseSettings):
     """
@@ -393,6 +402,7 @@ class SystemConfig(
     OAuthConfig,
     SecurityConfig,
     EmbeddingConfig,
+    RerankConfig,
     LLMConfig,
 ):
     pass
