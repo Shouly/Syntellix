@@ -1,4 +1,8 @@
+import json
+from typing import Generator
+
 from syntellix_api.extensions.ext_database import db
+from syntellix_api.llm.llm_factory import LLMFactory
 from syntellix_api.models.chat_model import (
     Conversation,
     ConversationMessage,
@@ -96,7 +100,7 @@ class ChatService:
         conversation = Conversation.query.get(conversation_id)
         if not conversation:
             return None
-        
+
         offset = (page - 1) * per_page
 
         messages = (
@@ -151,3 +155,73 @@ class ChatService:
         )
 
         return conversations
+
+    @staticmethod
+    def chat_stream(
+        conversation_id: int, user_id: int, agent_id: int, message: str
+    ) -> Generator[str, None, None]:
+        conversation = Conversation.query.get(conversation_id)
+        if not conversation:
+            yield json.dumps({"error": "Conversation not found"})
+            return
+
+        # 保存用户消息
+        user_message = ConversationMessage(
+            conversation_id=conversation_id,
+            user_id=user_id,
+            agent_id=agent_id,
+            message=message,
+            message_type=ConversationMessageType.USER,
+        )
+        db.session.add(user_message)
+        db.session.commit()
+
+        llm = LLMFactory.get_deepseek_model()
+
+        # 获取历史对话
+        history = ChatService.get_conversation_histories(conversation_id)
+
+        full_response = ""
+        system_message = ""  # 如果有系统消息，在这里设置
+
+        # 使用 chat_streamly 方法进行流式输出
+        for chunk in llm.chat_streamly(
+            system_message, history + [{"role": "user", "content": message}], {}
+        ):
+            if isinstance(chunk, str):
+                full_response += chunk
+                yield json.dumps({"chunk": chunk})
+            elif isinstance(chunk, int):
+                # 这是总token数，可以选择是否发送给客户端
+                yield json.dumps({"total_tokens": chunk})
+
+        # 保存完整的 AI 响应
+        ai_message = ConversationMessage(
+            conversation_id=conversation_id,
+            user_id=user_id,
+            agent_id=agent_id,
+            message=full_response,
+            message_type=ConversationMessageType.AGENT,
+        )
+        db.session.add(ai_message)
+        db.session.commit()
+
+        yield json.dumps({"done": True})
+
+    @staticmethod
+    def get_conversation_histories(conversation_id: int):
+        # 获取对话历史
+        messages = (
+            ConversationMessage.query.filter_by(conversation_id=conversation_id)
+            .order_by(ConversationMessage.created_at)
+            .all()
+        )
+        history = []
+        for msg in messages:
+            role = (
+                "user"
+                if msg.message_type == ConversationMessageType.USER
+                else "assistant"
+            )
+            history.append({"role": role, "content": msg.message})
+        return history

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from flask import request
+from flask import Response, request, stream_with_context
 from flask_login import current_user
 from flask_restful import Resource, marshal_with, reqparse
 from syntellix_api.controllers.api_errors import (
@@ -18,6 +18,7 @@ from syntellix_api.response.chat_response import (
 from syntellix_api.services.agent_service import AgentService
 from syntellix_api.services.chat_service import ChatService
 from werkzeug.exceptions import Forbidden
+import json
 
 
 class ChatConversationApi(Resource):
@@ -81,30 +82,35 @@ class ChatConversationApi(Resource):
 
 class ChatConversationMessageApi(Resource):
     @login_required
-    @marshal_with(conversation_message_fields)
     def post(self, conversation_id):
         parser = reqparse.RequestParser()
         parser.add_argument("agent_id", type=int, required=True)
         parser.add_argument("message", type=str, required=True)
-        parser.add_argument(
-            "message_type", type=str, required=True, choices=("user", "agent")
-        )
-        parser.add_argument("citation", type=dict)
-        parser.add_argument("pre_message_id", type=int)
-        parser.add_argument("next_message_id", type=int)
         args = parser.parse_args()
 
-        message = ChatService.save_conversation_message(
-            conversation_id=conversation_id,
-            user_id=current_user.id,
-            agent_id=args["agent_id"],
-            message=args["message"],
-            message_type=ConversationMessageType(args["message_type"]),
-            citation=args["citation"],
-            pre_message_id=args["pre_message_id"],
-            next_message_id=args["next_message_id"],
+        def generate():
+            try:
+                for chunk in ChatService.chat_stream(
+                    conversation_id=conversation_id,
+                    user_id=current_user.id,
+                    agent_id=args["agent_id"],
+                    message=args["message"],
+                ):
+                    yield f"data: {chunk}\n\n"
+            except Exception as e:
+                error_message = json.dumps({"error": str(e)})
+                yield f"data: {error_message}\n\n"
+            finally:
+                yield "data: [DONE]\n\n"
+
+        return Response(
+            stream_with_context(generate()),
+            content_type="text/event-stream",
+            headers={
+                'Cache-Control': 'no-cache',
+                'X-Accel-Buffering': 'no'
+            }
         )
-        return message, 201
 
     @login_required
     @marshal_with(conversation_with_messages_fields)
