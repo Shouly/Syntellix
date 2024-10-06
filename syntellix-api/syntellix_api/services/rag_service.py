@@ -58,7 +58,7 @@ class RAGService:
         return context_str
 
     @staticmethod
-    def generate_response(
+    def call_llm(
         conversation_history: List[dict], message: str, context_str: str
     ) -> Generator[str, None, None]:
         llm = LLMFactory.get_deepseek_model()

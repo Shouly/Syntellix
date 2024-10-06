@@ -186,7 +186,7 @@ class ChatService:
 
         # 生成响应
         full_response = ""
-        for chunk in RAGService.generate_response(
+        for chunk in RAGService.call_llm(
             conversation_history, message, context_str
         ):
             full_response += chunk
