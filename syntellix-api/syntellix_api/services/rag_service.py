@@ -16,7 +16,7 @@ class RAGService:
         embedding_model = EmbeddingModel(
             model_name=syntellix_config.EMBEDDING_MODEL_NAME
         )
-        user_message_embedding = embedding_model.encode([message])
+        user_message_embedding = embedding_model.encode([message])[0].tolist()
 
         agent_knowledge_base_ids = AgentService.get_agent_knowledge_base_ids(agent_id)
         vector_service = VectorService(tenant_id)
@@ -28,9 +28,10 @@ class RAGService:
             },
             es_filter=[
                 {
-                    "field": "metadata.knowledge_base_id",
-                    "value": agent_knowledge_base_ids,
-                },
+                    "terms": {
+                        "metadata.knowledge_base_id.keyword": agent_knowledge_base_ids
+                    }
+                }
             ],
         )
 

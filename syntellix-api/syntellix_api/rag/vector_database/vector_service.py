@@ -3,9 +3,7 @@ import os
 from typing import Any, Callable, Dict, List, Optional, Union
 
 from syntellix_api.rag.vector_database.elasticsearch.elasticsearch_vector import (
-    ElasticSearchVector,
-    ElasticSearchVectorFactory,
-)
+    ElasticSearchVector, ElasticSearchVectorFactory)
 from syntellix_api.rag.vector_database.vector_model import BaseNode
 
 logger = logging.getLogger(__name__)
@@ -38,15 +36,12 @@ class VectorService:
     def query(
         self,
         query: dict,
-        custom_query: Optional[Callable[[Dict, Union[dict, None]], Dict]] = None,
         es_filter: Optional[List[Dict]] = None,
         **kwargs: Any,
     ) -> list[BaseNode]:
         logger.info(f"Querying vector database with query: {query}")
         try:
-            return self._vector_processor.query(
-                query, custom_query, es_filter, **kwargs
-            )
+            return self._vector_processor.query(query, es_filter, **kwargs)
         except Exception as e:
             logger.error(f"Error querying vector database: {str(e)}", exc_info=True)
             return []

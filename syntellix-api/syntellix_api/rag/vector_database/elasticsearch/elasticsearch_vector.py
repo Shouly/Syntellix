@@ -1,8 +1,8 @@
+import os
 import urllib.parse as urlparse
 import uuid
 from logging import getLogger
 from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union, cast
-import os
 
 import numpy as np
 import requests
@@ -21,9 +21,11 @@ DISTANCE_STRATEGIES = Literal[
 ]
 
 # Ensure that the 'fork' start method is not used in macOS
-if os.name == 'posix' and os.uname().sysname == 'Darwin':
+if os.name == "posix" and os.uname().sysname == "Darwin":
     import multiprocessing
-    multiprocessing.set_start_method('spawn', force=True)
+
+    multiprocessing.set_start_method("spawn", force=True)
+
 
 class ElasticSearchConfig(BaseModel):
     host: str
@@ -199,7 +201,9 @@ class ElasticSearchVector:
             logger.error(f"Error deleting text: {ref_doc_id}")
             raise
 
-    def delete_by_knowledge_base_and_document_id(self, knowledge_base_id: str, document_id: str) -> None:
+    def delete_by_knowledge_base_and_document_id(
+        self, knowledge_base_id: str, document_id: str
+    ) -> None:
         try:
             res = self._client.delete_by_query(
                 index=self._index_name,
@@ -207,8 +211,12 @@ class ElasticSearchVector:
                     "query": {
                         "bool": {
                             "must": [
-                                {"term": {"metadata.knowledge_base_id": knowledge_base_id}},
-                                {"term": {"metadata.document_id": document_id}}
+                                {
+                                    "term": {
+                                        "metadata.knowledge_base_id": knowledge_base_id
+                                    }
+                                },
+                                {"term": {"metadata.document_id": document_id}},
                             ]
                         }
                     }
@@ -216,50 +224,53 @@ class ElasticSearchVector:
                 refresh=True,
             )
             if res["deleted"] == 0:
-                logger.warning(f"Could not find document with knowledge_base_id {knowledge_base_id} and document_id {document_id} to delete")
+                logger.warning(
+                    f"Could not find document with knowledge_base_id {knowledge_base_id} and document_id {document_id} to delete"
+                )
             else:
-                logger.debug(f"Deleted document with knowledge_base_id {knowledge_base_id} and document_id {document_id} from index")
+                logger.debug(
+                    f"Deleted document with knowledge_base_id {knowledge_base_id} and document_id {document_id} from index"
+                )
         except Exception as e:
-            logger.error(f"Error deleting document with knowledge_base_id {knowledge_base_id} and document_id {document_id}: {e}")
+            logger.error(
+                f"Error deleting document with knowledge_base_id {knowledge_base_id} and document_id {document_id}: {e}"
+            )
             raise
 
     def query(
         self,
         query: dict,
-        custom_query: Optional[Callable[[Dict, Union[dict, None]], Dict]] = None,
         es_filter: Optional[List[Dict]] = None,
         **kwargs: Any,
     ) -> list[BaseNode]:
         query_embedding = cast(List[float], query["query_embedding"])
 
-        es_query = {}
-
         filter = es_filter or []
 
-        es_query["knn"] = {
-            "filter": filter,
-            "field": self._vector_field,
-            "query_vector": query_embedding,
-            "k": query["similarity_top_k"],
-            "num_candidates": query["similarity_top_k"] * 10,
-        }
-
-        es_query["query"] = {
-            "bool": {
-                "must": {"match": {self._text_field: {"query": query["query_str"]}}},
+        es_query = {
+            "knn": {
                 "filter": filter,
-            }
+                "field": self._vector_field,
+                "query_vector": query_embedding,
+                "k": query["similarity_top_k"],
+                "num_candidates": query["similarity_top_k"] * 10,
+            },
+            "query": {
+                "bool": {
+                    "must": [
+                        {"match": {self._text_field: {"query": query["query_str"]}}},
+                    ],
+                    "filter": filter,
+                }
+            },
+            "rank": {"rrf": {"rank_constant": 20}},
         }
 
-        es_query["rank"] = {"rrf": {}}
-
-        if custom_query is not None:
-            es_query = custom_query(es_query, query)
-            logger.debug(f"Calling custom_query, Query body now: {es_query}")
+        print(es_query)
 
         response = self._client.search(
             index=self._index_name,
-            body=es_query,
+            **es_query,
             size=query["similarity_top_k"],
             _source={"excludes": [self._vector_field]},
         )
