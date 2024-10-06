@@ -108,6 +108,7 @@ def process_document(
                 content=text,
                 embedding=vector,
                 metadata={
+                    "file_name": document.name,
                     "document_id": document_id,
                     "knowledge_base_id": knowledge_base_id,
                     "created_at": datetime.now(),

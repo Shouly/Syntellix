@@ -121,6 +121,7 @@ class ElasticSearchVector:
                         self._text_field: {"type": "text"},
                         "metadata": {
                             "properties": {
+                                "file_name": {"type": "text"},
                                 "document_id": {"type": "keyword"},
                                 "knowledge_base_id": {"type": "keyword"},
                                 "created_at": {"type": "date"},

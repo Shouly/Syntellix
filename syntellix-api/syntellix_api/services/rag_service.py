@@ -1,4 +1,4 @@
-from typing import List, Tuple, Generator, Any
+from typing import Any, Generator, List, Tuple
 
 from syntellix_api.configs import syntellix_config
 from syntellix_api.llm.llm_factory import LLMFactory
@@ -27,17 +27,13 @@ class RAGService:
                 "similarity_top_k": agent.advanced_config.get("top_n", 5),
             },
             es_filter=[
-                {
-                    "terms": {
-                        "metadata.knowledge_base_id": agent_knowledge_base_ids
-                    }
-                }
+                {"terms": {"metadata.knowledge_base_id": agent_knowledge_base_ids}}
             ],
         )
 
         rerank_model = RerankModel(model_name=syntellix_config.RERANK_MODEL_NAME)
         rerank_nodes_scores, _ = rerank_model.similarity(
-            message, [node.text for node in nodes]
+            message, [node.content for node in nodes]
         )
 
         similarity_threshold = agent.advanced_config.get("similarity_threshold", 0.5)
@@ -53,9 +49,9 @@ class RAGService:
     def _format_context(nodes: List) -> str:
         context_str = ""
         for node in nodes:
-            context_str += f"### 知识库ID: {node.metadata.get('knowledge_base_id')}\n"
+            context_str += f"### 文件名: {node.metadata.get('file_name')}\n"
             context_str += f"### 文档ID: {node.metadata.get('document_id')}\n"
-            context_str += f"### 文本: {node.text}\n"
+            context_str += f"### 文本: {node.content}\n"
         return context_str
 
     @staticmethod
