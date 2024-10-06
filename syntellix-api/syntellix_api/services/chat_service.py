@@ -184,12 +184,11 @@ class ChatService:
         if not filtered_nodes:
             yield json.dumps(
                 {
-                    "empty_response": agent.advanced_config.get(
+                    "chunk": agent.advanced_config.get(
                         "empty_response", "I don't know"
                     )
                 }
             )
-            yield json.dumps({"done": True})
             return
 
         # 获取对话历史
@@ -205,8 +204,6 @@ class ChatService:
         ChatService._save_ai_response_and_update_history(
             conversation_id, user_id, agent_id, message, full_response
         )
-
-        yield json.dumps({"done": True})
 
     @staticmethod
     def _initialize_chat(tenant_id: int, agent_id: int, conversation_id: int):

@@ -82,12 +82,22 @@ class ChatConversationApi(Resource):
 
 class ChatConversationMessageApi(Resource):
     @login_required
+    def get(self, conversation_id):
+        parser = reqparse.RequestParser()
+        parser.add_argument("agent_id", type=int, required=True, location='args')
+        parser.add_argument("message", type=str, required=True, location='args')
+        args = parser.parse_args()
+        return self._stream_response(conversation_id, args)
+
+    @login_required
     def post(self, conversation_id):
         parser = reqparse.RequestParser()
         parser.add_argument("agent_id", type=int, required=True)
         parser.add_argument("message", type=str, required=True)
         args = parser.parse_args()
+        return self._stream_response(conversation_id, args)
 
+    def _stream_response(self, conversation_id, args):
         def generate():
             try:
                 for chunk in ChatService.chat_stream(
@@ -102,7 +112,7 @@ class ChatConversationMessageApi(Resource):
                 error_message = json.dumps({"error": str(e)})
                 yield f"data: {error_message}\n\n"
             finally:
-                yield "data: [DONE]\n\n"
+                yield "data: {\"done\": true}\n\n"
 
         return Response(
             stream_with_context(generate()),

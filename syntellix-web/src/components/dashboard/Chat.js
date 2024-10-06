@@ -39,6 +39,8 @@ function Chat({ selectedAgentId }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
+  const abortControllerRef = useRef(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (selectedAgentId) {
@@ -111,46 +113,68 @@ function Chat({ selectedAgentId }) {
     }
   }, [currentConversationId, fetchConversationMessages, isMessagesLoaded]);
 
+  // 新增：滚动到底部的函数
+  const scrollToBottom = useCallback(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, []);
+
+  // 新增：当消息更新时滚动到底部
+  useEffect(() => {
+    scrollToBottom();
+  }, [conversationMessages, scrollToBottom]);
+
   const handleSendMessage = async () => {
-    if (inputMessage.trim() !== '') {
+    if (inputMessage.trim() !== '' && !isSubmitting) {
       try {
+        setIsSubmitting(true);
         setConversationMessages(prevMessages => [
           ...prevMessages,
           { message: inputMessage, message_type: 'user' }
         ]);
         setInputMessage('');
-        setIsWaitingForResponse(true);  // 设置等待状态为 true
+        setIsWaitingForResponse(true);
 
-        const response = await axios.post(`/console/api/chat/conversation/${currentConversationId}/messages`, {
-          agent_id: chatDetails.agent_info.id,
-          message: inputMessage
-        }, {
+        // 创建新的 AbortController
+        abortControllerRef.current = new AbortController();
+
+        // 获取 token
+        const token = localStorage.getItem('token');
+
+        const response = await fetch(`/console/api/chat/conversation/${currentConversationId}/messages`, {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Accept': 'text/event-stream'
+            'Accept': 'text/event-stream',
+            'Authorization': `Bearer ${token}`
           },
-          responseType: 'stream'
+          body: JSON.stringify({
+            agent_id: chatDetails.agent_info.id,
+            message: inputMessage
+          }),
+          signal: abortControllerRef.current.signal
         });
 
-        let fullResponse = '';
-        const reader = response.data.getReader();
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const reader = response.body.getReader();
         const decoder = new TextDecoder();
 
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
+
           const chunk = decoder.decode(value);
           const lines = chunk.split('\n');
+
           for (const line of lines) {
             if (line.startsWith('data: ')) {
-              const data = line.slice(5);
-              if (data === '[DONE]') {
-                break;
-              }
               try {
-                const parsedData = JSON.parse(data);
+                const parsedData = JSON.parse(line.slice(5));
                 if (parsedData.chunk) {
-                  fullResponse += parsedData.chunk;
                   setConversationMessages(prevMessages => {
                     const updatedMessages = [...prevMessages];
                     if (updatedMessages[updatedMessages.length - 1].message_type === 'agent') {
@@ -160,8 +184,13 @@ function Chat({ selectedAgentId }) {
                     }
                     return updatedMessages;
                   });
+                  // 每次更新消息后滚动到底部
+                  scrollToBottom();
                 } else if (parsedData.error) {
                   throw new Error(parsedData.error);
+                } else if (parsedData.done) {
+                  // 处理完成状态
+                  break;
                 }
               } catch (error) {
                 console.error('Error parsing SSE data:', error);
@@ -170,15 +199,24 @@ function Chat({ selectedAgentId }) {
           }
         }
 
-        showToast('消息发送成功', 'success');
       } catch (error) {
         console.error('Failed to send message:', error);
         showToast('消息发送失败', 'error');
       } finally {
-        setIsWaitingForResponse(false);  // 无论成功还是失败，都设置等待状态为 false
+        setIsWaitingForResponse(false);
+        setIsSubmitting(false);
       }
     }
   };
+
+  useEffect(() => {
+    return () => {
+      // 组件卸载时取消请求
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   const handleSelectAgent = async (agentId) => {
     await fetchChatDetails(agentId);
@@ -555,17 +593,21 @@ function Chat({ selectedAgentId }) {
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
+                    if (e.key === 'Enter' && !e.shiftKey && !isSubmitting && !isWaitingForResponse) {
                       e.preventDefault();
                       handleSendMessage();
                     }
                   }}
                   placeholder="输入消息..."
                   className="w-full py-3 px-4 bg-white rounded-lg border border-secondary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  disabled={isSubmitting || isWaitingForResponse}
                 />
                 <button
                   onClick={handleSendMessage}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-primary hover:text-primary-dark"
+                  className={`absolute right-2 top-1/2 transform -translate-y-1/2 ${
+                    isSubmitting || isWaitingForResponse ? 'text-gray-400 cursor-not-allowed' : 'text-primary hover:text-primary-dark'
+                  }`}
+                  disabled={isSubmitting || isWaitingForResponse}
                 >
                   <PaperAirplaneIcon className="w-6 h-6" />
                 </button>
