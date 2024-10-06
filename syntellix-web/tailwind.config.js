@@ -60,7 +60,16 @@ module.exports = {
           dark: '#2c5ea3',
         },
       },
-    },
+      animation: {
+        wave: 'wave 1.5s ease-in-out infinite',
+      },
+      keyframes: {
+        wave: {
+          '0%, 100%': { transform: 'scaleY(0.5)' },
+          '50%': { transform: 'scaleY(1.0)' },
+        }
+      }
+    }
   },
   plugins: [],
 }

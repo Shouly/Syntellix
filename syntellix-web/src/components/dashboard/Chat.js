@@ -38,6 +38,7 @@ function Chat({ selectedAgentId }) {
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
+  const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
 
   useEffect(() => {
     if (selectedAgentId) {
@@ -118,6 +119,7 @@ function Chat({ selectedAgentId }) {
           { message: inputMessage, message_type: 'user' }
         ]);
         setInputMessage('');
+        setIsWaitingForResponse(true);  // 设置等待状态为 true
 
         const response = await axios.post(`/console/api/chat/conversation/${currentConversationId}/messages`, {
           agent_id: chatDetails.agent_info.id,
@@ -172,6 +174,8 @@ function Chat({ selectedAgentId }) {
       } catch (error) {
         console.error('Failed to send message:', error);
         showToast('消息发送失败', 'error');
+      } finally {
+        setIsWaitingForResponse(false);  // 无论成功还是失败，都设置等待状态为 false
       }
     }
   };
@@ -523,6 +527,24 @@ function Chat({ selectedAgentId }) {
                   )}
                 </div>
               ))}
+              {isWaitingForResponse && (
+                <div className="flex justify-start mb-4">
+                  <div className="mr-2">
+                    <AgentAvatar
+                      avatarData={chatDetails?.agent_info?.avatar}
+                      agentName={chatDetails?.agent_info?.name || '智能助手'}
+                      size="xs"
+                    />
+                  </div>
+                  <div className="bg-bg-tertiary text-text-primary p-3 rounded-xl">
+                    <div className="flex items-center space-x-1">
+                      <div className="w-1 h-3 bg-primary animate-[wave_1s_ease-in-out_infinite]"></div>
+                      <div className="w-1 h-3 bg-primary animate-[wave_1s_ease-in-out_infinite_0.1s]"></div>
+                      <div className="w-1 h-3 bg-primary animate-[wave_1s_ease-in-out_infinite_0.2s]"></div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Chat input */}
@@ -532,6 +554,12 @@ function Chat({ selectedAgentId }) {
                   type="text"
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
                   placeholder="输入消息..."
                   className="w-full py-3 px-4 bg-white rounded-lg border border-secondary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
