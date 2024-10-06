@@ -64,7 +64,6 @@ class RAGService:
             context_str=context_str, question=message
         )
 
-        full_response = ""
         total_tokens = 0
         for chunk in llm.chat_streamly(
             system_message,
@@ -72,9 +71,8 @@ class RAGService:
             {},
         ):
             if isinstance(chunk, str):
-                full_response += chunk
                 yield chunk
             elif isinstance(chunk, int):
                 total_tokens = chunk
 
-        return full_response, total_tokens
+        return chunk, total_tokens
