@@ -46,7 +46,7 @@ class RAGService:
             if score >= similarity_threshold
         ]
 
-        return RAGService._format_context(filtered_nodes)
+        return filtered_nodes, RAGService._format_context(filtered_nodes)
 
     @staticmethod
     def _format_context(nodes: List) -> str:

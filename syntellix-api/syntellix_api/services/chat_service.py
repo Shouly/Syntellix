@@ -177,18 +177,27 @@ class ChatService:
         ChatService._save_user_message(conversation_id, user_id, agent_id, message)
 
         # 检索相关文档
-        context_str = RAGService.retrieve_relevant_documents(
+        filtered_nodes, context_str = RAGService.retrieve_relevant_documents(
             tenant_id, agent_id, message
         )
+
+        if not filtered_nodes:
+            yield json.dumps(
+                {
+                    "empty_response": agent.advanced_config.get(
+                        "empty_response", "I don't know"
+                    )
+                }
+            )
+            yield json.dumps({"done": True})
+            return
 
         # 获取对话历史
         conversation_history = ChatService.get_conversation_histories(conversation_id)
 
         # 生成响应
         full_response = ""
-        for chunk in RAGService.call_llm(
-            conversation_history, message, context_str
-        ):
+        for chunk in RAGService.call_llm(conversation_history, message, context_str):
             full_response += chunk
             yield json.dumps({"chunk": chunk})
 

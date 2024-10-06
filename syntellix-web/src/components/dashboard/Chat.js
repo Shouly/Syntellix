@@ -11,6 +11,7 @@ import { AgentInfoSkeleton, ChatAreaSkeleton, ConversationListSkeleton } from '.
 import ConversationActionMenu from './ConversationActionMenu';
 import KnowledgeBaseDetail from './KnowledgeBaseDetail';
 import NewChatPrompt from './NewChatPrompt';
+import ReactMarkdown from 'react-markdown';
 
 function Chat({ selectedAgentId }) {
   const [chatDetails, setChatDetails] = useState(null);
@@ -112,10 +113,61 @@ function Chat({ selectedAgentId }) {
   const handleSendMessage = async () => {
     if (inputMessage.trim() !== '') {
       try {
-        // TODO: Implement sending message to backend
-        // const response = await axios.post('/api/send-message', { message: inputMessage });
-        // Update chat details with new message
+        setConversationMessages(prevMessages => [
+          ...prevMessages,
+          { message: inputMessage, message_type: 'user' }
+        ]);
         setInputMessage('');
+
+        const response = await axios.post(`/console/api/chat/conversation/${currentConversationId}/messages`, {
+          agent_id: chatDetails.agent_info.id,
+          message: inputMessage
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'text/event-stream'
+          },
+          responseType: 'stream'
+        });
+
+        let fullResponse = '';
+        const reader = response.data.getReader();
+        const decoder = new TextDecoder();
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(5);
+              if (data === '[DONE]') {
+                break;
+              }
+              try {
+                const parsedData = JSON.parse(data);
+                if (parsedData.chunk) {
+                  fullResponse += parsedData.chunk;
+                  setConversationMessages(prevMessages => {
+                    const updatedMessages = [...prevMessages];
+                    if (updatedMessages[updatedMessages.length - 1].message_type === 'agent') {
+                      updatedMessages[updatedMessages.length - 1].message += parsedData.chunk;
+                    } else {
+                      updatedMessages.push({ message: parsedData.chunk, message_type: 'agent' });
+                    }
+                    return updatedMessages;
+                  });
+                } else if (parsedData.error) {
+                  throw new Error(parsedData.error);
+                }
+              } catch (error) {
+                console.error('Error parsing SSE data:', error);
+              }
+            }
+          }
+        }
+
         showToast('消息发送成功', 'success');
       } catch (error) {
         console.error('Failed to send message:', error);
@@ -454,13 +506,15 @@ function Chat({ selectedAgentId }) {
                     : 'bg-bg-tertiary text-text-primary'
                     } max-w-[70%]`}
                   >
-                    <p className={`text-sm leading-relaxed ${message.message_type === 'user'
-                      ? 'font-sans-sc font-medium'
-                      : 'font-sans-sc font-normal'
-                      }`}
-                    >
-                      {message.message}
-                    </p>
+                    {message.message_type === 'user' ? (
+                      <p className="text-sm leading-relaxed font-sans-sc font-medium">
+                        {message.message}
+                      </p>
+                    ) : (
+                      <ReactMarkdown className="text-sm leading-relaxed font-sans-sc font-normal markdown-content">
+                        {message.message}
+                      </ReactMarkdown>
+                    )}
                   </div>
                   {message.message_type === 'user' && (
                     <div className="w-8 h-8 ml-2">
