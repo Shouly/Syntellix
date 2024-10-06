@@ -17,12 +17,12 @@ if os.name == "posix" and os.uname().sysname == "Darwin":
 
 class VectorService:
     def __init__(self, tenant_id: int):
-        logger.info(f"Initializing VectorService for tenant {tenant_id}")
+        logger.debug(f"Initializing VectorService for tenant {tenant_id}")
         self._tenant_id = tenant_id
         self._vector_processor = self._init_vector()
 
     def _init_vector(self) -> ElasticSearchVector:
-        logger.info(f"Initializing ElasticSearchVector for tenant {self._tenant_id}")
+        logger.debug(f"Initializing ElasticSearchVector for tenant {self._tenant_id}")
         return ElasticSearchVectorFactory().init_vector(self._tenant_id)
 
     def add_nodes(self, nodes: list[BaseNode]):
@@ -39,7 +39,7 @@ class VectorService:
         es_filter: Optional[List[Dict]] = None,
         **kwargs: Any,
     ) -> list[BaseNode]:
-        logger.info(f"Querying vector database with query: {query}")
+        logger.debug(f"Querying vector database with query: {query}")
         try:
             return self._vector_processor.query(query, es_filter, **kwargs)
         except Exception as e:

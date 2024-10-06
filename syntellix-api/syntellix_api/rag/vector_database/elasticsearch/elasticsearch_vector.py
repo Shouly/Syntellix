@@ -266,8 +266,6 @@ class ElasticSearchVector:
             "rank": {"rrf": {"rank_constant": 20}},
         }
 
-        print(es_query)
-
         response = self._client.search(
             index=self._index_name,
             **es_query,
@@ -275,6 +273,8 @@ class ElasticSearchVector:
             _source={"excludes": [self._vector_field]},
         )
 
+        print(response)
+        
         top_k_nodes = []
         top_k_ids = []
         top_k_scores = []
@@ -283,10 +283,10 @@ class ElasticSearchVector:
         for hit in hits:
             source = hit["_source"]
             metadata = source.get("metadata", None)
-            text = source.get(self._text_field, None)
+            content = source.get(self._text_field, None)
             node_id = hit["_id"]
 
-            node = BaseNode(text=text, metadata=metadata, id_=node_id)
+            node = BaseNode(content=content, metadata=metadata, id_=node_id)
 
             top_k_nodes.append(node)
             top_k_ids.append(node_id)

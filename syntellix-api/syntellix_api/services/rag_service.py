@@ -29,7 +29,7 @@ class RAGService:
             es_filter=[
                 {
                     "terms": {
-                        "metadata.knowledge_base_id.keyword": agent_knowledge_base_ids
+                        "metadata.knowledge_base_id": agent_knowledge_base_ids
                     }
                 }
             ],
