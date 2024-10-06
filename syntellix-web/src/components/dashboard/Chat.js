@@ -2,6 +2,7 @@ import { ClockIcon, PaperAirplaneIcon, PlusIcon, UserCircleIcon } from '@heroico
 import { ChatBubbleLeftRightIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import axios from 'axios';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../components/Toast';
 import AgentAvatar from '../AgentAvatar';
@@ -11,7 +12,6 @@ import { AgentInfoSkeleton, ChatAreaSkeleton, ConversationListSkeleton } from '.
 import ConversationActionMenu from './ConversationActionMenu';
 import KnowledgeBaseDetail from './KnowledgeBaseDetail';
 import NewChatPrompt from './NewChatPrompt';
-import ReactMarkdown from 'react-markdown';
 
 function Chat({ selectedAgentId }) {
   const [chatDetails, setChatDetails] = useState(null);
@@ -604,9 +604,8 @@ function Chat({ selectedAgentId }) {
                 />
                 <button
                   onClick={handleSendMessage}
-                  className={`absolute right-2 top-1/2 transform -translate-y-1/2 ${
-                    isSubmitting || isWaitingForResponse ? 'text-gray-400 cursor-not-allowed' : 'text-primary hover:text-primary-dark'
-                  }`}
+                  className={`absolute right-2 top-1/2 transform -translate-y-1/2 ${isSubmitting || isWaitingForResponse ? 'text-gray-400 cursor-not-allowed' : 'text-primary hover:text-primary-dark'
+                    }`}
                   disabled={isSubmitting || isWaitingForResponse}
                 >
                   <PaperAirplaneIcon className="w-6 h-6" />
@@ -680,9 +679,8 @@ function SidebarItem({ text, isActive = false, onClick, onRename, onDelete }) {
   return (
     <>
       <li
-        className={`py-1 px-3 rounded-lg transition-colors duration-200 cursor-pointer ${
-          isActive ? 'bg-primary bg-opacity-10 text-primary' : 'text-text-body hover:bg-bg-secondary'
-        } flex items-center justify-between group mb-1`}
+        className={`py-1 px-3 rounded-lg transition-colors duration-200 cursor-pointer ${isActive ? 'bg-primary bg-opacity-10 text-primary' : 'text-text-body hover:bg-bg-secondary'
+          } flex items-center justify-between group mb-1`}
         onClick={isEditing ? undefined : onClick}
       >
         {isEditing ? (
