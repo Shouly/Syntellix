@@ -58,7 +58,6 @@ class Base(ABC):
         if system:
             history.insert(0, self.system_message(system))
         ans = ""
-        # total_tokens = 0
         try:
             response = self.client.chat.completions.create(
                 model=self.model_name, messages=history, stream=True, **gen_conf
@@ -70,8 +69,7 @@ class Base(ABC):
                     resp.choices[0].delta.content = ""
                 delta_content = resp.choices[0].delta.content
                 ans += delta_content
-                # total_tokens += num_tokens_from_string(delta_content)
-                
+
                 # 立即yield每个delta_content
                 yield delta_content
 
@@ -86,9 +84,6 @@ class Base(ABC):
 
         except openai.APIError as e:
             yield f"\n**ERROR**: {str(e)}"
-
-        # 在最后yield总token数
-        # yield total_tokens
 
 
 class MoonshotChat(Base):

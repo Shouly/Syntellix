@@ -163,8 +163,11 @@ function Chat({ selectedAgentId }) {
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
 
-        let assistantMessage = { message: '', message_type: 'agent' };
-        setConversationMessages(prevMessages => [...prevMessages, assistantMessage]);
+        // 立即添加一个空的助手消息
+        setConversationMessages(prevMessages => [
+          ...prevMessages,
+          { message: '', message_type: 'agent' }
+        ]);
 
         while (true) {
           const { done, value } = await reader.read();
@@ -177,23 +180,33 @@ function Chat({ selectedAgentId }) {
             if (line.startsWith('data: ')) {
               try {
                 const parsedData = JSON.parse(line.slice(5));
-                if (parsedData.chunk) {
-                  assistantMessage.message += parsedData.chunk;
-                  setConversationMessages(prevMessages => {
-                    const updatedMessages = [...prevMessages];
-                    updatedMessages[updatedMessages.length - 1] = { ...assistantMessage };
-                    return updatedMessages;
-                  });
-                  // 每次更新消息后滚动到底部
-                  scrollToBottom();
-                } else if (parsedData.error) {
-                  throw new Error(parsedData.error);
-                } else if (parsedData.done) {
-                  // 处理完成状态
-                  break;
+                console.log('Parsed SSE data:', parsedData); // 添加日志
+
+                if (typeof parsedData === 'object' && parsedData !== null) {
+                  if (parsedData.chunk) {
+                    setConversationMessages(prevMessages => {
+                      const updatedMessages = [...prevMessages];
+                      const lastMessage = updatedMessages[updatedMessages.length - 1];
+                      if (lastMessage.message_type === 'agent') {
+                        lastMessage.message += parsedData.chunk;
+                      } else {
+                        updatedMessages.push({ message: parsedData.chunk, message_type: 'agent' });
+                      }
+                      return updatedMessages;
+                    });
+                    // 每次更新消息后滚动到底部
+                    scrollToBottom();
+                  } else if (parsedData.error) {
+                    throw new Error(parsedData.error);
+                  } else if (parsedData.done) {
+                    // 处理完成状态
+                    break;
+                  }
+                } else {
+                  console.warn('Unexpected SSE data format:', parsedData);
                 }
               } catch (error) {
-                console.error('Error parsing SSE data:', error);
+                console.error('Error parsing SSE data:', error, 'Raw data:', line.slice(5));
               }
             }
           }
