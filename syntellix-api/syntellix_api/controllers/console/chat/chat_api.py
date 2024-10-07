@@ -109,6 +109,10 @@ class ChatConversationMessageApi(Resource):
                 ):
                     yield f"data: {chunk}\n\n"
             except Exception as e:
+                import traceback
+                error_traceback = traceback.format_exc()
+                print(f"Error occurred: {str(e)}")
+                print(f"Traceback:\n{error_traceback}")
                 error_message = json.dumps({"error": str(e)})
                 yield f"data: {error_message}\n\n"
             finally:

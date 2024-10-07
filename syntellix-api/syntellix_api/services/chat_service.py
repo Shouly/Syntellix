@@ -1,7 +1,6 @@
 import json
 from typing import Generator
 
-from celery import chord, group
 from syntellix_api.extensions.ext_database import db
 from syntellix_api.extensions.ext_redis import redis_client
 from syntellix_api.models.chat_model import (
@@ -183,11 +182,7 @@ class ChatService:
 
         if not filtered_nodes:
             yield json.dumps(
-                {
-                    "chunk": agent.advanced_config.get(
-                        "empty_response", "I don't know"
-                    )
-                }
+                {"chunk": agent.advanced_config.get("empty_response", "I don't know")}
             )
             return
 
@@ -231,6 +226,7 @@ class ChatService:
         message: str,
         full_response: str,
     ):
+        # 保存 AI 响应消息
         save_message_task.delay(
             conversation_id=conversation_id,
             user_id=user_id,
@@ -239,16 +235,16 @@ class ChatService:
             message_type=ConversationMessageType.AGENT,
         )
 
-        update_tasks = group(
-            ChatService.update_conversation_history_cache.s(
-                conversation_id, {"role": "user", "content": message}
-            ),
-            ChatService.update_conversation_history_cache.s(
-                conversation_id, {"role": "assistant", "content": full_response}
-            ),
+        # 更新对话历史缓存
+        ChatService.update_conversation_history_cache(
+            conversation_id, {"role": "user", "content": message}
+        )
+        ChatService.update_conversation_history_cache(
+            conversation_id, {"role": "assistant", "content": full_response}
         )
 
-        chord(update_tasks)(update_conversation_task.s(conversation_id))
+        # 更新对话
+        update_conversation_task.delay(conversation_id)
 
     @staticmethod
     def get_conversation_histories(conversation_id: int, max_messages: int = 10):
