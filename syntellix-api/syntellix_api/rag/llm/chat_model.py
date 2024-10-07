@@ -58,7 +58,7 @@ class Base(ABC):
         if system:
             history.insert(0, self.system_message(system))
         ans = ""
-        total_tokens = 0
+        # total_tokens = 0
         try:
             response = self.client.chat.completions.create(
                 model=self.model_name, messages=history, stream=True, **gen_conf
@@ -71,19 +71,24 @@ class Base(ABC):
                 delta_content = resp.choices[0].delta.content
                 ans += delta_content
                 # total_tokens += num_tokens_from_string(delta_content)
+                
+                # 立即yield每个delta_content
+                yield delta_content
+
                 if resp.choices[0].finish_reason == "length":
-                    ans += (
+                    truncation_message = (
                         "...\nFor the content length reason, it stopped, continue?"
                         if is_english([ans])
                         else "······\n由于长度的原因，回答被截断了，要继续吗？"
                     )
-                    delta_content += "······\n由于长度的原因，回答被截断了，要继续吗？"
-                yield delta_content
+                    ans += truncation_message
+                    yield truncation_message
 
         except openai.APIError as e:
-            yield ans + "\n**ERROR**: " + str(e)
+            yield f"\n**ERROR**: {str(e)}"
 
-        yield total_tokens
+        # 在最后yield总token数
+        # yield total_tokens
 
 
 class MoonshotChat(Base):

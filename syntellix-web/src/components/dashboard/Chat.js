@@ -163,6 +163,9 @@ function Chat({ selectedAgentId }) {
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
 
+        let assistantMessage = { message: '', message_type: 'agent' };
+        setConversationMessages(prevMessages => [...prevMessages, assistantMessage]);
+
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
@@ -175,13 +178,10 @@ function Chat({ selectedAgentId }) {
               try {
                 const parsedData = JSON.parse(line.slice(5));
                 if (parsedData.chunk) {
+                  assistantMessage.message += parsedData.chunk;
                   setConversationMessages(prevMessages => {
                     const updatedMessages = [...prevMessages];
-                    if (updatedMessages[updatedMessages.length - 1].message_type === 'agent') {
-                      updatedMessages[updatedMessages.length - 1].message += parsedData.chunk;
-                    } else {
-                      updatedMessages.push({ message: parsedData.chunk, message_type: 'agent' });
-                    }
+                    updatedMessages[updatedMessages.length - 1] = { ...assistantMessage };
                     return updatedMessages;
                   });
                   // 每次更新消息后滚动到底部
