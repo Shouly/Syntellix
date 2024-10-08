@@ -50,7 +50,7 @@ FACTORY = {
 }
 
 
-@shared_task(queue="document_processing")
+@shared_task
 def process_document(
     document_id, file_key, parser_type, parser_config, tenant_id, knowledge_base_id
 ):
