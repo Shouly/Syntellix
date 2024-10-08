@@ -193,9 +193,7 @@ class ChatService:
         full_response = ""
         for chunk in RAGService.call_llm(conversation_history, message, context_str):
             full_response += chunk
-            yield json.dumps({"chunk": chunk})
-            import time
-            time.sleep(0.5)
+            yield json.dumps({"chunk": chunk}, ensure_ascii=False)
 
         # 保存AI响应并更新对话历史
         ChatService._save_ai_response_and_update_history(

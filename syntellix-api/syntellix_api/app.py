@@ -6,20 +6,20 @@ import threading
 from logging.handlers import RotatingFileHandler
 
 import syntellix_api.contexts as contexts
+from flask import Flask, Response, request
+from flask_cors import CORS
 from syntellix_api.configs import syntellix_config
 from syntellix_api.extensions import (
+    ext_celery,
     ext_compress,
     ext_database,
     ext_login,
     ext_migrate,
     ext_redis,
     ext_storage,
-    ext_celery,
 )
 from syntellix_api.extensions.ext_database import db
 from syntellix_api.extensions.ext_login import login_manager
-from flask import Flask, Response, request
-from flask_cors import CORS
 from syntellix_api.libs.passport import PassportService
 from syntellix_api.services.account_service import AccountService
 from werkzeug.exceptions import Unauthorized
@@ -166,14 +166,6 @@ def register_blueprints(app):
     # )
     # app.register_blueprint(web_bp)
 
-    CORS(
-        console_app_bp,
-        resources={r"/*": {"origins": app.config["CONSOLE_CORS_ALLOW_ORIGINS"]}},
-        supports_credentials=True,
-        allow_headers=["Content-Type", "Authorization"],
-        methods=["GET", "PUT", "POST", "DELETE", "OPTIONS", "PATCH"],
-    )
-
     app.register_blueprint(console_app_bp)
 
     # CORS(
@@ -188,6 +180,7 @@ def register_blueprints(app):
 
 # create app
 app = create_flask_app()
+CORS(app, supports_credentials=True)
 celery = app.extensions["celery"]
 
 if app.config.get("TESTING"):

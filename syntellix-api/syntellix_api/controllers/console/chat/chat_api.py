@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 
 from flask import Response, request, stream_with_context
@@ -18,7 +19,6 @@ from syntellix_api.response.chat_response import (
 from syntellix_api.services.agent_service import AgentService
 from syntellix_api.services.chat_service import ChatService
 from werkzeug.exceptions import Forbidden
-import json
 
 
 class ChatConversationApi(Resource):
@@ -81,42 +81,47 @@ class ChatConversationApi(Resource):
 
 
 class ChatConversationMessageApi(Resource):
+
     @login_required
     def post(self, conversation_id):
         parser = reqparse.RequestParser()
         parser.add_argument("agent_id", type=int, required=True)
         parser.add_argument("message", type=str, required=True)
         args = parser.parse_args()
-        return self._stream_response(conversation_id, args)
 
-    def _stream_response(self, conversation_id, args):
+        tenant_id = current_user.current_tenant_id
+        user_id = current_user.id
+
+        @stream_with_context
         def generate():
             try:
                 for chunk in ChatService.chat_stream(
-                    tenant_id=current_user.current_tenant_id,
+                    tenant_id=tenant_id,
                     conversation_id=conversation_id,
-                    user_id=current_user.id,
+                    user_id=user_id,
                     agent_id=args["agent_id"],
                     message=args["message"],
                 ):
                     yield f"data: {chunk}\n\n"
             except Exception as e:
                 import traceback
+
                 error_traceback = traceback.format_exc()
                 print(f"Error occurred: {str(e)}")
                 print(f"Traceback:\n{error_traceback}")
                 error_message = json.dumps({"error": str(e)})
                 yield f"data: {error_message}\n\n"
             finally:
-                yield "data: {\"done\": true}\n\n"
+                yield 'data: {"done": true}\n\n'
 
         return Response(
-            stream_with_context(generate()),
+            generate(),
             content_type="text/event-stream",
             headers={
-                'Cache-Control': 'no-cache',
-                'X-Accel-Buffering': 'no'
-            }
+                "Cache-Control": "no-cache",
+                "X-Accel-Buffering": "no",
+                "Connection": "keep-alive",
+            },
         )
 
     @login_required
