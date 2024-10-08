@@ -67,6 +67,11 @@ module.exports = {
         wave: {
           '0%, 100%': { transform: 'scaleY(0.5)' },
           '50%': { transform: 'scaleY(1.0)' },
+        },
+        ellipsis: {
+          '0%': { opacity: 0 },
+          '50%': { opacity: 1 },
+          '100%': { opacity: 0 },
         }
       }
     }
