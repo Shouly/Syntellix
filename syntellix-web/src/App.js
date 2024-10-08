@@ -8,6 +8,10 @@ import SystemInit from './components/SystemInit';
 import Dashboard from './components/Dashboard';
 import LoadingSpinner from './components/LoadingSpinner'; // 导入 LoadingSpinner 组件
 
+import { API_BASE_URL } from './config';
+
+axios.defaults.baseURL = API_BASE_URL;
+
 const queryClient = new QueryClient();  // 添加这行
 
 function App() {

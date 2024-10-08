@@ -32,7 +32,7 @@ class ChatConversationApi(Resource):
 
         name = args["name"]
         if name is None:
-            name = f"未命名会话 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+            name = f"未命名会话"
 
         agent = AgentService.get_agent_by_id(
             args["agent_id"], current_user.current_tenant_id
@@ -80,19 +80,19 @@ class ChatConversationApi(Resource):
         return conversation, 200
 
 
-class ChatConversationMessageApi(Resource):
+class ChatConversationStreamApi(Resource):
 
     @login_required
-    def post(self, conversation_id):
+    def get(self, conversation_id):
+
         parser = reqparse.RequestParser()
-        parser.add_argument("agent_id", type=int, required=True)
-        parser.add_argument("message", type=str, required=True)
+        parser.add_argument("agent_id", type=int, required=True, location="args")
+        parser.add_argument("message", type=str, required=True, location="args")
         args = parser.parse_args()
 
         tenant_id = current_user.current_tenant_id
         user_id = current_user.id
 
-        @stream_with_context
         def generate():
             try:
                 for chunk in ChatService.chat_stream(
@@ -115,14 +115,18 @@ class ChatConversationMessageApi(Resource):
                 yield 'data: {"done": true}\n\n'
 
         return Response(
-            generate(),
-            content_type="text/event-stream",
+            stream_with_context(generate()),
+            mimetype="text/event-stream",
             headers={
+                "Content-Type": "text/event-stream",
                 "Cache-Control": "no-cache",
                 "X-Accel-Buffering": "no",
                 "Connection": "keep-alive",
             },
         )
+
+
+class ChatConversationMessageApi(Resource):
 
     @login_required
     @marshal_with(conversation_with_messages_fields)
@@ -198,7 +202,7 @@ class ChatAgentConversationApi(Resource):
             latest_conversation = ChatService.create_conversation(
                 user_id=current_user.id,
                 agent_id=agent_id,
-                name=f"未命名会话 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+                name=f"未命名会话",
             )
             ChatService.save_conversation_message(
                 conversation_id=latest_conversation.id,
@@ -246,9 +250,25 @@ class ChatAgentConversationPinnedApi(Resource):
         return conversations, 200
 
 
+class TestStreamApi(Resource):
+    def get(self):
+        def generate():
+            import time
+
+            for i in range(10):
+                yield f"data: {i}\n\n"
+                time.sleep(1)
+
+        return Response(stream_with_context(generate()), mimetype="text/event-stream")
+
+
+api.add_resource(TestStreamApi, "/chat/test-stream")
 api.add_resource(ChatAgentConversationApi, "/chat/agent", "/chat/agent/<int:agent_id>")
 api.add_resource(
     ChatConversationMessageApi, "/chat/conversation/<int:conversation_id>/messages"
+)
+api.add_resource(
+    ChatConversationStreamApi, "/chat/conversation/<int:conversation_id>/stream"
 )
 api.add_resource(ChatConversationApi, "/chat/conversations")
 api.add_resource(

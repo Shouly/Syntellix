@@ -13,6 +13,7 @@ import ConversationActionMenu from './ConversationActionMenu';
 import KnowledgeBaseDetail from './KnowledgeBaseDetail';
 import NewChatPrompt from './NewChatPrompt';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
+import { API_BASE_URL } from '../../config';
 
 function Chat({ selectedAgentId }) {
   const [chatDetails, setChatDetails] = useState(null);
@@ -143,20 +144,19 @@ function Chat({ selectedAgentId }) {
         // Get token
         const token = localStorage.getItem('token');
 
-        // Construct URL
-        const url = `/console/api/chat/conversation/${currentConversationId}/messages`;
+        // Construct URL with query parameters
+        const params = new URLSearchParams({
+          agent_id: chatDetails.agent_info.id.toString(),
+          message: inputMessage
+        });
+        const url = `${API_BASE_URL}/console/api/chat/conversation/${currentConversationId}/stream?${params}`;
 
         await fetchEventSource(url, {
-          method: 'POST',
+          method: 'GET',
           headers: {
-            'Content-Type': 'application/json',
             'Accept': 'text/event-stream',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({
-            agent_id: chatDetails.agent_info.id,
-            message: inputMessage
-          }),
           signal: abortControllerRef.current.signal,
           onmessage(event) {
             const data = JSON.parse(event.data);
@@ -171,7 +171,7 @@ function Chat({ selectedAgentId }) {
                 }
                 return updatedMessages;
               });
-              // 每次接收到新的 chunk 就滚动到底部
+              // Scroll to bottom after each chunk
               scrollToBottom();
             } else if (data.error) {
               console.error('Error:', data.error);
