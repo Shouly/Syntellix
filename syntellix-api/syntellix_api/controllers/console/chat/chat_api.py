@@ -1,7 +1,6 @@
 import json
-from datetime import datetime
 
-from flask import Response, request, stream_with_context
+from flask import Response, stream_with_context
 from flask_login import current_user
 from flask_restful import Resource, marshal_with, reqparse
 from syntellix_api.controllers.api_errors import (
@@ -13,7 +12,6 @@ from syntellix_api.models.chat_model import ConversationMessageType
 from syntellix_api.response.chat_response import (
     agent_chat_details_fields,
     conversation_fields,
-    conversation_message_fields,
     conversation_with_messages_fields,
 )
 from syntellix_api.services.agent_service import AgentService
@@ -250,19 +248,6 @@ class ChatAgentConversationPinnedApi(Resource):
         return conversations, 200
 
 
-class TestStreamApi(Resource):
-    def get(self):
-        def generate():
-            import time
-
-            for i in range(10):
-                yield f"data: {i}\n\n"
-                time.sleep(1)
-
-        return Response(stream_with_context(generate()), mimetype="text/event-stream")
-
-
-api.add_resource(TestStreamApi, "/chat/test-stream")
 api.add_resource(ChatAgentConversationApi, "/chat/agent", "/chat/agent/<int:agent_id>")
 api.add_resource(
     ChatConversationMessageApi, "/chat/conversation/<int:conversation_id>/messages"
