@@ -165,14 +165,24 @@ function Chat({ selectedAgentId }) {
                 ...prevMessages,
                 { message: "正在检索知识库文档", message_type: 'status' }
               ]);
+            } else if (data.status === "retrieving_documents_done") {
+              setConversationMessages(prevMessages => {
+                const updatedMessages = [...prevMessages];
+                const lastMessage = updatedMessages[updatedMessages.length - 1];
+                if (lastMessage.message_type === 'status') {
+                  lastMessage.message = "知识库文档检索完成";
+                } else {
+                  updatedMessages.push({ message: "知识库文档检索完成", message_type: 'status' });
+                }
+              });
             } else if (data.status === "generating_answer") {
               setConversationMessages(prevMessages => {
                 const updatedMessages = [...prevMessages];
                 const lastMessage = updatedMessages[updatedMessages.length - 1];
                 if (lastMessage.message_type === 'status') {
-                  lastMessage.message = "正在生成回答";
+                  lastMessage.message = "开始生成回答";
                 } else {
-                  updatedMessages.push({ message: "正在生成回答", message_type: 'status' });
+                  updatedMessages.push({ message: "开始生成回答", message_type: 'status' });
                 }
                 return updatedMessages;
               });

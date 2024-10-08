@@ -183,6 +183,8 @@ class ChatService:
             tenant_id, agent_id, message
         )
 
+        yield json.dumps({"status": "retrieving_documents_done"})
+
         if not filtered_nodes:
             yield json.dumps(
                 {"chunk": agent.advanced_config.get("empty_response", "I don't know")}
