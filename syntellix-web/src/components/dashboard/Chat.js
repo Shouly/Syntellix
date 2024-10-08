@@ -131,10 +131,14 @@ function Chat({ selectedAgentId }) {
     if (inputMessage.trim() !== '' && !isSubmitting) {
       try {
         setIsSubmitting(true);
-        setConversationMessages(prevMessages => [
-          ...prevMessages,
-          { message: inputMessage, message_type: 'user' }
-        ]);
+        setConversationMessages(prevMessages => {
+          // Check if prevMessages is an array, if not, initialize it
+          const messages = Array.isArray(prevMessages) ? prevMessages : [];
+          return [
+            ...messages,
+            { message: inputMessage, message_type: 'user' }
+          ];
+        });
         setInputMessage('');
         setIsWaitingForResponse(true);
 
@@ -161,25 +165,31 @@ function Chat({ selectedAgentId }) {
           onmessage(event) {
             const data = JSON.parse(event.data);
             if (data.status === "retrieving_documents") {
-              setConversationMessages(prevMessages => [
-                ...prevMessages,
-                { message: "正在检索知识库文档", message_type: 'status' }
-              ]);
+              setConversationMessages(prevMessages => {
+                const messages = Array.isArray(prevMessages) ? prevMessages : [];
+                return [
+                  ...messages,
+                  { message: "正在检索知识库文档", message_type: 'status' }
+                ];
+              });
             } else if (data.status === "retrieving_documents_done") {
               setConversationMessages(prevMessages => {
-                const updatedMessages = [...prevMessages];
+                const messages = Array.isArray(prevMessages) ? prevMessages : [];
+                const updatedMessages = [...messages];
                 const lastMessage = updatedMessages[updatedMessages.length - 1];
-                if (lastMessage.message_type === 'status') {
+                if (lastMessage && lastMessage.message_type === 'status') {
                   lastMessage.message = "知识库文档检索完成";
                 } else {
                   updatedMessages.push({ message: "知识库文档检索完成", message_type: 'status' });
                 }
+                return updatedMessages;
               });
             } else if (data.status === "generating_answer") {
               setConversationMessages(prevMessages => {
-                const updatedMessages = [...prevMessages];
+                const messages = Array.isArray(prevMessages) ? prevMessages : [];
+                const updatedMessages = [...messages];
                 const lastMessage = updatedMessages[updatedMessages.length - 1];
-                if (lastMessage.message_type === 'status') {
+                if (lastMessage && lastMessage.message_type === 'status') {
                   lastMessage.message = "开始生成回答";
                 } else {
                   updatedMessages.push({ message: "开始生成回答", message_type: 'status' });
@@ -188,12 +198,13 @@ function Chat({ selectedAgentId }) {
               });
             } else if (data.chunk) {
               setConversationMessages(prevMessages => {
-                const updatedMessages = [...prevMessages];
+                const messages = Array.isArray(prevMessages) ? prevMessages : [];
+                const updatedMessages = [...messages];
                 const lastMessage = updatedMessages[updatedMessages.length - 1];
-                if (lastMessage.message_type === 'agent') {
+                if (lastMessage && lastMessage.message_type === 'agent') {
                   lastMessage.message += data.chunk;
                 } else {
-                  // 移除之前的状态消息
+                  // Remove previous status messages
                   while (updatedMessages.length > 0 && updatedMessages[updatedMessages.length - 1].message_type === 'status') {
                     updatedMessages.pop();
                   }
