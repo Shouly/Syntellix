@@ -62,7 +62,8 @@ class Base(ABC):
             response = self.client.chat.completions.create(
                 model=self.model_name, messages=history, stream=True, **gen_conf
             )
-            for resp in response:
+            
+            for i, resp in enumerate(response):
                 if not resp.choices:
                     continue
                 if not resp.choices[0].delta.content:

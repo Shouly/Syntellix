@@ -12,6 +12,7 @@ import { AgentInfoSkeleton, ChatAreaSkeleton, ConversationListSkeleton } from '.
 import ConversationActionMenu from './ConversationActionMenu';
 import KnowledgeBaseDetail from './KnowledgeBaseDetail';
 import NewChatPrompt from './NewChatPrompt';
+import { fetchEventSource } from '@microsoft/fetch-event-source';
 
 function Chat({ selectedAgentId }) {
   const [chatDetails, setChatDetails] = useState(null);
@@ -78,7 +79,7 @@ function Chat({ selectedAgentId }) {
 
   const fetchConversationMessages = useCallback(async (conversationId, page = 1, perPage = 7) => {
     if (conversationId === currentConversationId && isMessagesLoaded) {
-      return; // 如果消息已经加载，则不重复加
+      return; // 如果消息已加载，则不重复加
     }
     setIsChatMessagesLoading(true);
     try {
@@ -113,7 +114,7 @@ function Chat({ selectedAgentId }) {
     }
   }, [currentConversationId, fetchConversationMessages, isMessagesLoaded]);
 
-  // 新增：滚动到底部的函数
+  // 新增：滚动到底部的数
   const scrollToBottom = useCallback(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
@@ -136,13 +137,16 @@ function Chat({ selectedAgentId }) {
         setInputMessage('');
         setIsWaitingForResponse(true);
 
-        // 创建新的 AbortController
+        // Create new AbortController
         abortControllerRef.current = new AbortController();
 
-        // 获取 token
+        // Get token
         const token = localStorage.getItem('token');
 
-        const response = await fetch(`/console/api/chat/conversation/${currentConversationId}/messages`, {
+        // Construct URL
+        const url = `/console/api/chat/conversation/${currentConversationId}/messages`;
+
+        await fetchEventSource(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -153,69 +157,45 @@ function Chat({ selectedAgentId }) {
             agent_id: chatDetails.agent_info.id,
             message: inputMessage
           }),
-          signal: abortControllerRef.current.signal
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-
-        // 立即添加一个空的助手消息
-        setConversationMessages(prevMessages => [
-          ...prevMessages,
-          { message: '', message_type: 'agent' }
-        ]);
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value);
-          const lines = chunk.split('\n');
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              try {
-                const parsedData = JSON.parse(line.slice(5));
-                console.log('Parsed SSE data:', parsedData); // 添加日志
-
-                if (typeof parsedData === 'object' && parsedData !== null) {
-                  if (parsedData.chunk) {
-                    setConversationMessages(prevMessages => {
-                      const updatedMessages = [...prevMessages];
-                      const lastMessage = updatedMessages[updatedMessages.length - 1];
-                      if (lastMessage.message_type === 'agent') {
-                        lastMessage.message += parsedData.chunk;
-                      } else {
-                        updatedMessages.push({ message: parsedData.chunk, message_type: 'agent' });
-                      }
-                      return updatedMessages;
-                    });
-                    // 每次更新消息后滚动到底部
-                    scrollToBottom();
-                  } else if (parsedData.error) {
-                    throw new Error(parsedData.error);
-                  } else if (parsedData.done) {
-                    // 处理完成状态
-                    break;
-                  }
+          signal: abortControllerRef.current.signal,
+          onmessage(event) {
+            const data = JSON.parse(event.data);
+            if (data.chunk) {
+              setConversationMessages(prevMessages => {
+                const updatedMessages = [...prevMessages];
+                const lastMessage = updatedMessages[updatedMessages.length - 1];
+                if (lastMessage.message_type === 'agent') {
+                  lastMessage.message += data.chunk;
                 } else {
-                  console.warn('Unexpected SSE data format:', parsedData);
+                  updatedMessages.push({ message: data.chunk, message_type: 'agent' });
                 }
-              } catch (error) {
-                console.error('Error parsing SSE data:', error, 'Raw data:', line.slice(5));
-              }
+                return updatedMessages;
+              });
+              // 每次接收到新的 chunk 就滚动到底部
+              scrollToBottom();
+            } else if (data.error) {
+              console.error('Error:', data.error);
+              showToast(data.error, 'error');
+            } else if (data.done) {
+              setIsWaitingForResponse(false);
+              setIsSubmitting(false);
             }
-          }
-        }
+          },
+          onclose() {
+            setIsWaitingForResponse(false);
+            setIsSubmitting(false);
+          },
+          onerror(err) {
+            console.error('EventSource failed:', err);
+            setIsWaitingForResponse(false);
+            setIsSubmitting(false);
+            showToast('消息发送失败', 'error');
+          },
+        });
 
       } catch (error) {
         console.error('Failed to send message:', error);
         showToast('消息发送失败', 'error');
-      } finally {
         setIsWaitingForResponse(false);
         setIsSubmitting(false);
       }

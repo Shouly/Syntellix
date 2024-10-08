@@ -82,14 +82,6 @@ class ChatConversationApi(Resource):
 
 class ChatConversationMessageApi(Resource):
     @login_required
-    def get(self, conversation_id):
-        parser = reqparse.RequestParser()
-        parser.add_argument("agent_id", type=int, required=True, location='args')
-        parser.add_argument("message", type=str, required=True, location='args')
-        args = parser.parse_args()
-        return self._stream_response(conversation_id, args)
-
-    @login_required
     def post(self, conversation_id):
         parser = reqparse.RequestParser()
         parser.add_argument("agent_id", type=int, required=True)
