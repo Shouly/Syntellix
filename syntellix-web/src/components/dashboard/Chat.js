@@ -554,7 +554,7 @@ function Chat({ selectedAgentId }) {
               />
             </div>
 
-            <div className="flex-1 overflow-y-auto px-6 py-6 pb-24" ref={chatContainerRef}>
+            <div className="flex-1 overflow-y-auto px-6 py-6 pb-24 bg-bg-primary" ref={chatContainerRef}>
               {conversationMessages.map((message, index) => (
                 <div key={index} className={`mb-4 flex ${message.message_type === 'user' ? 'justify-end' : 'justify-start'}`}>
                   {(message.message_type === 'agent' || message.message_type === 'status') && (
@@ -570,7 +570,7 @@ function Chat({ selectedAgentId }) {
                     message.message_type === 'user'
                       ? 'bg-primary text-white'
                       : message.message_type === 'status'
-                      ? 'bg-gray-100 text-gray-600'
+                      ? 'bg-bg-secondary text-text-muted'
                       : 'bg-bg-tertiary text-text-primary'
                   } max-w-[70%]`}
                   >
@@ -581,7 +581,12 @@ function Chat({ selectedAgentId }) {
                     ) : message.message_type === 'status' ? (
                       <p className="text-xs leading-relaxed font-sans-sc font-medium italic flex items-center">
                         <span className="mr-2">{message.message}</span>
-                        <span className="inline-block w-4 h-4 border-t-2 border-gray-500 rounded-full animate-spin"></span>
+                        <span className="inline-block w-4 h-4">
+                          <svg className="animate-spin h-4 w-4 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        </span>
                       </p>
                     ) : (
                       <ReactMarkdown className="text-sm leading-relaxed font-sans-sc font-normal markdown-content">
