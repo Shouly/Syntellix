@@ -175,6 +175,9 @@ class ChatService:
         # 保存用户消息
         ChatService._save_user_message(conversation_id, user_id, agent_id, message)
 
+        # 发送状态更新，表明正在检索文档
+        yield json.dumps({"status": "retrieving_documents"})
+
         # 检索相关文档
         filtered_nodes, context_str = RAGService.retrieve_relevant_documents(
             tenant_id, agent_id, message
@@ -185,6 +188,9 @@ class ChatService:
                 {"chunk": agent.advanced_config.get("empty_response", "I don't know")}
             )
             return
+
+        # 发送状态更新，表明正在生成回答
+        yield json.dumps({"status": "generating_answer"})
 
         # 获取对话历史
         conversation_history = ChatService.get_conversation_histories(conversation_id)

@@ -160,13 +160,33 @@ function Chat({ selectedAgentId }) {
           signal: abortControllerRef.current.signal,
           onmessage(event) {
             const data = JSON.parse(event.data);
-            if (data.chunk) {
+            if (data.status === "retrieving_documents") {
+              setConversationMessages(prevMessages => [
+                ...prevMessages,
+                { message: "正在检索知识库文档", message_type: 'status' }
+              ]);
+            } else if (data.status === "generating_answer") {
+              setConversationMessages(prevMessages => {
+                const updatedMessages = [...prevMessages];
+                const lastMessage = updatedMessages[updatedMessages.length - 1];
+                if (lastMessage.message_type === 'status') {
+                  lastMessage.message = "正在生成回答";
+                } else {
+                  updatedMessages.push({ message: "正在生成回答", message_type: 'status' });
+                }
+                return updatedMessages;
+              });
+            } else if (data.chunk) {
               setConversationMessages(prevMessages => {
                 const updatedMessages = [...prevMessages];
                 const lastMessage = updatedMessages[updatedMessages.length - 1];
                 if (lastMessage.message_type === 'agent') {
                   lastMessage.message += data.chunk;
                 } else {
+                  // 移除之前的状态消息
+                  while (updatedMessages.length > 0 && updatedMessages[updatedMessages.length - 1].message_type === 'status') {
+                    updatedMessages.pop();
+                  }
                   updatedMessages.push({ message: data.chunk, message_type: 'agent' });
                 }
                 return updatedMessages;
@@ -527,7 +547,7 @@ function Chat({ selectedAgentId }) {
             <div className="flex-1 overflow-y-auto px-6 py-6 pb-24" ref={chatContainerRef}>
               {conversationMessages.map((message, index) => (
                 <div key={index} className={`mb-4 flex ${message.message_type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  {message.message_type === 'agent' && (
+                  {(message.message_type === 'agent' || message.message_type === 'status') && (
                     <div className="mr-2">
                       <AgentAvatar
                         avatarData={chatDetails?.agent_info?.avatar}
@@ -536,14 +556,22 @@ function Chat({ selectedAgentId }) {
                       />
                     </div>
                   )}
-                  <div className={`inline-block p-3 rounded-xl ${message.message_type === 'user'
-                    ? 'bg-primary text-white'
-                    : 'bg-bg-tertiary text-text-primary'
-                    } max-w-[70%]`}
+                  <div className={`inline-block p-3 rounded-xl ${
+                    message.message_type === 'user'
+                      ? 'bg-primary text-white'
+                      : message.message_type === 'status'
+                      ? 'bg-gray-100 text-gray-600'
+                      : 'bg-bg-tertiary text-text-primary'
+                  } max-w-[70%]`}
                   >
                     {message.message_type === 'user' ? (
                       <p className="text-sm leading-relaxed font-sans-sc font-medium">
                         {message.message}
+                      </p>
+                    ) : message.message_type === 'status' ? (
+                      <p className="text-xs leading-relaxed font-sans-sc font-medium italic flex items-center">
+                        <span className="mr-2">{message.message}</span>
+                        <span className="inline-block w-4 h-4 border-t-2 border-gray-500 rounded-full animate-spin"></span>
                       </p>
                     ) : (
                       <ReactMarkdown className="text-sm leading-relaxed font-sans-sc font-normal markdown-content">
@@ -558,24 +586,6 @@ function Chat({ selectedAgentId }) {
                   )}
                 </div>
               ))}
-              {isWaitingForResponse && (
-                <div className="flex justify-start mb-4">
-                  <div className="mr-2">
-                    <AgentAvatar
-                      avatarData={chatDetails?.agent_info?.avatar}
-                      agentName={chatDetails?.agent_info?.name || '智能助手'}
-                      size="xs"
-                    />
-                  </div>
-                  <div className="bg-bg-tertiary text-text-primary p-3 rounded-xl">
-                    <div className="flex items-center space-x-1">
-                      <div className="w-1 h-3 bg-primary animate-[wave_1s_ease-in-out_infinite]"></div>
-                      <div className="w-1 h-3 bg-primary animate-[wave_1s_ease-in-out_infinite_0.1s]"></div>
-                      <div className="w-1 h-3 bg-primary animate-[wave_1s_ease-in-out_infinite_0.2s]"></div>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Chat input */}
