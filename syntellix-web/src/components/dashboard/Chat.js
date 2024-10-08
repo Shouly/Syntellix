@@ -570,7 +570,7 @@ function Chat({ selectedAgentId }) {
                     message.message_type === 'user'
                       ? 'bg-primary text-white'
                       : message.message_type === 'status'
-                      ? 'bg-bg-secondary text-text-muted'
+                      ? 'bg-bg-tertiary text-text-secondary'
                       : 'bg-bg-tertiary text-text-primary'
                   } max-w-[70%]`}
                   >
@@ -588,7 +588,7 @@ function Chat({ selectedAgentId }) {
                         </span>
                       </p>
                     ) : (
-                      <ReactMarkdown className="text-sm leading-relaxed font-sans-sc font-normal markdown-content">
+                      <ReactMarkdown className="markdown-content">
                         {message.message}
                       </ReactMarkdown>
                     )}
