@@ -45,6 +45,8 @@ function Chat({ selectedAgentId }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isChangingConversation, setIsChangingConversation] = useState(false);
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
 
   const fetchChatDetails = useCallback(async (agentId = null) => {
     setIsAgentInfoLoading(true);
@@ -125,31 +127,44 @@ function Chat({ selectedAgentId }) {
   const loadMoreMessages = useCallback(() => {
     if (hasMore && currentConversationId && !isLoadingMore) {
       setIsLoadingMore(true);
+      const currentScrollHeight = chatContainerRef.current.scrollHeight;
       fetchConversationMessages(currentConversationId, currentPage + 1)
+        .then(() => {
+          // After loading more messages, adjust scroll position
+          setTimeout(() => {
+            const newScrollHeight = chatContainerRef.current.scrollHeight;
+            const heightDifference = newScrollHeight - currentScrollHeight;
+            chatContainerRef.current.scrollTop = heightDifference;
+          }, 0);
+        })
         .finally(() => setIsLoadingMore(false));
     }
   }, [hasMore, currentConversationId, currentPage, fetchConversationMessages, isLoadingMore]);
 
   const handleScroll = useCallback(() => {
     if (chatContainerRef.current) {
-      const { scrollTop } = chatContainerRef.current;
+      const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+      setScrollPosition(scrollTop);
       if (scrollTop === 0 && hasMore) {
         loadMoreMessages();
       }
     }
   }, [loadMoreMessages, hasMore]);
 
-  // 新增：滚动到底部的函数
+  // Modify the scrollToBottom function
   const scrollToBottom = useCallback(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   }, []);
 
-  // 新增：当消息更新时滚动到底部
+  // Update the useEffect for scrolling
   useEffect(() => {
-    scrollToBottom();
-  }, [conversationMessages, scrollToBottom]);
+    if (isChangingConversation || shouldScrollToBottom) {
+      scrollToBottom();
+      setShouldScrollToBottom(false);
+    }
+  }, [conversationMessages, isChangingConversation, shouldScrollToBottom, scrollToBottom]);
 
   const handleSendMessage = async () => {
     if (inputMessage.trim() !== '' && !isSubmitting) {
@@ -165,6 +180,7 @@ function Chat({ selectedAgentId }) {
         });
         setInputMessage('');
         setIsWaitingForResponse(true);
+        setShouldScrollToBottom(true);  // Set flag to scroll to bottom after sending message
 
         // Create new AbortController
         abortControllerRef.current = new AbortController();
@@ -236,14 +252,14 @@ function Chat({ selectedAgentId }) {
                 }
                 return updatedMessages;
               });
-              // Scroll to bottom after each chunk
-              scrollToBottom();
+              setShouldScrollToBottom(true);  // Set flag to scroll to bottom after receiving new chunk
             } else if (data.error) {
               console.error('Error:', data.error);
               showToast(data.error, 'error');
             } else if (data.done) {
               setIsWaitingForResponse(false);
               setIsSubmitting(false);
+              setShouldScrollToBottom(true);  // Set flag to scroll to bottom when response is complete
             }
           },
           onclose() {
