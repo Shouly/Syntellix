@@ -1,4 +1,4 @@
-import { ClockIcon, PaperAirplaneIcon, PlusIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import { ClockIcon, PaperAirplaneIcon, PlusIcon, UserCircleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { ChatBubbleLeftRightIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import axios from 'axios';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -44,6 +44,7 @@ function Chat({ selectedAgentId }) {
   const abortControllerRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isChangingConversation, setIsChangingConversation] = useState(false);
 
   const fetchChatDetails = useCallback(async (agentId = null) => {
     setIsAgentInfoLoading(true);
@@ -77,8 +78,12 @@ function Chat({ selectedAgentId }) {
 
   const fetchConversationMessages = useCallback(async (conversationId, page = 1, perPage = 4) => {
     if (isLoadingMore && page !== 1) return;
-    setIsLoadingMore(true);
-    setIsChatMessagesLoading(true); // Add this line
+    if (page === 1) {
+      setIsChangingConversation(true);
+    } else {
+      setIsLoadingMore(true);
+    }
+    setIsChatMessagesLoading(true);
     try {
       const response = await axios.get(`/console/api/chat/conversation/${conversationId}/messages`, {
         params: { page, per_page: perPage }
@@ -97,7 +102,8 @@ function Chat({ selectedAgentId }) {
       showToast('消息获取失败', 'error');
     } finally {
       setIsLoadingMore(false);
-      setIsChatMessagesLoading(false); // Add this line
+      setIsChatMessagesLoading(false);
+      setIsChangingConversation(false);
     }
   }, [showToast]);
 
@@ -118,7 +124,9 @@ function Chat({ selectedAgentId }) {
 
   const loadMoreMessages = useCallback(() => {
     if (hasMore && currentConversationId && !isLoadingMore) {
-      fetchConversationMessages(currentConversationId, currentPage + 1);
+      setIsLoadingMore(true);
+      fetchConversationMessages(currentConversationId, currentPage + 1)
+        .finally(() => setIsLoadingMore(false));
     }
   }, [hasMore, currentConversationId, currentPage, fetchConversationMessages, isLoadingMore]);
 
@@ -537,6 +545,7 @@ function Chat({ selectedAgentId }) {
                           isActive={chat.id === currentConversationId}
                           onClick={() => {
                             setCurrentConversationId(chat.id);
+                            setIsChangingConversation(true);
                             fetchConversationMessages(chat.id);
                           }}
                           onRename={(newName) => handleRenameConversation(chat.id, newName)}
@@ -565,7 +574,7 @@ function Chat({ selectedAgentId }) {
 
       {/* Main chat area */}
       <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden rounded-lg shadow-sm relative">
-        {isChatMessagesLoading ? (
+        {(isChatMessagesLoading || isChangingConversation) && !isLoadingMore ? (
           <ChatAreaSkeleton />
         ) : currentConversationId ? (
           <>
@@ -584,6 +593,14 @@ function Chat({ selectedAgentId }) {
               ref={chatContainerRef} 
               onScroll={handleScroll}
             >
+              {isLoadingMore && (
+                <div className="flex justify-center items-center py-3">
+                  <div className="bg-bg-secondary rounded-full px-4 py-2 flex items-center shadow-sm">
+                    <ArrowPathIcon className="w-4 h-4 text-primary animate-spin mr-2" />
+                    <span className="text-xs text-text-secondary font-medium">加载更多历史消息...</span>
+                  </div>
+                </div>
+              )}
               {conversationMessages.map((message, index) => (
                 <div key={index} className={`mb-4 flex ${message.message_type === 'user' ? 'justify-end' : 'justify-start'}`}>
                   {(message.message_type === 'agent' || message.message_type === 'status') && (
