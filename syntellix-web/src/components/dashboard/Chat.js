@@ -47,15 +47,7 @@ function Chat({ selectedAgentId }) {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  useEffect(() => {
-    if (selectedAgentId) {
-      fetchChatDetails(selectedAgentId);
-    } else {
-      fetchChatDetails();
-    }
-  }, [selectedAgentId]);
-
-  const fetchChatDetails = async (agentId = null) => {
+  const fetchChatDetails = useCallback(async (agentId = null) => {
     setIsAgentInfoLoading(true);
     setError(null);
     try {
@@ -67,9 +59,6 @@ function Chat({ selectedAgentId }) {
       if (response.data.latest_conversation_id) {
         setCurrentConversationId(response.data.latest_conversation_id);
       }
-      if (response.data.agent_id) {
-        fetchConversationHistory(response.data.agent_id);
-      }
       setIsAgentInfoLoading(false);
     } catch (error) {
       console.error('Failed to fetch chat details:', error);
@@ -78,7 +67,15 @@ function Chat({ selectedAgentId }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
+
+  useEffect(() => {
+    if (selectedAgentId) {
+      fetchChatDetails(selectedAgentId);
+    } else {
+      fetchChatDetails();
+    }
+  }, [selectedAgentId, fetchChatDetails]);
 
   const fetchConversationMessages = useCallback(async (conversationId, page = 1, perPage = 7) => {
     if (isLoadingMore) return;
