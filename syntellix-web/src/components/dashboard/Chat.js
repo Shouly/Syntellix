@@ -14,6 +14,7 @@ import KnowledgeBaseDetail from './KnowledgeBaseDetail';
 import NewChatPrompt from './NewChatPrompt';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import { API_BASE_URL } from '../../config';
+import InfiniteScroll from 'react-infinite-scroll-component';
 
 function Chat({ selectedAgentId }) {
   const [chatDetails, setChatDetails] = useState(null);
@@ -26,7 +27,7 @@ function Chat({ selectedAgentId }) {
   const [selectedKnowledgeBaseId, setSelectedKnowledgeBaseId] = useState(null);
   const [conversationMessages, setConversationMessages] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const [hasMore, setHasMore] = useState(true);
   const [conversationHistory, setConversationHistory] = useState([]);
   const [conversationPage, setConversationPage] = useState(1);
   const [hasMoreConversations, setHasMoreConversations] = useState(true);
@@ -43,6 +44,8 @@ function Chat({ selectedAgentId }) {
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   const abortControllerRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
     if (selectedAgentId) {
@@ -63,7 +66,6 @@ function Chat({ selectedAgentId }) {
       setChatDetails(response.data);
       if (response.data.latest_conversation_id) {
         setCurrentConversationId(response.data.latest_conversation_id);
-        fetchConversationMessages(response.data.latest_conversation_id);
       }
       if (response.data.agent_id) {
         fetchConversationHistory(response.data.agent_id);
@@ -79,35 +81,37 @@ function Chat({ selectedAgentId }) {
   };
 
   const fetchConversationMessages = useCallback(async (conversationId, page = 1, perPage = 7) => {
-    if (conversationId === currentConversationId && isMessagesLoaded) {
-      return; // 如果消息已加载，则不重复加
-    }
+    if (isLoadingMore) return;
+    setIsLoadingMore(true);
     setIsChatMessagesLoading(true);
     try {
       const response = await axios.get(`/console/api/chat/conversation/${conversationId}/messages`, {
         params: { page, per_page: perPage }
       });
       if (page === 1) {
-        setConversationMessages(response.data.messages);
+        setConversationMessages(response.data.messages.reverse());
         setConversationName(response.data.conversation.name);
       } else {
-        setConversationMessages(prevMessages => [...prevMessages, ...response.data.messages]);
+        setConversationMessages(prevMessages => [...response.data.messages.reverse(), ...prevMessages]);
       }
-      setHasMoreMessages(response.data.messages.length === perPage);
+      setHasMore(response.data.has_more);
       setCurrentPage(page);
       setIsChatMessagesLoading(false);
       setIsMessagesLoaded(true);
+      setIsInitialLoad(false);
     } catch (error) {
       console.error('Failed to fetch conversation messages:', error);
       showToast('消息获取失败', 'error');
+    } finally {
+      setIsLoadingMore(false);
     }
-  }, [showToast, currentConversationId, isMessagesLoaded]);
+  }, [showToast, isLoadingMore]);
 
-  const loadMoreMessages = () => {
-    if (chatDetails?.latest_conversation && hasMoreMessages) {
-      fetchConversationMessages(chatDetails.latest_conversation.id, currentPage + 1);
+  const loadMoreMessages = useCallback(() => {
+    if (hasMore && currentConversationId && !isLoadingMore && !isInitialLoad) {
+      fetchConversationMessages(currentConversationId, currentPage + 1);
     }
-  };
+  }, [hasMore, currentConversationId, currentPage, fetchConversationMessages, isLoadingMore, isInitialLoad]);
 
   useEffect(() => {
     if (currentConversationId && !isMessagesLoaded) {
@@ -115,7 +119,7 @@ function Chat({ selectedAgentId }) {
     }
   }, [currentConversationId, fetchConversationMessages, isMessagesLoaded]);
 
-  // 新增：滚动到底部的数
+  // 新增：滚动到底部的函数
   const scrollToBottom = useCallback(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
@@ -565,52 +569,63 @@ function Chat({ selectedAgentId }) {
               />
             </div>
 
-            <div className="flex-1 overflow-y-auto px-6 py-6 pb-24 bg-bg-primary" ref={chatContainerRef}>
-              {conversationMessages.map((message, index) => (
-                <div key={index} className={`mb-4 flex ${message.message_type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  {(message.message_type === 'agent' || message.message_type === 'status') && (
-                    <div className="mr-2">
-                      <AgentAvatar
-                        avatarData={chatDetails?.agent_info?.avatar}
-                        agentName={chatDetails?.agent_info?.name || '智能助手'}
-                        size="xs"
-                      />
+            <div className="flex-1 overflow-y-auto px-6 py-6 pb-24 bg-bg-primary" ref={chatContainerRef} id="chatContainerRef">
+              <InfiniteScroll
+                dataLength={conversationMessages.length}
+                next={loadMoreMessages}
+                hasMore={hasMore && !isInitialLoad}
+                loader={<h4>加载中...</h4>}
+                scrollableTarget="chatContainerRef"
+                inverse={true}
+                style={{ display: 'flex', flexDirection: 'column-reverse' }}
+                scrollThreshold="200px"
+              >
+                {conversationMessages.map((message, index) => (
+                  <div key={index} className={`mb-4 flex ${message.message_type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    {(message.message_type === 'agent' || message.message_type === 'status') && (
+                      <div className="mr-2">
+                        <AgentAvatar
+                          avatarData={chatDetails?.agent_info?.avatar}
+                          agentName={chatDetails?.agent_info?.name || '智能助手'}
+                          size="xs"
+                        />
+                      </div>
+                    )}
+                    <div className={`inline-block p-3 rounded-xl ${
+                      message.message_type === 'user'
+                        ? 'bg-primary text-white'
+                        : message.message_type === 'status'
+                        ? 'bg-bg-tertiary text-text-secondary'
+                        : 'bg-bg-tertiary text-text-primary'
+                    } max-w-[70%]`}
+                    >
+                      {message.message_type === 'user' ? (
+                        <p className="text-sm leading-relaxed font-sans-sc font-medium">
+                          {message.message}
+                        </p>
+                      ) : message.message_type === 'status' ? (
+                        <p className="text-xs leading-relaxed font-sans-sc font-medium italic flex items-center">
+                          <span className="mr-1">{message.message}</span>
+                          <span className="inline-flex">
+                            <span className="animate-ellipsis">.</span>
+                            <span className="animate-ellipsis" style={{ animationDelay: '0.2s' }}>.</span>
+                            <span className="animate-ellipsis" style={{ animationDelay: '0.4s' }}>.</span>
+                          </span>
+                        </p>
+                      ) : (
+                        <ReactMarkdown className="markdown-content">
+                          {message.message}
+                        </ReactMarkdown>
+                      )}
                     </div>
-                  )}
-                  <div className={`inline-block p-3 rounded-xl ${
-                    message.message_type === 'user'
-                      ? 'bg-primary text-white'
-                      : message.message_type === 'status'
-                      ? 'bg-bg-tertiary text-text-secondary'
-                      : 'bg-bg-tertiary text-text-primary'
-                  } max-w-[70%]`}
-                  >
-                    {message.message_type === 'user' ? (
-                      <p className="text-sm leading-relaxed font-sans-sc font-medium">
-                        {message.message}
-                      </p>
-                    ) : message.message_type === 'status' ? (
-                      <p className="text-xs leading-relaxed font-sans-sc font-medium italic flex items-center">
-                        <span className="mr-1">{message.message}</span>
-                        <span className="inline-flex">
-                          <span className="animate-ellipsis">.</span>
-                          <span className="animate-ellipsis" style={{ animationDelay: '0.2s' }}>.</span>
-                          <span className="animate-ellipsis" style={{ animationDelay: '0.4s' }}>.</span>
-                        </span>
-                      </p>
-                    ) : (
-                      <ReactMarkdown className="markdown-content">
-                        {message.message}
-                      </ReactMarkdown>
+                    {message.message_type === 'user' && (
+                      <div className="w-8 h-8 ml-2">
+                        <UserCircleIcon className="w-full h-full text-primary" />
+                      </div>
                     )}
                   </div>
-                  {message.message_type === 'user' && (
-                    <div className="w-8 h-8 ml-2">
-                      <UserCircleIcon className="w-full h-full text-primary" />
-                    </div>
-                  )}
-                </div>
-              ))}
+                ))}
+              </InfiniteScroll>
             </div>
 
             {/* Chat input */}

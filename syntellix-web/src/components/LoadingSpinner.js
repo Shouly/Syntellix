@@ -9,9 +9,9 @@ function LoadingSpinner() {
           {'Syntellix'.split('').map((letter, index) => (
             <span
               key={index}
-              className="inline-block"
+              className="inline-block animate-opacity-change"
               style={{
-                animation: `opacityChange 2s infinite ${index * 0.1}s`,
+                animationDelay: `${index * 0.1}s`,
               }}
             >
               {letter}
@@ -21,25 +21,12 @@ function LoadingSpinner() {
         
         {/* Animated underline */}
         <div
-          className="absolute bottom-0 left-0 h-0.5 bg-white"
+          className="absolute bottom-0 left-0 h-0.5 bg-white animate-expand"
           style={{
-            animation: 'expand 2s infinite',
             transformOrigin: 'left',
           }}
         ></div>
       </div>
-
-      {/* Styles for animations */}
-      <style jsx>{`
-        @keyframes opacityChange {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-        @keyframes expand {
-          0%, 100% { width: 0; }
-          50% { width: 100%; }
-        }
-      `}</style>
     </div>
   );
 }

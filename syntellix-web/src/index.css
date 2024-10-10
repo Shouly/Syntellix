@@ -41,7 +41,8 @@ code {
 
 .markdown-content ol {
   list-style-type: decimal;
-  list-style-position: inside;
+  list-style-position: outside;
+  padding-left: 1.5em;
   margin-bottom: 1rem;
 }
 

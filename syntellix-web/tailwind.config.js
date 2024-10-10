@@ -62,6 +62,8 @@ module.exports = {
       },
       animation: {
         wave: 'wave 1.5s ease-in-out infinite',
+        'opacity-change': 'opacityChange 2s infinite',
+        'expand': 'expand 2s infinite',
       },
       keyframes: {
         wave: {
@@ -72,7 +74,15 @@ module.exports = {
           '0%': { opacity: 0 },
           '50%': { opacity: 1 },
           '100%': { opacity: 0 },
-        }
+        },
+        opacityChange: {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.5' },
+        },
+        expand: {
+          '0%, 100%': { width: '0' },
+          '50%': { width: '100%' },
+        },
       }
     }
   },

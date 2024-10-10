@@ -143,7 +143,7 @@ class ChatConversationMessageApi(Resource):
         if result is None:
             return {"error": "Conversation not found"}, 404
 
-        conversation, messages = result
+        conversation, messages, has_more = result
 
         return {
             "conversation": {
@@ -167,6 +167,7 @@ class ChatConversationMessageApi(Resource):
                 }
                 for msg in messages
             ],
+            "has_more": has_more,
         }, 200
 
 

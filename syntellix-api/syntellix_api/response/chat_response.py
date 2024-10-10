@@ -43,6 +43,7 @@ conversation_with_messages_fields = {
         "created_at": fields.DateTime,
         "updated_at": fields.DateTime,
     })),
+    "has_more": fields.Boolean,
 }
 
 agent_chat_details_fields = {

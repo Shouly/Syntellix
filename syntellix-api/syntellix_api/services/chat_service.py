@@ -117,18 +117,10 @@ class ChatService:
 
         messages.reverse()
 
-        if page > 1 and len(messages) < per_page:
-            additional_messages = (
-                ConversationMessage.query.filter_by(conversation_id=conversation_id)
-                .order_by(ConversationMessage.created_at.desc())
-                .offset(0)
-                .limit(per_page - len(messages))
-                .all()
-            )
-            additional_messages.reverse()
-            messages = additional_messages + messages
+        total_messages = ConversationMessage.query.filter_by(conversation_id=conversation_id).count()
+        has_more = total_messages > offset + len(messages)
 
-        return conversation, messages
+        return conversation, messages, has_more
 
     @staticmethod
     def get_all_pinned_conversations(user_id: int, agent_id: int):
