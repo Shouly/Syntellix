@@ -78,10 +78,11 @@ function Chat({ selectedAgentId }) {
     }
   }, [selectedAgentId, fetchChatDetails]);
 
-  const fetchConversationMessages = useCallback(async (conversationId, page = 1, perPage = 4) => {
+  const fetchConversationMessages = useCallback(async (conversationId, page = 1, perPage = 8) => {
     if (isLoadingMore && page !== 1) return;
     if (page === 1) {
       setIsChangingConversation(true);
+      setShouldScrollToBottom(true);
     } else {
       setIsLoadingMore(true);
     }
@@ -160,18 +161,17 @@ function Chat({ selectedAgentId }) {
 
   // Update the useEffect for scrolling
   useEffect(() => {
-    if (isChangingConversation || shouldScrollToBottom) {
+    if (shouldScrollToBottom && !isChatMessagesLoading) {
       scrollToBottom();
       setShouldScrollToBottom(false);
     }
-  }, [conversationMessages, isChangingConversation, shouldScrollToBottom, scrollToBottom]);
+  }, [shouldScrollToBottom, isChatMessagesLoading, scrollToBottom]);
 
   const handleSendMessage = async () => {
     if (inputMessage.trim() !== '' && !isSubmitting) {
       try {
         setIsSubmitting(true);
         setConversationMessages(prevMessages => {
-          // Check if prevMessages is an array, if not, initialize it
           const messages = Array.isArray(prevMessages) ? prevMessages : [];
           return [
             ...messages,
@@ -212,6 +212,7 @@ function Chat({ selectedAgentId }) {
                   { message: "正在检索知识库文档", message_type: 'status' }
                 ];
               });
+              setShouldScrollToBottom(true);  // Set flag to scroll to bottom after status update
             } else if (data.status === "retrieving_documents_done") {
               setConversationMessages(prevMessages => {
                 const messages = Array.isArray(prevMessages) ? prevMessages : [];
@@ -224,6 +225,7 @@ function Chat({ selectedAgentId }) {
                 }
                 return updatedMessages;
               });
+              setShouldScrollToBottom(true);  // Set flag to scroll to bottom after status update
             } else if (data.status === "generating_answer") {
               setConversationMessages(prevMessages => {
                 const messages = Array.isArray(prevMessages) ? prevMessages : [];
@@ -236,6 +238,7 @@ function Chat({ selectedAgentId }) {
                 }
                 return updatedMessages;
               });
+              setShouldScrollToBottom(true);  // Set flag to scroll to bottom after status update
             } else if (data.chunk) {
               setConversationMessages(prevMessages => {
                 const messages = Array.isArray(prevMessages) ? prevMessages : [];
