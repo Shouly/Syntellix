@@ -32,7 +32,7 @@ class RAGService:
         )
 
         rerank_model = RerankModel(model_name=syntellix_config.RERANK_MODEL_NAME)
-        rerank_nodes_scores, _ = rerank_model.similarity(
+        rerank_nodes_scores = rerank_model.similarity_batch(
             message, [node.content for node in nodes]
         )
 

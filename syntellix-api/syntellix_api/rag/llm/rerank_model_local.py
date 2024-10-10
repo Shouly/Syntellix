@@ -36,6 +36,11 @@ class RerankModel:
                 res.extend(scores)
         return np.array(res), token_count
 
+    def similarity_batch(self, query: str, texts: list):
+        self.initialize_model()
+        pairs = [(query, t) for t in texts]
+        return self.model.compute_score(pairs, normalize=True)
+
 
 if __name__ == "__main__":
     model = RerankModel(model_name=syntellix_config.RERANK_MODEL_NAME)
