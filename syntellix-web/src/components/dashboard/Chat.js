@@ -14,7 +14,6 @@ import KnowledgeBaseDetail from './KnowledgeBaseDetail';
 import NewChatPrompt from './NewChatPrompt';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import { API_BASE_URL } from '../../config';
-import InfiniteScroll from 'react-infinite-scroll-component';
 
 function Chat({ selectedAgentId }) {
   const [chatDetails, setChatDetails] = useState(null);
@@ -45,7 +44,6 @@ function Chat({ selectedAgentId }) {
   const abortControllerRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const fetchChatDetails = useCallback(async (agentId = null) => {
     setIsAgentInfoLoading(true);
@@ -77,44 +75,61 @@ function Chat({ selectedAgentId }) {
     }
   }, [selectedAgentId, fetchChatDetails]);
 
-  const fetchConversationMessages = useCallback(async (conversationId, page = 1, perPage = 7) => {
-    if (isLoadingMore) return;
+  const fetchConversationMessages = useCallback(async (conversationId, page = 1, perPage = 4) => {
+    if (isLoadingMore && page !== 1) return;
     setIsLoadingMore(true);
-    setIsChatMessagesLoading(true);
+    setIsChatMessagesLoading(true); // Add this line
     try {
       const response = await axios.get(`/console/api/chat/conversation/${conversationId}/messages`, {
         params: { page, per_page: perPage }
       });
       if (page === 1) {
-        setConversationMessages(response.data.messages.reverse());
+        setConversationMessages(response.data.messages);
         setConversationName(response.data.conversation.name);
       } else {
-        setConversationMessages(prevMessages => [...response.data.messages.reverse(), ...prevMessages]);
+        setConversationMessages(prevMessages => [...response.data.messages, ...prevMessages]);
       }
       setHasMore(response.data.has_more);
       setCurrentPage(page);
-      setIsChatMessagesLoading(false);
       setIsMessagesLoaded(true);
-      setIsInitialLoad(false);
     } catch (error) {
       console.error('Failed to fetch conversation messages:', error);
       showToast('消息获取失败', 'error');
     } finally {
       setIsLoadingMore(false);
+      setIsChatMessagesLoading(false); // Add this line
     }
-  }, [showToast, isLoadingMore]);
-
-  const loadMoreMessages = useCallback(() => {
-    if (hasMore && currentConversationId && !isLoadingMore && !isInitialLoad) {
-      fetchConversationMessages(currentConversationId, currentPage + 1);
-    }
-  }, [hasMore, currentConversationId, currentPage, fetchConversationMessages, isLoadingMore, isInitialLoad]);
+  }, [showToast]);
 
   useEffect(() => {
+    let isMounted = true;
     if (currentConversationId && !isMessagesLoaded) {
-      fetchConversationMessages(currentConversationId);
+      setIsChatMessagesLoading(true);
+      fetchConversationMessages(currentConversationId).finally(() => {
+        if (isMounted) {
+          setIsChatMessagesLoading(false);
+        }
+      });
     }
-  }, [currentConversationId, fetchConversationMessages, isMessagesLoaded]);
+    return () => {
+      isMounted = false;
+    };
+  }, [currentConversationId, isMessagesLoaded, fetchConversationMessages]);
+
+  const loadMoreMessages = useCallback(() => {
+    if (hasMore && currentConversationId && !isLoadingMore) {
+      fetchConversationMessages(currentConversationId, currentPage + 1);
+    }
+  }, [hasMore, currentConversationId, currentPage, fetchConversationMessages, isLoadingMore]);
+
+  const handleScroll = useCallback(() => {
+    if (chatContainerRef.current) {
+      const { scrollTop } = chatContainerRef.current;
+      if (scrollTop === 0 && hasMore) {
+        loadMoreMessages();
+      }
+    }
+  }, [loadMoreMessages, hasMore]);
 
   // 新增：滚动到底部的函数
   const scrollToBottom = useCallback(() => {
@@ -299,16 +314,15 @@ function Chat({ selectedAgentId }) {
     }
 
     setIsConversationListLoading(true);
-    setIsChatMessagesLoading(true);
     try {
       const response = await axios.post('/console/api/chat/conversations', {
         agent_id: chatDetails.agent_info.id,
       });
 
       const newConversation = response.data;
-      setCurrentConversationId(newConversation.id);
       setConversationMessages([]);
       setIsMessagesLoaded(false);
+      setCurrentConversationId(newConversation.id);
 
       // Update only the conversation history
       await fetchConversationHistory(chatDetails.agent_info.id);
@@ -325,7 +339,6 @@ function Chat({ selectedAgentId }) {
       showToast('新会话创建失败', 'error');
     } finally {
       setIsConversationListLoading(false);
-      setIsChatMessagesLoading(false);
     }
   }, [chatDetails, showToast, fetchConversationHistory]);
 
@@ -566,63 +579,56 @@ function Chat({ selectedAgentId }) {
               />
             </div>
 
-            <div className="flex-1 overflow-y-auto px-6 py-6 pb-24 bg-bg-primary" ref={chatContainerRef} id="chatContainerRef">
-              <InfiniteScroll
-                dataLength={conversationMessages.length}
-                next={loadMoreMessages}
-                hasMore={hasMore && !isInitialLoad}
-                loader={<h4>加载中...</h4>}
-                scrollableTarget="chatContainerRef"
-                inverse={true}
-                style={{ display: 'flex', flexDirection: 'column-reverse' }}
-                scrollThreshold="200px"
-              >
-                {conversationMessages.map((message, index) => (
-                  <div key={index} className={`mb-4 flex ${message.message_type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    {(message.message_type === 'agent' || message.message_type === 'status') && (
-                      <div className="mr-2">
-                        <AgentAvatar
-                          avatarData={chatDetails?.agent_info?.avatar}
-                          agentName={chatDetails?.agent_info?.name || '智能助手'}
-                          size="xs"
-                        />
-                      </div>
-                    )}
-                    <div className={`inline-block p-3 rounded-xl ${
-                      message.message_type === 'user'
-                        ? 'bg-primary text-white'
-                        : message.message_type === 'status'
-                        ? 'bg-bg-tertiary text-text-secondary'
-                        : 'bg-bg-tertiary text-text-primary'
-                    } max-w-[70%]`}
-                    >
-                      {message.message_type === 'user' ? (
-                        <p className="text-sm leading-relaxed font-sans-sc font-medium">
-                          {message.message}
-                        </p>
-                      ) : message.message_type === 'status' ? (
-                        <p className="text-xs leading-relaxed font-sans-sc font-medium italic flex items-center">
-                          <span className="mr-1">{message.message}</span>
-                          <span className="inline-flex">
-                            <span className="animate-ellipsis">.</span>
-                            <span className="animate-ellipsis" style={{ animationDelay: '0.2s' }}>.</span>
-                            <span className="animate-ellipsis" style={{ animationDelay: '0.4s' }}>.</span>
-                          </span>
-                        </p>
-                      ) : (
-                        <ReactMarkdown className="markdown-content">
-                          {message.message}
-                        </ReactMarkdown>
-                      )}
+            <div 
+              className="flex-1 overflow-y-auto px-6 py-6 pb-24 bg-bg-primary" 
+              ref={chatContainerRef} 
+              onScroll={handleScroll}
+            >
+              {conversationMessages.map((message, index) => (
+                <div key={index} className={`mb-4 flex ${message.message_type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  {(message.message_type === 'agent' || message.message_type === 'status') && (
+                    <div className="mr-2">
+                      <AgentAvatar
+                        avatarData={chatDetails?.agent_info?.avatar}
+                        agentName={chatDetails?.agent_info?.name || '智能助手'}
+                        size="xs"
+                      />
                     </div>
-                    {message.message_type === 'user' && (
-                      <div className="w-8 h-8 ml-2">
-                        <UserCircleIcon className="w-full h-full text-primary" />
-                      </div>
+                  )}
+                  <div className={`inline-block p-3 rounded-xl ${
+                    message.message_type === 'user'
+                      ? 'bg-primary text-white'
+                      : message.message_type === 'status'
+                      ? 'bg-bg-tertiary text-text-secondary'
+                      : 'bg-bg-tertiary text-text-primary'
+                  } max-w-[70%]`}
+                  >
+                    {message.message_type === 'user' ? (
+                      <p className="text-sm leading-relaxed font-sans-sc font-medium">
+                        {message.message}
+                      </p>
+                    ) : message.message_type === 'status' ? (
+                      <p className="text-xs leading-relaxed font-sans-sc font-medium italic flex items-center">
+                        <span className="mr-1">{message.message}</span>
+                        <span className="inline-flex">
+                          <span className="animate-ellipsis">.</span>
+                          <span className="animate-ellipsis" style={{ animationDelay: '0.2s' }}>.</span>
+                          <span className="animate-ellipsis" style={{ animationDelay: '0.4s' }}>.</span>
+                        </span>
+                      </p>
+                    ) : (
+                      <ReactMarkdown className="markdown-content">
+                        {message.message}
+                      </ReactMarkdown>
                     )}
                   </div>
-                ))}
-              </InfiniteScroll>
+                  {message.message_type === 'user' && (
+                    <div className="w-8 h-8 ml-2">
+                      <UserCircleIcon className="w-full h-full text-primary" />
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
 
             {/* Chat input */}
