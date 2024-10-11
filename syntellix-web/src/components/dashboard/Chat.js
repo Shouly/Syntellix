@@ -492,99 +492,95 @@ function Chat({ selectedAgentId }) {
   return (
     <div className="h-full flex overflow-hidden">
       {/* Left sidebar */}
-      <div className="w-72 flex flex-col bg-bg-secondary overflow-hidden border-r border-bg-tertiary">
+      <div className="w-72 flex flex-col bg-bg-primary overflow-hidden border-r border-bg-tertiary">
         {isAgentInfoLoading ? (
           <AgentInfoSkeleton />
         ) : (
-          <>
-            <div className="flex-shrink-0 bg-bg-primary border-b border-bg-tertiary">
-              <div className="p-4">
-                <div className="flex items-center mb-4 cursor-pointer group">
-                  <div className="mr-3">
-                    <AgentAvatar
-                      avatarData={chatDetails?.agent_info?.avatar}
-                      agentName={chatDetails?.agent_info?.name || '智能助手'}
-                      size="small"
-                    />
-                  </div>
-                  <h1 className="text-base font-semibold text-text-body font-sans-sc truncate">
-                    {chatDetails?.agent_info?.name || '智能助手'}
-                  </h1>
+          <div className="flex flex-col h-full">
+            {/* Agent info and new chat button */}
+            <div className="flex-shrink-0 p-4">
+              <div className="flex items-center mb-4 cursor-pointer group">
+                <div className="mr-3">
+                  <AgentAvatar
+                    avatarData={chatDetails?.agent_info?.avatar}
+                    agentName={chatDetails?.agent_info?.name || '智能助手'}
+                    size="small"
+                  />
                 </div>
-                {/* Agent description */}
-                {chatDetails?.agent_info?.description && (
-                  <p className="text-sm text-text-muted mb-4 line-clamp-3 hover:line-clamp-none transition-all duration-300">
-                    {chatDetails.agent_info.description}
-                  </p>
-                )}
-                {/* Knowledge base names */}
-                {chatDetails?.agent_info?.knowledge_bases?.length > 0 && (
-                  <div className="text-xs text-text-muted bg-bg-tertiary rounded-lg p-3 mb-4">
-                    <h4 className="font-semibold mb-2 text-text-body">关联知识库:</h4>
-                    <ul className="space-y-1">
-                      {chatDetails.agent_info.knowledge_bases.map((kb) => (
-                        <li
-                          key={kb.id}
-                          className="flex items-center cursor-pointer hover:text-primary transition-colors duration-200"
-                          onClick={() => handleKnowledgeBaseClick(kb.id)}
-                        >
-                          <span className="w-2 h-2 bg-primary rounded-full mr-2"></span>
-                          <span className="truncate">{kb.name}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                <button
-                  onClick={handleNewChat}
-                  className="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center transition-colors duration-200 text-sm"
-                >
-                  <PlusIcon className="w-4 h-4 mr-2" />
-                  <span className="font-sans-sc">新对话</span>
-                </button>
+                <h1 className="text-base font-semibold text-text-body font-sans-sc truncate">
+                  {chatDetails?.agent_info?.name || '智能助手'}
+                </h1>
               </div>
+              {chatDetails?.agent_info?.description && (
+                <p className="text-xs text-text-muted mb-4 line-clamp-3 hover:line-clamp-none transition-all duration-300">
+                  {chatDetails.agent_info.description}
+                </p>
+              )}
+              {chatDetails?.agent_info?.knowledge_bases?.length > 0 && (
+                <div className="text-xs text-text-muted bg-bg-tertiary rounded-lg p-3 mb-4">
+                  <h4 className="font-semibold mb-2 text-text-body">关联知识库:</h4>
+                  <ul className="space-y-1">
+                    {chatDetails.agent_info.knowledge_bases.map((kb) => (
+                      <li
+                        key={kb.id}
+                        className="flex items-center cursor-pointer hover:text-primary transition-colors duration-200"
+                        onClick={() => handleKnowledgeBaseClick(kb.id)}
+                      >
+                        <span className="w-2 h-2 bg-primary rounded-full mr-2"></span>
+                        <span className="truncate">{kb.name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <button
+                onClick={handleNewChat}
+                className="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center transition-colors duration-200 text-sm"
+              >
+                <PlusIcon className="w-4 h-4 mr-2" />
+                <span className="font-sans-sc">新对话</span>
+              </button>
             </div>
 
-            <nav className="flex-1 overflow-y-auto bg-bg-secondary">
-              <div className="flex flex-col h-full">
-                <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider p-4 flex items-center">
-                  <ClockIcon className="w-5 h-5 mr-2" />
-                  最近对话
-                </h3>
-                {isConversationListLoading ? (
-                  <ConversationListSkeleton />
-                ) : (
-                  <div className="flex-1 overflow-y-auto">
-                    {conversationHistory.map(chat => (
-                      <SidebarItem
-                        key={chat.id}
-                        text={chat.name}
-                        isActive={chat.id === currentConversationId}
-                        onClick={() => {
-                          setCurrentConversationId(chat.id);
-                          setIsChangingConversation(true);
-                          fetchConversationMessages(chat.id);
-                        }}
-                        onRename={(newName) => handleRenameConversation(chat.id, newName)}
-                        onDelete={() => handleDeleteConversation(chat.id)}
-                      />
-                    ))}
-                    {hasMoreConversations && (
-                      <li
-                        onClick={() => fetchConversationHistory(chatDetails.agent_info.id, conversationHistory[conversationHistory.length - 1]?.id)}
-                        className="py-2 px-4 transition-colors duration-200 cursor-pointer text-primary hover:bg-primary hover:bg-opacity-10 flex items-center justify-center group"
-                      >
-                        <span className="font-sans-sc text-sm font-semibold flex items-center">
-                          <PlusIcon className="w-4 h-4 mr-2" />
-                          加载更多
-                        </span>
-                      </li>
-                    )}
-                  </div>
-                )}
-              </div>
-            </nav>
-          </>
+            {/* Recent conversations */}
+            <div className="flex-1 overflow-hidden flex flex-col mt-4">
+              <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider px-4 mb-2 flex items-center">
+                <ClockIcon className="w-4 h-4 mr-2" />
+                最近对话
+              </h3>
+              {isConversationListLoading ? (
+                <ConversationListSkeleton />
+              ) : (
+                <ul className="flex-1 overflow-y-auto">
+                  {conversationHistory.map(chat => (
+                    <SidebarItem
+                      key={chat.id}
+                      text={chat.name}
+                      isActive={chat.id === currentConversationId}
+                      onClick={() => {
+                        setCurrentConversationId(chat.id);
+                        setIsChangingConversation(true);
+                        fetchConversationMessages(chat.id);
+                      }}
+                      onRename={(newName) => handleRenameConversation(chat.id, newName)}
+                      onDelete={() => handleDeleteConversation(chat.id)}
+                    />
+                  ))}
+                  {hasMoreConversations && (
+                    <li
+                      onClick={() => fetchConversationHistory(chatDetails.agent_info.id, conversationHistory[conversationHistory.length - 1]?.id)}
+                      className="py-2 px-4 transition-colors duration-200 cursor-pointer text-primary hover:bg-primary hover:bg-opacity-10 flex items-center justify-center group"
+                    >
+                      <span className="font-sans-sc text-sm font-semibold flex items-center">
+                        <PlusIcon className="w-4 h-4 mr-2" />
+                        加载更多
+                      </span>
+                    </li>
+                  )}
+                </ul>
+              )}
+            </div>
+          </div>
         )}
       </div>
 
@@ -758,8 +754,10 @@ function SidebarItem({ text, isActive = false, onClick, onRename, onDelete }) {
   return (
     <>
       <li
-        className={`py-2 px-4 transition-colors duration-200 cursor-pointer ${
-          isActive ? 'bg-primary bg-opacity-10 text-primary' : 'text-text-body hover:bg-bg-tertiary'
+        className={`py-2 px-3 mx-2 my-1 transition-all duration-200 cursor-pointer rounded-lg ${
+          isActive 
+            ? 'bg-primary bg-opacity-10 text-primary border-l-3 border-primary' 
+            : 'text-text-body hover:bg-bg-tertiary hover:bg-opacity-50'
         } flex items-center justify-between group`}
         onClick={isEditing ? undefined : onClick}
       >
