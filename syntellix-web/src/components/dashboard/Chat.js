@@ -517,7 +517,7 @@ function Chat({ selectedAgentId }) {
                 </p>
               )}
               {chatDetails?.agent_info?.knowledge_bases?.length > 0 && (
-                <div className="text-xs text-text-muted bg-bg-tertiary rounded-lg p-3 mb-4">
+                <div className="text-xs text-text-muted bg-bg-tertiary rounded-lg p-3 mb-4 ">
                   <h4 className="font-semibold mb-2 text-text-body">关联知识库:</h4>
                   <ul className="space-y-1">
                     {chatDetails.agent_info.knowledge_bases.map((kb) => (
@@ -551,23 +551,25 @@ function Chat({ selectedAgentId }) {
               {isConversationListLoading ? (
                 <ConversationListSkeleton />
               ) : (
-                <ul className="flex-1 overflow-y-auto p-2">
-                  {conversationHistory.map(chat => (
-                    <SidebarItem
-                      key={chat.id}
-                      text={chat.name}
-                      isActive={chat.id === currentConversationId}
-                      onClick={() => {
-                        setCurrentConversationId(chat.id);
-                        setIsChangingConversation(true);
-                        fetchConversationMessages(chat.id);
-                      }}
-                      onRename={(newName) => handleRenameConversation(chat.id, newName)}
-                      onDelete={() => handleDeleteConversation(chat.id)}
-                    />
-                  ))}
+                <div className="flex-1 overflow-y-auto">
+                  <ul className="p-2">
+                    {conversationHistory.map(chat => (
+                      <SidebarItem
+                        key={chat.id}
+                        text={chat.name}
+                        isActive={chat.id === currentConversationId}
+                        onClick={() => {
+                          setCurrentConversationId(chat.id);
+                          setIsChangingConversation(true);
+                          fetchConversationMessages(chat.id);
+                        }}
+                        onRename={(newName) => handleRenameConversation(chat.id, newName)}
+                        onDelete={() => handleDeleteConversation(chat.id)}
+                      />
+                    ))}
+                  </ul>
                   {hasMoreConversations && (
-                    <li
+                    <div
                       onClick={() => fetchConversationHistory(chatDetails.agent_info.id, conversationHistory[conversationHistory.length - 1]?.id)}
                       className="py-2 px-4 transition-colors duration-200 cursor-pointer text-primary hover:bg-primary hover:bg-opacity-10 flex items-center justify-center group"
                     >
@@ -575,9 +577,9 @@ function Chat({ selectedAgentId }) {
                         <PlusIcon className="w-4 h-4 mr-2" />
                         加载更多
                       </span>
-                    </li>
+                    </div>
                   )}
-                </ul>
+                </div>
               )}
             </div>
           </div>
