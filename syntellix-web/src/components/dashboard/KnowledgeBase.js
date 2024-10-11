@@ -1,4 +1,4 @@
-import { ChevronDownIcon, Cog6ToothIcon, ExclamationCircleIcon, FunnelIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { ChevronDownIcon, Cog6ToothIcon, ExclamationCircleIcon, FunnelIcon } from '@heroicons/react/24/outline';
 import { BookOpenIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
 import axios from 'axios';
 import { formatDistanceToNow } from 'date-fns';
@@ -93,17 +93,6 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
       </select>
       <FunnelIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-primary" />
       <ChevronDownIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-primary pointer-events-none" />
-    </div>
-  );
-
-  const SearchBox = () => (
-    <div className="relative">
-      <input
-        type="text"
-        placeholder="搜索..."
-        className="pl-10 pr-4 py-2 text-sm rounded-md bg-bg-primary border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 w-48 font-noto-sans-sc text-text-body"
-      />
-      <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-primary" />
     </div>
   );
 
@@ -250,21 +239,20 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
   };
 
   return (
-    <div className="bg-bg-secondary min-h-screen p-3 space-y-6">
+    <div className="h-full flex flex-col px-6">
       {/* Header */}
-      <header className="bg-bg-primary rounded-xl shadow-sm p-4 flex items-center justify-between">
+      <header className="flex items-center justify-between pt-4">
         <div className="flex items-end space-x-4">
           <h2 className="text-lg font-bold text-primary font-noto-sans-sc">知识库</h2>
         </div>
         <div className="flex items-center space-x-4">
           <TagSelector tags={tags} selectedTag={selectedTag} setSelectedTag={setSelectedTag} />
-          <SearchBox />
         </div>
       </header>
 
       {/* Content */}
-      <div className="bg-bg-primary rounded-xl shadow-sm p-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="flex-1 overflow-auto py-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {renderContent()}
         </div>
       </div>
