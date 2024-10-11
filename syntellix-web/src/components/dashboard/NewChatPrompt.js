@@ -5,13 +5,13 @@ import AgentAvatar from '../AgentAvatar';
 
 // Add this new component at the top of the file
 const AgentSkeleton = () => (
-    <div className="bg-bg-primary rounded-lg p-3 shadow-sm border border-secondary w-full animate-pulse">
+    <div className="bg-bg-secondary rounded-md p-2.5 shadow-sm border border-bg-tertiary w-full animate-pulse">
         <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-secondary rounded-full"></div>
+            <div className="w-8 h-8 bg-bg-tertiary rounded-full"></div>
             <div className="flex-grow">
-                <div className="h-4 bg-secondary rounded w-3/4"></div>
+                <div className="h-4 bg-bg-tertiary rounded w-3/4"></div>
             </div>
-            <div className="w-4 h-4 bg-secondary rounded"></div>
+            <div className="w-4 h-4 bg-bg-tertiary rounded"></div>
         </div>
     </div>
 );
@@ -58,43 +58,42 @@ function NewChatPrompt({ onSelectAgent, setLoading }) {
         <div
             key={agent.id}
             onClick={() => handleAgentSelect(agent.id)}
-            className="bg-bg-primary hover:bg-bg-secondary rounded-lg p-3 cursor-pointer transition-all duration-200 flex items-center space-x-2 group shadow-sm hover:shadow-md border border-secondary w-full"
+            className="bg-bg-secondary hover:bg-bg-tertiary rounded-md p-2.5 cursor-pointer transition-all duration-200 flex items-center space-x-2 group border border-bg-tertiary hover:border-primary"
         >
             <AgentAvatar avatarData={agent.avatar} agentName={agent.name} size="small" />
             <div className="flex-grow min-w-0">
-                <h3 className="font-semibold text-sm text-text-body group-hover:text-primary transition-colors duration-200 truncate">{agent.name}</h3>
+                <h3 className="font-medium text-sm text-text-body group-hover:text-primary transition-colors duration-200 truncate">{agent.name}</h3>
             </div>
             <ChevronRightIcon className="w-4 h-4 text-text-muted group-hover:text-primary flex-shrink-0 transition-colors duration-200" />
         </div>
     );
 
     return (
-        <div className="h-full bg-bg-primary p-6 overflow-y-auto rounded-lg">
-            <div className="max-w-5xl mx-auto">
-                <div className="text-center mb-10">
-                    <ChatBubbleLeftRightIcon className="w-16 h-16 text-primary mx-auto mb-4" />
-                    <h1 className="text-2xl font-semibold mb-2 text-text-body font-sans-sc">开始第一次对话</h1>
-                    <p className="text-xm text-text-muted">请选择一个智能体，点击后开启对话</p>
+        <div className="h-full bg-bg-primary overflow-y-auto">
+            <div className="max-w-5xl mx-auto p-6">
+                <div className="text-center mb-8">
+                    <ChatBubbleLeftRightIcon className="w-12 h-12 text-primary mx-auto mb-3" />
+                    <h1 className="text-xl font-semibold mb-2 text-text-body font-sans-sc">开始第一次对话</h1>
+                    <p className="text-sm text-text-muted">请选择一个智能体，点击后开启对话</p>
                 </div>
 
                 {isLoading ? (
                     <div className="max-w-5xl mx-auto">
-                        <div className="mb-10">
-                            <h2 className="text-lg font-semibold mb-4 text-text-body">推荐智能体</h2>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                {[...Array(5)].map((_, index) => (
+                        <div className="mb-8">
+                            <h2 className="text-base font-semibold mb-3 text-text-body">推荐智能体</h2>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                {[...Array(4)].map((_, index) => (
                                     <AgentSkeleton key={index} />
                                 ))}
                             </div>
                         </div>
                         <div>
-                            <h2 className="text-lg font-semibold mb-4 text-text-body">所有智能体</h2>
-                            <div className="mb-4 relative">
-                                {/* Search input placeholder */}
-                                <div className="w-full h-10 bg-secondary rounded-lg animate-pulse"></div>
+                            <h2 className="text-base font-semibold mb-3 text-text-body">所有智能体</h2>
+                            <div className="mb-3 relative max-w-md">
+                                <div className="w-full h-9 bg-bg-secondary rounded-md animate-pulse"></div>
                             </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                {[...Array(10)].map((_, index) => (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                {[...Array(8)].map((_, index) => (
                                     <AgentSkeleton key={index} />
                                 ))}
                             </div>
@@ -105,27 +104,27 @@ function NewChatPrompt({ onSelectAgent, setLoading }) {
                 ) : (
                     <>
                         {recentAgents.length > 0 && (
-                            <div className="mb-10">
-                                <h2 className="text-lg font-semibold mb-4 text-text-body">推荐智能体</h2>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                    {recentAgents.slice(0, 5).map(renderAgentCard)}
+                            <div className="mb-8">
+                                <h2 className="text-base font-semibold mb-3 text-text-body">推荐智能体</h2>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                    {recentAgents.slice(0, 4).map(renderAgentCard)}
                                 </div>
                             </div>
                         )}
 
                         <div>
-                            <h2 className="text-lg font-semibold mb-4 text-text-body">所有智能体</h2>
-                            <div className="mb-4 relative">
+                            <h2 className="text-base font-semibold mb-3 text-text-body">所有智能体</h2>
+                            <div className="mb-3 relative max-w-md">
                                 <input
                                     type="text"
                                     placeholder="搜索智能体..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-secondary bg-white text-text-primary focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200"
+                                    className="w-full pl-9 pr-3 py-1.5 rounded-md border border-bg-tertiary bg-bg-secondary text-text-primary text-sm focus:outline-none focus:ring-1 focus:ring-primary transition-all duration-200"
                                 />
-                                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-text-muted" />
+                                <MagnifyingGlassIcon className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-muted" />
                             </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                                 {filteredAgents.map(renderAgentCard)}
                             </div>
                         </div>
