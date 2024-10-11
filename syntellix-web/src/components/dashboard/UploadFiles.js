@@ -1,4 +1,5 @@
-import { ArrowLeftIcon, ArrowPathIcon, CheckCircleIcon, CheckIcon, CloudArrowUpIcon, ExclamationCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, CloudArrowUpIcon, ExclamationCircleIcon, TrashIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon, CheckCircleIcon } from '@heroicons/react/24/solid';
 import {
     mdiFile,
     mdiFileDelimited,
@@ -218,19 +219,19 @@ function UploadFiles({ onUploadComplete, onBack, knowledgeBaseId }) {
     };
 
     return (
-        <div className="flex gap-6 h-full p-3">
+        <div className="flex h-full overflow-hidden">
             {/* Left sidebar */}
-            <div className="bg-bg-primary rounded-lg shadow-sm p-6 w-64">
-                <div className="mb-10 mt-5">
-                    <div className="flex items-center mb-10 cursor-pointer group" onClick={onBack}>
+            <div className="w-64 bg-bg-primary p-6 overflow-y-auto border-r border-bg-tertiary">
+                <div className="mb-8">
+                    <div className="flex items-center mb-6 cursor-pointer group" onClick={onBack}>
                         <div className="w-8 h-8 bg-primary bg-opacity-10 rounded-full flex items-center justify-center mr-3 transition-colors duration-200 group-hover:bg-opacity-20">
-                            <ArrowLeftIcon className="w-5 h-5 text-primary transition-colors duration-200 group-hover:text-primary-dark" />
+                            <ArrowLeftIcon className="w-5 h-5 text-primary transition-colors duration-200 group-hover:text-opacity-80" />
                         </div>
-                        <span className="text-base font-semibold text-text-body font-sans-sc truncate">上传文件</span>
+                        <span className="text-base font-semibold text-primary font-sans-sc truncate">上传文件</span>
                     </div>
                 </div>
                 <ol className="space-y-4 relative">
-                    <div className="absolute left-3 top-6 bottom-0 w-0.5 bg-bg-secondary"></div>
+                    <div className="absolute left-3 top-6 bottom-0 w-0.5 bg-bg-tertiary"></div>
                     <StepItem number={1} text="选取文件" active={currentStep === 1} completed={completedSteps.includes(1)} />
                     <StepItem number={2} text="文本切分" active={currentStep === 2} completed={completedSteps.includes(2)} />
                     <StepItem number={3} text="处理完成" active={currentStep === 3} completed={completedSteps.includes(3)} />
@@ -238,93 +239,114 @@ function UploadFiles({ onUploadComplete, onBack, knowledgeBaseId }) {
             </div>
 
             {/* Main content area */}
-            <div className="flex-1 flex flex-col space-y-6 bg-bg-primary rounded-lg shadow-sm p-6">
+            <div className="flex-1 overflow-y-auto bg-bg-primary p-6 px-12">
                 {currentStep === 1 && (
                     <>
                         <div className="space-y-6">
-                            <h3 className="text-lg font-semibold text-text-body font-sans-sc">上传文本文件</h3>
-                        </div>
-                        <div
-                            className={`bg-bg-secondary bg-opacity-50 backdrop-filter backdrop-blur-sm rounded-lg p-8 border-2 border-dashed transition-colors duration-200 cursor-pointer ${
-                                dragActive ? 'border-primary bg-primary bg-opacity-5' : 'border-bg-tertiary hover:border-primary'
-                            }`}
-                            onDragEnter={handleDrag}
-                            onDragLeave={handleDrag}
-                            onDragOver={handleDrag}
-                            onDrop={handleDrop}
-                            onClick={handleClick}
-                        >
-                            <div className="text-center">
-                                <CloudArrowUpIcon className={`w-16 h-16 mx-auto mb-4 ${dragActive ? 'text-primary' : 'text-text-muted'}`} />
-                                <p className="text-sm text-text-body mb-2 font-noto-sans-sc">
-                                    点击或拖拽文件至此区域即可上传
-                                </p>
-                                <p className="text-xs text-text-muted font-noto-sans-sc">
-                                    支持 TXT、MARKDOWN、PDF、HTML、XLSX、XLS、DOCX、CSV、PPT、JSON、EML、IMAGE，每个文件不超过 15MB
-                                </p>
+                            <div className="flex items-center mb-6">
+                                <h3 className="text-lg font-semibold text-text-body font-sans-sc">上传文本文件</h3>
                             </div>
-                        </div>
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleFileInputChange}
-                            style={{ display: 'none' }}
-                            multiple
-                        />
-                        {files.length > 0 && (
-                            <ul className="space-y-2">
-                                {files.map((file, index) => (
-                                    <li
-                                        key={index}
-                                        className={`flex items-center text-sm text-text-body bg-bg-secondary bg-opacity-50 backdrop-blur-sm rounded-lg p-3 shadow-sm transition-colors duration-200 group ${
-                                            file.uploaded ? 'bg-success bg-opacity-10' : (file.name === currentlyUploading ? 'bg-warning bg-opacity-10' : '')
-                                        }`}
-                                    >
-                                        {getFileIcon(file.name)}
-                                        <div className="flex-1 ml-3 overflow-hidden">
-                                            <div className="flex items-center">
-                                                <span className="font-semibold truncate mr-2">{file.name}</span>
-                                                <span className="text-text-muted text-xs whitespace-nowrap">{file.size}</span>
+                            <p className="text-sm text-text-secondary font-sans-sc -mt-1">
+                                选择您要上传到知识库的文件。
+                            </p>
+
+                            <div
+                                className={`rounded-lg p-8 border-2 border-dashed transition-colors duration-200 cursor-pointer ${
+                                    dragActive ? 'border-primary bg-primary bg-opacity-5' : 'border-bg-secondary hover:border-primary'
+                                }`}
+                                onDragEnter={handleDrag}
+                                onDragLeave={handleDrag}
+                                onDragOver={handleDrag}
+                                onDrop={handleDrop}
+                                onClick={handleClick}
+                            >
+                                <div className="text-center">
+                                    <CloudArrowUpIcon className={`w-16 h-16 mx-auto mb-4 ${dragActive ? 'text-primary' : 'text-text-muted'}`} />
+                                    <p className="text-sm text-text-body mb-2 font-sans-sc">
+                                        点击或拖拽文件至此区域即可上传
+                                    </p>
+                                    <p className="text-xs text-text-muted font-sans-sc">
+                                        支持 TXT、MARKDOWN、PDF、HTML、XLSX、XLS、DOCX、CSV、PPT、JSON、EML、IMAGE，每个文件不超过 15MB
+                                    </p>
+                                </div>
+                            </div>
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleFileInputChange}
+                                style={{ display: 'none' }}
+                                multiple
+                            />
+
+                            {files.length > 0 && (
+                                <ul className="space-y-2">
+                                    {files.map((file, index) => (
+                                        <li
+                                            key={index}
+                                            className="flex items-center text-sm text-text-body bg-bg-secondary bg-opacity-50 backdrop-blur-sm rounded-lg p-3 shadow-sm hover:bg-bg-secondary hover:bg-opacity-70 transition-colors duration-200 group"
+                                        >
+                                            {getFileIcon(file.name)}
+                                            <div className="flex-1 ml-3 overflow-hidden">
+                                                <div className="flex items-center">
+                                                    <span className="font-semibold truncate mr-2">{file.name}</span>
+                                                    <span className="text-text-muted text-xs whitespace-nowrap">{file.size}</span>
+                                                </div>
                                             </div>
-                                        </div>
-                                        {file.uploaded && <CheckCircleIcon className="w-5 h-5 text-success" />}
-                                        {file.name === currentlyUploading && (
-                                            <ArrowPathIcon className="w-5 h-5 text-warning animate-spin" />
-                                        )}
-                                        {deletingFiles[index] ? (
-                                            <ArrowPathIcon className="w-5 h-5 text-danger animate-spin ml-2" />
-                                        ) : (
-                                            <TrashIcon 
-                                                className="w-5 h-5 text-danger cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-200 ml-2" 
-                                                onClick={() => handleDeleteFile(index)}
-                                            />
-                                        )}
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                        {isUploading && (
-                            <div className="w-full bg-bg-secondary rounded-full h-1.5 mt-2">
-                                <div className="h-1.5 rounded-full transition-all duration-500 ease-in-out bg-primary" style={{ width: `${uploadProgress}%` }}></div>
-                            </div>
-                        )}
-                        {errors.length > 0 && (
-                            <div className="bg-danger bg-opacity-10 border border-danger border-opacity-20 rounded-lg p-4 mt-4">
-                                <div className="flex">
-                                    <ExclamationCircleIcon className="h-5 w-5 text-danger" aria-hidden="true" />
-                                    <div className="ml-3">
-                                        <h3 className="text-sm font-medium text-danger">上传出现以下问题：</h3>
-                                        <div className="mt-2 text-sm text-danger text-opacity-90">
-                                            <ul className="list-disc pl-5 space-y-1">
-                                                {errors.map((error, index) => (
-                                                    <li key={index}>{error}</li>
-                                                ))}
-                                            </ul>
+                                            {file.uploaded && <CheckCircleIcon className="w-5 h-5 text-success" />}
+                                            {file.name === currentlyUploading && (
+                                                <ArrowPathIcon className="w-5 h-5 text-warning animate-spin" />
+                                            )}
+                                            {deletingFiles[index] ? (
+                                                <ArrowPathIcon className="w-5 h-5 text-danger animate-spin ml-2" />
+                                            ) : (
+                                                <TrashIcon 
+                                                    className="w-5 h-5 text-danger cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-200 ml-2" 
+                                                    onClick={() => handleDeleteFile(index)}
+                                                />
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+
+                            {isUploading && (
+                                <div className="w-full bg-bg-secondary rounded-full h-1.5 mt-2">
+                                    <div className="h-1.5 rounded-full transition-all duration-500 ease-in-out bg-primary" style={{ width: `${uploadProgress}%` }}></div>
+                                </div>
+                            )}
+
+                            {errors.length > 0 && (
+                                <div className="bg-danger bg-opacity-10 border border-danger border-opacity-20 rounded-lg p-4 mt-4">
+                                    <div className="flex">
+                                        <ExclamationCircleIcon className="h-5 w-5 text-danger" aria-hidden="true" />
+                                        <div className="ml-3">
+                                            <h3 className="text-sm font-medium text-danger">上传出现以下问题：</h3>
+                                            <div className="mt-2 text-sm text-danger text-opacity-90">
+                                                <ul className="list-disc pl-5 space-y-1">
+                                                    {errors.map((error, index) => (
+                                                        <li key={index}>{error}</li>
+                                                    ))}
+                                                </ul>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+                            )}
+
+                            <div className="flex justify-between items-center">
+                                <button
+                                    onClick={handleNextStep}
+                                    className={`text-sm font-semibold py-2.5 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 ${
+                                        files.length > 0 && files.every(file => file.uploaded)
+                                            ? 'bg-primary hover:bg-opacity-80 text-white'
+                                            : 'bg-bg-secondary text-text-muted cursor-not-allowed'
+                                    }`}
+                                    disabled={files.length === 0 || !files.every(file => file.uploaded)}
+                                >
+                                    <span className="font-sans-sc">下一步</span>
+                                </button>
                             </div>
-                        )}
+                        </div>
                     </>
                 )}
                 {currentStep === 2 && (
@@ -342,23 +364,6 @@ function UploadFiles({ onUploadComplete, onBack, knowledgeBaseId }) {
                         knowledgeBaseId={knowledgeBaseId}
                         fileIds={uploadedFileIds}
                     />
-                )}
-
-                {/* Navigation buttons */}
-                {currentStep === 1 && (
-                    <div className="flex justify-between items-center">
-                        <button
-                            onClick={handleNextStep}
-                            className={`text-sm font-semibold py-2 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 ${
-                                files.length > 0 && files.every(file => file.uploaded)
-                                    ? 'bg-primary hover:bg-primary-dark text-bg-primary'
-                                    : 'bg-bg-tertiary text-text-muted cursor-not-allowed'
-                            }`}
-                            disabled={files.length === 0 || !files.every(file => file.uploaded)}
-                        >
-                            <span className="font-noto-sans-sc">下一步</span>
-                        </button>
-                    </div>
                 )}
             </div>
         </div>

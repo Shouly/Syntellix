@@ -250,8 +250,14 @@ function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds })
 
     return (
         <div className="space-y-6">
-            <div className="bg-white bg-opacity-90 backdrop-filter backdrop-blur-sm rounded-lg shadow-sm p-6 space-y-6">
+            <div className="flex items-center mb-6">
                 <h3 className="text-lg font-semibold text-text-body font-noto-sans-sc">文本分段配置</h3>
+            </div>
+            <p className="text-sm text-text-secondary font-noto-sans-sc -mt-1">
+                配置文本分段参数，以优化知识库的构建。
+            </p>
+
+            <div className="bg-white bg-opacity-90 backdrop-filter backdrop-blur-sm rounded-lg shadow-sm p-6 space-y-6">
                 <div className="flex space-x-8">
                     <div className="w-1/3 pr-8 pl-8 border-r border-bg-secondary">
                         <div className="space-y-6 pr-8">
@@ -407,22 +413,24 @@ function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds })
                     </div>
                 </div>
             </div>
+
             {error && (
                 <div className="bg-danger bg-opacity-10 border border-danger text-danger px-4 py-3 rounded relative text-sm" role="alert">
                     <span className="block sm:inline">{error}</span>
                 </div>
             )}
+
             <div className="flex items-center space-x-4">
                 <button
                     onClick={onPreviousStep}
-                    className="text-sm font-semibold py-2 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 bg-bg-secondary hover:bg-bg-tertiary text-text-body"
+                    className="text-sm font-semibold py-2.5 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 bg-bg-secondary hover:bg-bg-tertiary text-text-body"
                     disabled={isProcessing}
                 >
                     <span className="font-noto-sans-sc">上一步</span>
                 </button>
                 <button
                     onClick={handleSaveAndProcess}
-                    className="text-sm font-semibold py-2 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 bg-primary hover:bg-primary-dark text-bg-primary"
+                    className="text-sm font-semibold py-2.5 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 bg-primary hover:bg-primary-dark text-bg-primary"
                     disabled={isProcessing}
                 >
                     {isProcessing ? (

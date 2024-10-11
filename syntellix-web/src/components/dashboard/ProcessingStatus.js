@@ -67,31 +67,18 @@ function ProcessingStatus({ onBackToDocuments, knowledgeBaseId, fileIds }) {
         }
     };
 
-    const getProgressColor = (status) => {
-        switch (status) {
-            case 'pending':
-                return 'bg-gray-500';
-            case 'processing':
-                return 'bg-indigo-500';
-            case 'completed':
-                return 'bg-green-600';
-            case 'failed':
-                return 'bg-red-600';
-            default:
-                return 'bg-gray-500';
-        }
-    };
-
     if (isLoading && documents.length === 0) {
         return (
-            <div className="flex flex-col space-y-6 p-6 bg-bg-primary rounded-lg shadow-sm">
-                <div className="flex items-center space-x-2">
-                    <Icon path={mdiFileDocumentOutline} size={1} className="text-primary" />
-                    <h2 className="text-xl font-semibold text-text-body font-noto-sans-sc">文档处理进度</h2>
+            <div className="space-y-6">
+                <div className="flex items-center mb-6">
+                    <h3 className="text-lg font-semibold text-text-body font-noto-sans-sc">文档处理进度</h3>
                 </div>
+                <p className="text-sm text-text-secondary font-noto-sans-sc -mt-1">
+                    正在获取文档处理进度，请稍候...
+                </p>
                 <div className="animate-pulse space-y-4">
                     {[1, 2, 3].map((index) => (
-                        <div key={index} className="h-16 bg-bg-secondary rounded"></div>
+                        <div key={index} className="h-16 bg-bg-secondary rounded-lg"></div>
                     ))}
                 </div>
             </div>
@@ -99,17 +86,15 @@ function ProcessingStatus({ onBackToDocuments, knowledgeBaseId, fileIds }) {
     }
 
     return (
-        <div className="flex flex-col space-y-6 p-6 bg-bg-primary rounded-lg shadow-sm">
-            <div className="flex items-center space-x-2">
-                <Icon path={mdiFileDocumentOutline} size={1} className="text-primary" />
-                <h2 className="text-xl font-semibold text-text-body font-noto-sans-sc">文档处理进度</h2>
+        <div className="space-y-6">
+            <div className="flex items-center mb-6">
+                <h3 className="text-lg font-semibold text-text-body font-noto-sans-sc">文档处理进度</h3>
             </div>
-
-            <p className="text-sm text-text-muted font-noto-sans-sc">
+            <p className="text-sm text-text-secondary font-noto-sans-sc -mt-1">
                 处理完成后，您可以在知识库的文档列表中找到它们。
             </p>
 
-            <div className="space-y-4">
+            <div className="bg-white bg-opacity-90 backdrop-filter backdrop-blur-sm rounded-lg shadow-sm p-6 space-y-4">
                 {documents.map((doc, index) => (
                     <div key={index} className={`p-4 rounded-lg ${getStatusBackgroundColor(doc.parse_status)} border ${getStatusBorderColor(doc.parse_status)}`}>
                         <div className="flex items-center justify-between mb-2">
@@ -143,7 +128,7 @@ function ProcessingStatus({ onBackToDocuments, knowledgeBaseId, fileIds }) {
             </div>
 
             {hasFailures && (
-                <div className="bg-warning bg-opacity-10 p-4 rounded-lg">
+                <div className="bg-warning bg-opacity-10 border border-warning border-opacity-20 rounded-lg p-4">
                     <h3 className="text-lg font-semibold text-warning mb-2 font-noto-sans-sc">处理失败</h3>
                     <p className="text-sm text-warning font-noto-sans-sc">
                         文档处理失败。请查看上方列表中每个文档的具体状态。
@@ -156,18 +141,18 @@ function ProcessingStatus({ onBackToDocuments, knowledgeBaseId, fileIds }) {
             )}
 
             {error && (
-                <div className="bg-danger bg-opacity-10 p-4 rounded-lg">
+                <div className="bg-danger bg-opacity-10 border border-danger border-opacity-20 rounded-lg p-4">
                     <h3 className="text-lg font-semibold text-danger mb-2 font-noto-sans-sc">处理出错</h3>
                     <p className="text-sm text-danger font-noto-sans-sc">{error}</p>
                 </div>
             )}
 
-            <div className="flex justify-start mt-6">
+            <div className="flex items-center space-x-4">
                 <button
                     onClick={onBackToDocuments}
-                    className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-bg-primary bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors duration-200 font-noto-sans-sc"
+                    className="text-sm font-semibold py-2.5 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 bg-primary hover:bg-primary-dark text-bg-primary"
                 >
-                    <span>前往文档</span>
+                    <span className="font-noto-sans-sc">前往文档</span>
                     <ArrowRightIcon className="ml-2 h-5 w-5" />
                 </button>
             </div>
