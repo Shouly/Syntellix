@@ -585,7 +585,7 @@ function Chat({ selectedAgentId }) {
       </div>
 
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden px-14"> {/* Increased padding */}
+      <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden px-14">
         {(isChatMessagesLoading || isChangingConversation) && !isLoadingMore ? (
           <ChatAreaSkeleton />
         ) : currentConversationId ? (
