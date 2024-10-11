@@ -198,14 +198,14 @@ function Agent({ onCreateNew, onAgentClick }) {
 
     const SkeletonCard = () => (
         <div className="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col h-64 animate-pulse">
-            <div className="h-2/3 bg-primary/5 flex items-center justify-center">
-                <div className="w-20 h-20 bg-primary/10 rounded-full"></div>
+            <div className="h-2/3 bg-gradient-to-br from-primary-light/10 to-primary-light/30 flex items-center justify-center">
+                <div className="w-24 h-24 bg-primary/20 rounded-full"></div>
             </div>
             <div className="p-4 flex-grow flex flex-col justify-between">
-                <div className="h-5 bg-primary/10 rounded w-3/4"></div>
-                <div className="space-y-2 mt-2">
-                    <div className="h-4 bg-primary/5 rounded w-full"></div>
-                    <div className="h-4 bg-primary/5 rounded w-2/3"></div>
+                <div className="h-5 bg-primary/20 rounded w-3/4"></div>
+                <div className="flex flex-wrap gap-1 mt-2">
+                    <div className="h-4 bg-bg-secondary rounded-full w-16"></div>
+                    <div className="h-4 bg-bg-secondary rounded-full w-20"></div>
                 </div>
             </div>
         </div>
@@ -225,8 +225,8 @@ function Agent({ onCreateNew, onAgentClick }) {
         if (isLoading && agents.length === 0) {
             return (
                 <>
-                    <NewAgentCard onCreateNew={onCreateNew} />
-                    {[...Array(5)].map((_, index) => (
+                    <NewAgentCard />
+                    {[...Array(7)].map((_, index) => (
                         <SkeletonCard key={index} />
                     ))}
                 </>
