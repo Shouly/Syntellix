@@ -272,9 +272,9 @@ function Agent({ onCreateNew, onAgentClick }) {
     };
 
     return (
-        <div className="h-full flex flex-col px-6"> {/* Added px-6 for left and right padding */}
+        <div className="h-full flex flex-col px-6">
             {/* Header */}
-            <header className="flex items-center justify-between py-4"> {/* Changed p-4 to py-4 */}
+            <header className="flex items-center justify-between py-4">
                 <div className="flex items-end space-x-4">
                     <h2 className="text-lg font-bold text-primary font-noto-sans-sc">智能体</h2>
                 </div>
@@ -284,7 +284,7 @@ function Agent({ onCreateNew, onAgentClick }) {
             </header>
 
             {/* Content */}
-            <div className="flex-1 overflow-auto py-4"> {/* Changed p-4 to py-4 */}
+            <div className="flex-1 overflow-auto py-4">
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                     {renderContent()}
                 </div>
