@@ -590,16 +590,6 @@ function Chat({ selectedAgentId }) {
           <ChatAreaSkeleton />
         ) : currentConversationId ? (
           <>
-            <div className="flex items-center justify-between p-3 flex-shrink-0 border-b border-bg-tertiary">
-              <h3 className="text-base font-semibold text-text-body font-sans-sc truncate">
-                {conversationName || '新对话'}
-              </h3>
-              <ConversationActionMenu
-                onRename={() => setIsRenameModalOpen(true)}
-                onDelete={() => setIsDeleteModalOpen(true)}
-              />
-            </div>
-
             <div 
               className="flex-1 overflow-y-auto px-4 py-4 bg-bg-primary" 
               ref={chatContainerRef} 
