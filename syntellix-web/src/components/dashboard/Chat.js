@@ -420,7 +420,7 @@ function Chat({ selectedAgentId }) {
       }));
     } catch (error) {
       console.error('Failed to rename conversation:', error);
-      showToast('重命名对话失败', 'error');
+      showToast('重命名对话失', 'error');
     }
   };
 
@@ -585,13 +585,13 @@ function Chat({ selectedAgentId }) {
       </div>
 
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden">
+      <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden px-14"> {/* Increased padding */}
         {(isChatMessagesLoading || isChangingConversation) && !isLoadingMore ? (
           <ChatAreaSkeleton />
         ) : currentConversationId ? (
           <>
             <div 
-              className="flex-1 overflow-y-auto px-4 py-4 bg-bg-primary" 
+              className="flex-1 overflow-y-auto py-4 bg-bg-primary" 
               ref={chatContainerRef} 
               onScroll={handleScroll}
             >
@@ -650,28 +650,32 @@ function Chat({ selectedAgentId }) {
               ))}
             </div>
 
-            {/* Chat input */}
-            <div className="p-4 bg-bg-secondary border-t border-bg-tertiary">
-              <div className="relative">
-                <input
-                  type="text"
+            {/* Chat input - textarea with updated placeholder */}
+            <div className="pb-6 pt-2 bg-bg-primary">
+              <div className="relative flex flex-col"> {/* Changed to flex-col for adding hint */}
+                <textarea
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey && !isSubmitting && !isWaitingForResponse) {
+                    if (e.key === 'Enter' && !e.ctrlKey && !e.shiftKey && !isSubmitting && !isWaitingForResponse) {
                       e.preventDefault();
                       handleSendMessage();
                     }
                   }}
-                  placeholder="输入消息..."
-                  className="w-full py-2 px-3 bg-bg-primary rounded-lg border border-bg-tertiary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  placeholder="请输入问题，Enter发送，Ctrl + Enter 换行"
+                  className="w-full py-3 px-4 pr-12 bg-bg-primary rounded-lg border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 text-sm resize-none"
+                  style={{ minHeight: '60px', maxHeight: '150px' }}
+                  rows="2"
                   disabled={isSubmitting || isWaitingForResponse}
                 />
                 <button
                   onClick={handleSendMessage}
-                  className={`absolute right-2 top-1/2 transform -translate-y-1/2 ${isSubmitting || isWaitingForResponse ? 'text-text-muted cursor-not-allowed' : 'text-primary hover:text-primary-dark'
-                    }`}
-                  disabled={isSubmitting || isWaitingForResponse}
+                  className={`absolute right-4 bottom-3 ${
+                    isSubmitting || isWaitingForResponse || !inputMessage.trim()
+                      ? 'text-text-muted cursor-not-allowed'
+                      : 'text-primary hover:text-primary-dark'
+                  } transition-colors duration-200`}
+                  disabled={isSubmitting || isWaitingForResponse || !inputMessage.trim()}
                 >
                   <PaperAirplaneIcon className="w-5 h-5" />
                 </button>
