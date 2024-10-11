@@ -32,6 +32,7 @@ import KnowledgeBaseDetail from './dashboard/KnowledgeBaseDetail';
 import UploadFiles from './dashboard/UploadFiles';
 import CreateAgent from './dashboard/CreateAgent';
 import syntellixLogo from '../assets/syntellix_logo.png';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
 function Dashboard({ setIsAuthenticated }) {
   const navigate = useNavigate();
@@ -48,6 +49,7 @@ function Dashboard({ setIsAuthenticated }) {
   const [isCreatingAgent, setIsCreatingAgent] = useState(false);
   const [selectedAgentId, setSelectedAgentId] = useState(null);
   const [selectedAgentForChat, setSelectedAgentForChat] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -226,44 +228,38 @@ function Dashboard({ setIsAuthenticated }) {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setShowMenu(!showMenu)}
-        className="flex items-center rounded-full py-1 px-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-secondary-light"
+        className="w-8 h-8 rounded-full bg-bg-tertiary flex items-center justify-center overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary"
       >
-        <div className="w-8 h-8 rounded-full bg-secondary-light flex items-center justify-center overflow-hidden">
-          {userProfile?.name ? (
-            <span className="text-sm font-semibold text-primary">
-              {userProfile.name.charAt(0).toUpperCase()}
-            </span>
-          ) : (
-            <UserCircleIcon className="w-6 h-6 text-primary" />
-          )}
-        </div>
-        <span className="ml-2 text-sm font-medium text-bg-primary truncate max-w-[100px]">
-          {isLoadingProfile ? '加载中' : (userProfile?.name || '用户')}
-        </span>
-        <ChevronDownIcon className="w-4 h-4 text-bg-primary ml-1" />
+        {userProfile?.name ? (
+          <span className="text-xs font-semibold text-primary">
+            {userProfile.name.charAt(0).toUpperCase()}
+          </span>
+        ) : (
+          <UserCircleIcon className="w-5 h-5 text-primary" />
+        )}
       </button>
       {showMenu && (
-        <div className="absolute right-0 mt-2 w-40 bg-bg-primary rounded-lg shadow-lg overflow-hidden z-20 border border-bg-tertiary">
+        <div className="absolute right-0 mt-2 w-48 bg-bg-primary rounded-lg shadow-lg overflow-hidden z-20 border border-bg-tertiary">
           <button
             onClick={handleAccountSettings}
-            className="w-full text-left py-2.5 px-4 text-sm text-text-body hover:bg-bg-secondary transition-colors duration-200 flex items-center"
+            className="w-full text-left py-2 px-4 text-sm text-text-body hover:bg-bg-secondary transition-colors duration-200 flex items-center"
           >
-            <Cog6ToothIconOutline className="w-5 h-5 mr-2 text-primary" />
+            <Cog6ToothIconOutline className="w-4 h-4 mr-2 text-primary" />
             设置
           </button>
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="w-full text-left py-2.5 px-4 text-sm text-text-body hover:bg-bg-secondary transition-colors duration-200 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full text-left py-2 px-4 text-sm text-text-body hover:bg-bg-secondary transition-colors duration-200 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoggingOut ? (
               <>
-                <ArrowPathIcon className="animate-spin w-5 h-5 mr-2 text-primary" />
+                <ArrowPathIcon className="animate-spin w-4 h-4 mr-2 text-primary" />
                 登出中...
               </>
             ) : (
               <>
-                <ArrowRightOnRectangleIcon className="w-5 h-5 mr-2 text-primary" />
+                <ArrowRightOnRectangleIcon className="w-4 h-4 mr-2 text-primary" />
                 登出
               </>
             )}
@@ -274,47 +270,54 @@ function Dashboard({ setIsAuthenticated }) {
   );
 
   return (
-    <div className="h-screen flex flex-col bg-bg-secondary">
-      {/* Top Navigation */}
-      <nav className="bg-primary shadow-md z-10">
-        <div className="max-w-full mx-auto flex justify-between items-center px-4 py-2">
-          {/* Logo - Left aligned with fixed width */}
-          <div className="flex-shrink-0 w-48 flex items-center">
-            <img
-              src={syntellixLogo}
-              alt="Syntellix"
-              className="h-8 w-auto object-contain"
-            />
-          </div>
+    <div className="h-screen flex bg-bg-secondary">
+      {/* Left Sidebar Navigation */}
+      <nav className="w-16 z-10 flex flex-col items-center py-4 border-r border-bg-tertiary">
+        {/* Logo replacement */}
+        <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center mb-8">
+          <span className="text-xl font-bold text-bg-primary">S</span>
+        </div>
 
-          {/* Menu Items - Centered */}
-          <div className="flex-grow flex justify-center items-center space-x-2">
-            {menuItems.map((item, index) => (
-              <React.Fragment key={item.name}>
-                <button
-                  className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                    activeMenu === item.name
-                      ? 'bg-primary-light text-bg-primary hover:bg-primary-dark'
-                      : 'text-bg-primary hover:bg-primary-dark hover:text-bg-primary'
-                  }`}
-                  onClick={() => handleMenuChange(item.name)}
-                >
-                  {activeMenu === item.name ? (
-                    <item.icon className="w-5 h-5 mr-2" />
-                  ) : (
-                    <item.outlineIcon className="w-5 h-5 mr-2" />
-                  )}
-                  <span>{item.displayName}</span>
-                </button>
-                {index === 0 && (
-                  <div className="h-6 w-px bg-bg-primary mx-2 opacity-50"></div>
-                )}
-              </React.Fragment>
-            ))}
-          </div>
+        {/* Menu Items - Vertically centered */}
+        <div className="flex-grow flex flex-col items-center justify-center space-y-4">
+          {menuItems.map((item) => (
+            <button
+              key={item.name}
+              className={`flex flex-col items-center justify-center w-12 h-12 rounded-md text-[10px] font-medium transition-all duration-200
+                ${
+                  activeMenu === item.name
+                    ? 'text-primary scale-105'
+                    : 'text-text-body hover:text-primary hover:scale-105'
+                }`}
+              onClick={() => handleMenuChange(item.name)}
+            >
+              {activeMenu === item.name ? (
+                <item.icon className="w-5 h-5 mb-1" />
+              ) : (
+                <item.outlineIcon className="w-5 h-5 mb-1" />
+              )}
+              <span>{item.displayName}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
 
-          {/* User Menu - Right aligned with fixed width */}
-          <div className="flex-shrink-0 w-48 flex justify-end">
+      {/* Main content area with reduced padding */}
+      <div className="flex-1 overflow-hidden p-1">
+        <main className="h-full overflow-hidden bg-bg-primary rounded-lg shadow-lg flex flex-col">
+          {/* Search bar */}
+          <div className="p-2 border-b border-bg-tertiary flex items-center justify-between">
+            <div className="w-16"></div> {/* Spacer */}
+            <div className="relative w-1/2 max-w-md">
+              <input
+                type="text"
+                placeholder="搜索..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full py-1.5 pl-8 pr-3 text-sm bg-bg-secondary rounded-md border border-bg-tertiary focus:outline-none focus:ring-1 focus:ring-primary focus:border-transparent"
+              />
+              <MagnifyingGlassIcon className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-muted" />
+            </div>
             <UserMenu
               userProfile={userProfile}
               isLoadingProfile={isLoadingProfile}
@@ -323,15 +326,10 @@ function Dashboard({ setIsAuthenticated }) {
               isLoggingOut={isLoggingOut}
             />
           </div>
-        </div>
-      </nav>
 
-      {/* Main content area */}
-      <div className="flex-1 overflow-hidden">
-        <main className="h-full overflow-hidden">
-          <div className="h-full px-2 sm:px-3 md:px-4 lg:px-5 py-3">
-            {/* Content */}
-            {renderContent()}
+          {/* Content */}
+          <div className="flex-1 overflow-hidden">
+              {renderContent()}
           </div>
         </main>
       </div>

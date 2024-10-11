@@ -490,15 +490,15 @@ function Chat({ selectedAgentId }) {
   }
 
   return (
-    <div className="h-full flex overflow-hidden gap-6 p-3">
+    <div className="h-full flex overflow-hidden">
       {/* Left sidebar */}
-      <div className="w-72 flex flex-col bg-bg-primary overflow-hidden rounded-lg shadow-sm">
+      <div className="w-72 flex flex-col bg-bg-secondary overflow-hidden border-r border-bg-tertiary">
         {isAgentInfoLoading ? (
           <AgentInfoSkeleton />
         ) : (
           <>
-            <div className="p-6 flex-shrink-0">
-              <div className="mb-6">
+            <div className="flex-shrink-0 bg-bg-primary border-b border-bg-tertiary">
+              <div className="p-4">
                 <div className="flex items-center mb-4 cursor-pointer group">
                   <div className="mr-3">
                     <AgentAvatar
@@ -519,7 +519,7 @@ function Chat({ selectedAgentId }) {
                 )}
                 {/* Knowledge base names */}
                 {chatDetails?.agent_info?.knowledge_bases?.length > 0 && (
-                  <div className="text-xs text-text-muted bg-bg-secondary rounded-lg p-3">
+                  <div className="text-xs text-text-muted bg-bg-tertiary rounded-lg p-3 mb-4">
                     <h4 className="font-semibold mb-2 text-text-body">关联知识库:</h4>
                     <ul className="space-y-1">
                       {chatDetails.agent_info.knowledge_bases.map((kb) => (
@@ -535,55 +535,52 @@ function Chat({ selectedAgentId }) {
                     </ul>
                   </div>
                 )}
+                <button
+                  onClick={handleNewChat}
+                  className="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center transition-colors duration-200 text-sm"
+                >
+                  <PlusIcon className="w-4 h-4 mr-2" />
+                  <span className="font-sans-sc">新对话</span>
+                </button>
               </div>
-
-              <button
-                onClick={handleNewChat}
-                className="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center transition-colors duration-200 text-sm mb-6"
-              >
-                <PlusIcon className="w-4 h-4 mr-2" />
-                <span className="font-sans-sc">新对话</span>
-              </button>
             </div>
 
-            <nav className="flex-1 overflow-y-auto px-6 pb-6">
+            <nav className="flex-1 overflow-y-auto bg-bg-secondary">
               <div className="flex flex-col h-full">
-                <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-2 flex items-center">
+                <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider p-4 flex items-center">
                   <ClockIcon className="w-5 h-5 mr-2" />
                   最近对话
                 </h3>
                 {isConversationListLoading ? (
                   <ConversationListSkeleton />
                 ) : (
-                  <>
-                    <div className="flex-1 overflow-y-auto max-h-[calc(100vh-400px)] space-y-1">
-                      {conversationHistory.map(chat => (
-                        <SidebarItem
-                          key={chat.id}
-                          text={chat.name}
-                          isActive={chat.id === currentConversationId}
-                          onClick={() => {
-                            setCurrentConversationId(chat.id);
-                            setIsChangingConversation(true);
-                            fetchConversationMessages(chat.id);
-                          }}
-                          onRename={(newName) => handleRenameConversation(chat.id, newName)}
-                          onDelete={() => handleDeleteConversation(chat.id)}
-                        />
-                      ))}
-                      {hasMoreConversations && (
-                        <li
-                          onClick={() => fetchConversationHistory(chatDetails.agent_info.id, conversationHistory[conversationHistory.length - 1]?.id)}
-                          className="py-2 px-3 rounded-lg transition-colors duration-200 cursor-pointer text-primary hover:bg-primary hover:bg-opacity-10 flex items-center justify-center group mb-1"
-                        >
-                          <span className="font-sans-sc text-sm font-semibold flex items-center">
-                            <PlusIcon className="w-4 h-4 mr-2" />
-                            加载更多
-                          </span>
-                        </li>
-                      )}
-                    </div>
-                  </>
+                  <div className="flex-1 overflow-y-auto">
+                    {conversationHistory.map(chat => (
+                      <SidebarItem
+                        key={chat.id}
+                        text={chat.name}
+                        isActive={chat.id === currentConversationId}
+                        onClick={() => {
+                          setCurrentConversationId(chat.id);
+                          setIsChangingConversation(true);
+                          fetchConversationMessages(chat.id);
+                        }}
+                        onRename={(newName) => handleRenameConversation(chat.id, newName)}
+                        onDelete={() => handleDeleteConversation(chat.id)}
+                      />
+                    ))}
+                    {hasMoreConversations && (
+                      <li
+                        onClick={() => fetchConversationHistory(chatDetails.agent_info.id, conversationHistory[conversationHistory.length - 1]?.id)}
+                        className="py-2 px-4 transition-colors duration-200 cursor-pointer text-primary hover:bg-primary hover:bg-opacity-10 flex items-center justify-center group"
+                      >
+                        <span className="font-sans-sc text-sm font-semibold flex items-center">
+                          <PlusIcon className="w-4 h-4 mr-2" />
+                          加载更多
+                        </span>
+                      </li>
+                    )}
+                  </div>
                 )}
               </div>
             </nav>
@@ -592,12 +589,12 @@ function Chat({ selectedAgentId }) {
       </div>
 
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden rounded-lg shadow-sm relative">
+      <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden">
         {(isChatMessagesLoading || isChangingConversation) && !isLoadingMore ? (
           <ChatAreaSkeleton />
         ) : currentConversationId ? (
           <>
-            <div className="flex items-center justify-between p-3 flex-shrink-0 border-b border-secondary">
+            <div className="flex items-center justify-between p-3 flex-shrink-0 border-b border-bg-tertiary">
               <h3 className="text-base font-semibold text-text-body font-sans-sc truncate">
                 {conversationName || '新对话'}
               </h3>
@@ -608,7 +605,7 @@ function Chat({ selectedAgentId }) {
             </div>
 
             <div 
-              className="flex-1 overflow-y-auto px-6 py-6 pb-24 bg-bg-primary" 
+              className="flex-1 overflow-y-auto px-4 py-4 bg-bg-primary" 
               ref={chatContainerRef} 
               onScroll={handleScroll}
             >
@@ -668,7 +665,7 @@ function Chat({ selectedAgentId }) {
             </div>
 
             {/* Chat input */}
-            <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-bg-primary via-bg-primary to-transparent">
+            <div className="p-4 bg-bg-secondary border-t border-bg-tertiary">
               <div className="relative">
                 <input
                   type="text"
@@ -681,22 +678,22 @@ function Chat({ selectedAgentId }) {
                     }
                   }}
                   placeholder="输入消息..."
-                  className="w-full py-3 px-4 bg-white rounded-lg border border-secondary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full py-2 px-3 bg-bg-primary rounded-lg border border-bg-tertiary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   disabled={isSubmitting || isWaitingForResponse}
                 />
                 <button
                   onClick={handleSendMessage}
-                  className={`absolute right-2 top-1/2 transform -translate-y-1/2 ${isSubmitting || isWaitingForResponse ? 'text-gray-400 cursor-not-allowed' : 'text-primary hover:text-primary-dark'
+                  className={`absolute right-2 top-1/2 transform -translate-y-1/2 ${isSubmitting || isWaitingForResponse ? 'text-text-muted cursor-not-allowed' : 'text-primary hover:text-primary-dark'
                     }`}
                   disabled={isSubmitting || isWaitingForResponse}
                 >
-                  <PaperAirplaneIcon className="w-6 h-6" />
+                  <PaperAirplaneIcon className="w-5 h-5" />
                 </button>
               </div>
             </div>
           </>
         ) : (
-          <div className="flex flex-col items-center justify-center h-full bg-white bg-opacity-50 text-center px-4">
+          <div className="flex flex-col items-center justify-center h-full bg-bg-primary text-center px-4">
             <div className="flex flex-col items-center -mt-40">
               <ChatBubbleLeftRightIcon className="w-16 h-16 text-primary mb-4" />
               <h3 className="text-lg font-semibold text-text-primary mb-2 font-sans-sc">开始新的对话</h3>
@@ -761,8 +758,9 @@ function SidebarItem({ text, isActive = false, onClick, onRename, onDelete }) {
   return (
     <>
       <li
-        className={`py-1 px-3 rounded-lg transition-colors duration-200 cursor-pointer ${isActive ? 'bg-primary bg-opacity-10 text-primary' : 'text-text-body hover:bg-bg-secondary'
-          } flex items-center justify-between group mb-1`}
+        className={`py-2 px-4 transition-colors duration-200 cursor-pointer ${
+          isActive ? 'bg-primary bg-opacity-10 text-primary' : 'text-text-body hover:bg-bg-tertiary'
+        } flex items-center justify-between group`}
         onClick={isEditing ? undefined : onClick}
       >
         {isEditing ? (
