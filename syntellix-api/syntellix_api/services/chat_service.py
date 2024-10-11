@@ -10,7 +10,7 @@ from syntellix_api.models.chat_model import (
 )
 from syntellix_api.services.agent_service import AgentService
 from syntellix_api.services.rag_service import RAGService
-from syntellix_api.tasks.chat_tasks import save_message_task, update_conversation_task
+from syntellix_api.tasks.chat_tasks import save_message_task
 
 
 class ChatService:
@@ -117,7 +117,9 @@ class ChatService:
 
         messages.reverse()
 
-        total_messages = ConversationMessage.query.filter_by(conversation_id=conversation_id).count()
+        total_messages = ConversationMessage.query.filter_by(
+            conversation_id=conversation_id
+        ).count()
         has_more = total_messages > offset + len(messages)
 
         return conversation, messages, has_more
@@ -242,9 +244,6 @@ class ChatService:
         ChatService.update_conversation_history_cache(
             conversation_id, {"role": "assistant", "content": full_response}
         )
-
-        # 更新对话
-        update_conversation_task.delay(conversation_id)
 
     @staticmethod
     def get_conversation_histories(conversation_id: int, max_messages: int = 10):
