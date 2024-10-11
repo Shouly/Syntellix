@@ -273,31 +273,38 @@ function Dashboard({ setIsAuthenticated }) {
     <div className="h-screen flex bg-bg-secondary">
       {/* Left Sidebar Navigation */}
       <nav className="w-16 z-10 flex flex-col items-center py-4 border-r border-bg-tertiary">
-        {/* Logo replacement */}
+        {/* Logo */}
         <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center mb-8">
           <span className="text-xl font-bold text-bg-primary">S</span>
         </div>
 
         {/* Menu Items - Vertically centered */}
-        <div className="flex-grow flex flex-col items-center justify-center space-y-4">
-          {menuItems.map((item) => (
-            <button
-              key={item.name}
-              className={`flex flex-col items-center justify-center w-12 h-12 rounded-md text-[10px] font-medium transition-all duration-200
-                ${
-                  activeMenu === item.name
-                    ? 'text-primary scale-105'
-                    : 'text-text-body hover:text-primary hover:scale-105'
-                }`}
-              onClick={() => handleMenuChange(item.name)}
-            >
-              {activeMenu === item.name ? (
-                <item.icon className="w-5 h-5 mb-1" />
-              ) : (
-                <item.outlineIcon className="w-5 h-5 mb-1" />
+        <div className="flex-1 flex flex-col items-center justify-center space-y-4">
+          {menuItems.map((item, index) => (
+            <React.Fragment key={item.name}>
+              <button
+                className={`flex flex-col items-center justify-center w-12 h-12 rounded-lg text-[11px] font-medium transition-all duration-200 relative
+                  ${
+                    activeMenu === item.name
+                      ? 'text-primary bg-bg-secondary'
+                      : 'text-text-body hover:text-primary'
+                  }`}
+                onClick={() => handleMenuChange(item.name)}
+              >
+                {activeMenu === item.name && (
+                  <div className="absolute inset-0 bg-primary opacity-10 rounded-lg"></div>
+                )}
+                {activeMenu === item.name ? (
+                  <item.icon className="w-5 h-5 mb-1 relative z-10" />
+                ) : (
+                  <item.outlineIcon className="w-5 h-5 mb-1" />
+                )}
+                <span className="relative z-10">{item.displayName}</span>
+              </button>
+              {index === 0 && (
+                <div className="w-8 h-px bg-bg-tertiary my-2"></div>
               )}
-              <span>{item.displayName}</span>
-            </button>
+            </React.Fragment>
           ))}
         </div>
       </nav>
