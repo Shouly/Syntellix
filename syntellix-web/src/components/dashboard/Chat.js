@@ -551,7 +551,7 @@ function Chat({ selectedAgentId }) {
               {isConversationListLoading ? (
                 <ConversationListSkeleton />
               ) : (
-                <ul className="flex-1 overflow-y-auto">
+                <ul className="flex-1 overflow-y-auto p-2">
                   {conversationHistory.map(chat => (
                     <SidebarItem
                       key={chat.id}
