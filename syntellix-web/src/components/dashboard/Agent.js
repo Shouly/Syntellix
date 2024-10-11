@@ -1,4 +1,4 @@
-import { ChevronDownIcon, Cog6ToothIcon, ExclamationCircleIcon, FunnelIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { ChevronDownIcon, Cog6ToothIcon, ExclamationCircleIcon, FunnelIcon } from '@heroicons/react/24/outline';
 import { ChevronLeftIcon, ChevronRightIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
 import axios from 'axios';
 import { formatDistanceToNow } from 'date-fns';
@@ -54,7 +54,6 @@ function Agent({ onCreateNew, onAgentClick }) {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [hasMore, setHasMore] = useState(true);
-    const [searchTerm, setSearchTerm] = useState('');
     const inputRef = useRef(null);
 
     const fetchAgents = useCallback(async (pageNumber = 1, searchTerm = '') => {
@@ -84,20 +83,6 @@ function Agent({ onCreateNew, onAgentClick }) {
     useEffect(() => {
         fetchAgents(1, '');
     }, [fetchAgents]);
-
-    const handleSearch = useCallback(() => {
-        fetchAgents(1, searchTerm);
-    }, [fetchAgents, searchTerm]);
-
-    const handleSearchChange = (e) => {
-        setSearchTerm(e.target.value);
-    };
-
-    const handleKeyDown = (e) => {
-        if (e.key === 'Enter') {
-            handleSearch();
-        }
-    };
 
     const handlePageChange = (newPage) => {
         if (newPage >= 1 && newPage <= totalPages) {
@@ -145,50 +130,6 @@ function Agent({ onCreateNew, onAgentClick }) {
             <ChevronDownIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-primary pointer-events-none" />
         </div>
     );
-
-    const SearchBox = () => {
-        const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
-
-        useEffect(() => {
-            setLocalSearchTerm(searchTerm);
-        }, [searchTerm]);
-
-        const handleLocalSearchChange = (e) => {
-            setLocalSearchTerm(e.target.value);
-        };
-
-        const handleLocalKeyDown = (e) => {
-            if (e.key === 'Enter') {
-                setSearchTerm(localSearchTerm);
-                handleSearch();
-            }
-        };
-
-        const handleSearchClick = () => {
-            setSearchTerm(localSearchTerm);
-            handleSearch();
-        };
-
-        return (
-            <div className="relative">
-                <input
-                    ref={inputRef}
-                    type="text"
-                    placeholder="搜索..."
-                    value={localSearchTerm}
-                    onChange={handleLocalSearchChange}
-                    onKeyDown={handleLocalKeyDown}
-                    className="pl-3 pr-10 py-2 text-sm rounded-md bg-bg-primary border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 w-48 font-noto-sans-sc text-text-body"
-                />
-                <button
-                    onClick={handleSearchClick}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-primary hover:text-primary-dark transition-colors duration-200"
-                >
-                    <MagnifyingGlassIcon className="w-5 h-5" />
-                </button>
-            </div>
-        );
-    };
 
     const NewAgentCard = () => (
         <div
@@ -331,20 +272,19 @@ function Agent({ onCreateNew, onAgentClick }) {
     };
 
     return (
-        <div className="bg-bg-secondary min-h-screen p-3 space-y-6">
+        <div className="h-full flex flex-col px-6"> {/* Added px-6 for left and right padding */}
             {/* Header */}
-            <header className="bg-bg-primary rounded-xl shadow-sm p-4 flex items-center justify-between">
+            <header className="flex items-center justify-between py-4"> {/* Changed p-4 to py-4 */}
                 <div className="flex items-end space-x-4">
                     <h2 className="text-lg font-bold text-primary font-noto-sans-sc">智能体</h2>
                 </div>
                 <div className="flex items-center space-x-4">
                     <TagSelector tags={tags} selectedTag={selectedTag} setSelectedTag={setSelectedTag} />
-                    <SearchBox />
                 </div>
             </header>
 
             {/* Content */}
-            <div className="bg-bg-primary rounded-xl shadow-sm p-6">
+            <div className="flex-1 overflow-auto py-4"> {/* Changed p-4 to py-4 */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                     {renderContent()}
                 </div>
