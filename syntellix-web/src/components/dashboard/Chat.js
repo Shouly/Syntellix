@@ -663,9 +663,9 @@ function Chat({ selectedAgentId }) {
                     }
                   }}
                   placeholder="请输入问题，Enter发送，Ctrl + Enter 换行"
-                  className="w-full py-3 px-4 pr-12 bg-bg-primary rounded-lg border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 text-sm resize-none"
-                  style={{ minHeight: '60px', maxHeight: '150px' }}
-                  rows="2"
+                  className="w-full py-3 px-4 pr-12 bg-bg-primary rounded-lg border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 resize-none"
+                  style={{ minHeight: '55px', maxHeight: '150px' }}
+                  rows="1"
                   disabled={isSubmitting || isWaitingForResponse}
                 />
                 <button
@@ -677,7 +677,7 @@ function Chat({ selectedAgentId }) {
                   } transition-colors duration-200`}
                   disabled={isSubmitting || isWaitingForResponse || !inputMessage.trim()}
                 >
-                  <PaperAirplaneIcon className="w-5 h-5" />
+                  <PaperAirplaneIcon className="w-8 h-8" />
                 </button>
               </div>
             </div>
