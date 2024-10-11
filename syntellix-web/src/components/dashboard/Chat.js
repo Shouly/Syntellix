@@ -543,7 +543,7 @@ function Chat({ selectedAgentId }) {
             </div>
 
             {/* Recent conversations */}
-            <div className="flex-1 overflow-hidden flex flex-col mt-4">
+            <div className="flex-1 overflow-hidden flex flex-col mt-10">
               <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider px-4 mb-2 flex items-center">
                 <ClockIcon className="w-4 h-4 mr-2" />
                 最近对话
@@ -754,7 +754,7 @@ function SidebarItem({ text, isActive = false, onClick, onRename, onDelete }) {
   return (
     <>
       <li
-        className={`py-2 px-3 mx-2 my-1 transition-all duration-200 cursor-pointer rounded-lg ${
+        className={`py-1 px-3 mx-2 my-1 transition-all duration-200 cursor-pointer rounded-lg ${
           isActive 
             ? 'bg-primary bg-opacity-10 text-primary border-l-3 border-primary' 
             : 'text-text-body hover:bg-bg-tertiary hover:bg-opacity-50'
