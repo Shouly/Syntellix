@@ -232,7 +232,7 @@ function CreateAgent({ onBack, onCreated }) {
                         <div className="w-8 h-8 bg-primary bg-opacity-10 rounded-full flex items-center justify-center mr-3 transition-colors duration-200 group-hover:bg-opacity-20">
                             <ArrowLeftIcon className="w-5 h-5 text-primary transition-colors duration-200 group-hover:text-opacity-80" />
                         </div>
-                        <span className="text-base font-semibold text-text-body font-sans-sc truncate">新建智能体</span>
+                        <span className="text-base font-semibold text-primary font-sans-sc truncate">新建智能体</span>
                     </div>
                 </div>
                 <ol className="space-y-4 relative">
