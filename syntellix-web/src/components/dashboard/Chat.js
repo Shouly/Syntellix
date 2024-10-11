@@ -774,10 +774,12 @@ function SidebarItem({ text, isActive = false, onClick, onRename, onDelete }) {
         ) : (
           <span className={`font-sans-sc text-sm ${isActive ? 'font-semibold' : ''} truncate flex-grow mr-2`}>{text}</span>
         )}
-        <ConversationActionMenu
-          onRename={() => handleRename()}
-          onDelete={() => setIsDeleteModalOpen(true)}
-        />
+        <div onClick={(e) => e.stopPropagation()}>
+          <ConversationActionMenu
+            onRename={handleRename}
+            onDelete={() => setIsDeleteModalOpen(true)}
+          />
+        </div>
       </li>
       <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}
