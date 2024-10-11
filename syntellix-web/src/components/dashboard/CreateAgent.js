@@ -8,6 +8,7 @@ import { useToast } from '../../components/Toast';
 import AgentAvatarSelector from '../AgentAvatarSelector';
 import AIGenerateModal from './AIGenerateModal';
 import CreateAgentAdvancedConfig from './CreateAgentAdvancedConfig';
+import InfoIcon from '../../components/InfoIcon';
 
 function CreateAgent({ onBack, onCreated }) {
     const [agentName, setAgentName] = useState('');
@@ -215,7 +216,7 @@ function CreateAgent({ onBack, onCreated }) {
         }),
         menuList: (provided) => ({
             ...provided,
-            fontFamily: 'Inter, "Noto Sans SC", sans-serif', // 添加字体样式
+            fontFamily: 'Inter, "Noto Sans SC", sans-serif', // 添加��体样式
         }),
         menuPortal: (provided) => ({
             ...provided,
@@ -447,20 +448,6 @@ function StepItem({ number, text, active = false, completed = false }) {
             </span>
             <span className={`font-sans-sc text-sm ${active ? 'font-semibold' : ''}`}>{text}</span>
         </li>
-    );
-}
-
-function InfoIcon({ tooltip }) {
-    return (
-        <div className="group relative inline-block ml-2">
-            <InformationCircleIcon className="h-4 w-4 text-gray-400 cursor-help" />
-            <div className="opacity-0 bg-black text-white text-xs rounded py-1 px-2 absolute z-[10002] bottom-full left-1/2 transform -translate-x-1/2 -translate-y-2 group-hover:opacity-100 transition-opacity duration-300 w-48 text-center pointer-events-none">
-                {tooltip}
-                <svg className="absolute text-black h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255">
-                    <polygon className="fill-current" points="0,0 127.5,127.5 255,0" />
-                </svg>
-            </div>
-        </div>
     );
 }
 
