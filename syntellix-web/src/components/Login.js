@@ -100,7 +100,7 @@ function Login({ setIsAuthenticated }) {
         <div className="space-y-16 max-w-xl">
           <div className="space-y-8">
             <div className="flex items-baseline space-x-4">
-              <h1 className="text-7xl font-extralight text-white font-tech tracking-wider">Syntellix</h1>
+              <h1 className="text-7xl text-white font-tech tracking-wider">Syntellix</h1>
               <span className="text-xl font-light text-white opacity-80">/sɪnˈtelɪks/</span>
             </div>
             <div className="flex items-center space-x-3">
