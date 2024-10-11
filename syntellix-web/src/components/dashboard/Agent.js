@@ -274,7 +274,7 @@ function Agent({ onCreateNew, onAgentClick }) {
     return (
         <div className="h-full flex flex-col px-6">
             {/* Header */}
-            <header className="flex items-center justify-between py-4">
+            <header className="flex items-center justify-between pt-4">
                 <div className="flex items-end space-x-4">
                     <h2 className="text-lg font-bold text-primary font-noto-sans-sc">智能体</h2>
                 </div>
