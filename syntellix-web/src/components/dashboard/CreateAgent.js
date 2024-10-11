@@ -243,7 +243,7 @@ function CreateAgent({ onBack, onCreated }) {
             </div>
 
             {/* Main content area */}
-            <div className="flex-1 overflow-y-auto bg-bg-primary p-6">
+            <div className="flex-1 overflow-y-auto bg-bg-primary p-6 px-12">
                 {currentStep === 1 ? (
                     // 基础设置表单
                     <div className="space-y-6">
