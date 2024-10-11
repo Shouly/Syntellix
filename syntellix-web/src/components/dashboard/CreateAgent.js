@@ -224,29 +224,29 @@ function CreateAgent({ onBack, onCreated }) {
     };
 
     return (
-        <div className="flex h-full overflow-hidden p-3 gap-6">
+        <div className="flex h-full overflow-hidden">
             {/* Left sidebar */}
-            <div className="w-64 bg-bg-primary p-6 overflow-y-auto rounded-lg shadow-sm">
+            <div className="w-64 bg-bg-primary p-6 overflow-y-auto border-r border-bg-tertiary">
                 <div className="mb-8">
                     <div className="flex items-center mb-6 cursor-pointer group" onClick={onBack}>
-                        <div className="w-8 h-8 bg-primary bg-opacity-90 rounded-full flex items-center justify-center mr-3 transition-colors duration-200 group-hover:bg-opacity-20">
-                            <ArrowLeftIcon className="w-5 h-5 text-text-body transition-colors duration-200 group-hover:text-primary" />
+                        <div className="w-8 h-8 bg-primary bg-opacity-10 rounded-full flex items-center justify-center mr-3 transition-colors duration-200 group-hover:bg-opacity-20">
+                            <ArrowLeftIcon className="w-5 h-5 text-primary transition-colors duration-200 group-hover:text-opacity-80" />
                         </div>
                         <span className="text-base font-semibold text-text-body font-sans-sc truncate">新建智能体</span>
                     </div>
                 </div>
                 <ol className="space-y-4 relative">
-                    <div className="absolute left-3 top-6 bottom-0 w-0.5 bg-bg-secondary"></div>
+                    <div className="absolute left-3 top-6 bottom-0 w-0.5 bg-bg-tertiary"></div>
                     <StepItem number={1} text="基础设置" active={currentStep === 1} completed={currentStep > 1} />
                     <StepItem number={2} text="高级配置" active={currentStep === 2} completed={currentStep > 2} />
                 </ol>
             </div>
 
             {/* Main content area */}
-            <div className="flex-1 overflow-y-auto bg-white rounded-lg shadow-sm p-3">
+            <div className="flex-1 overflow-y-auto bg-bg-primary p-6">
                 {currentStep === 1 ? (
                     // 基础设置表单
-                    <div className="p-6 pt-3 space-y-6">
+                    <div className="space-y-6">
                         <div className="flex items-center mb-6">
                             <h3 className="text-lg font-semibold text-text-body font-sans-sc mr-4">创建智能体</h3>
                             <button
@@ -412,7 +412,7 @@ function CreateAgent({ onBack, onCreated }) {
                                 <button
                                     type="button"
                                     onClick={handleNextStep}
-                                    className="px-6 py-2 text-sm font-medium bg-primary text-white rounded-md hover:bg-primary hover:bg-opacity-80 transition-colors duration-200 font-sans-sc flex items-center justify-center"
+                                    className="px-6 py-2 text-sm font-medium bg-primary text-white rounded-md hover:bg-opacity-80 transition-colors duration-200 font-sans-sc flex items-center justify-center"
                                     disabled={isLoading}
                                 >
                                     下一步
