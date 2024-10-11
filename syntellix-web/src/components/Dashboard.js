@@ -307,6 +307,9 @@ function Dashboard({ setIsAuthenticated }) {
             </React.Fragment>
           ))}
         </div>
+
+        {/* Bottom placeholder to match the size of the logo */}
+        <div className="w-10 h-10"></div>
       </nav>
 
       {/* Main content area with reduced padding */}
