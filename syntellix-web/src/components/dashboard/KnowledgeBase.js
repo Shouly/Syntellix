@@ -98,16 +98,16 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
 
   const NewKnowledgeBaseCard = () => (
     <div
-      className="bg-bg-primary rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative cursor-pointer group"
+      className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative cursor-pointer group"
       onClick={handleCreateKnowledgeBase}
     >
-      <div className="absolute inset-0 rounded-xl bg-primary opacity-5 group-hover:opacity-10 transition-all duration-300"></div>
+      <div className="absolute inset-0 bg-primary opacity-0 group-hover:opacity-5 transition-all duration-300 rounded-xl"></div>
       <div className="absolute inset-[1px] rounded-[11px] flex items-center p-6 z-10">
         <div className="w-16 h-16 bg-primary bg-opacity-10 rounded-lg flex items-center justify-center mr-4 flex-shrink-0 group-hover:bg-opacity-20 transition-all duration-300">
           <PlusIcon className="w-10 h-10 text-primary group-hover:text-primary-dark transition-all duration-300" />
         </div>
         <div>
-          <h3 className="text-base font-semibold text-text-body font-noto-sans-sc mb-2 group-hover:text-primary transition-all duration-300">创建知识库</h3>
+          <h3 className="text-base font-semibold text-primary font-noto-sans-sc mb-2 group-hover:text-primary-dark transition-all duration-300">创建知识库</h3>
           <p className="text-xs text-text-secondary font-noto-sans-sc group-hover:text-text-body transition-all duration-300">
             接入您的文本数据让AI更了解您。
           </p>
@@ -181,7 +181,7 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
         {knowledgeBases.map((kb) => (
           <div
             key={kb.id}
-            className="group bg-bg-primary rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative cursor-pointer"
+            className="group bg-gradient-to-br from-bg-primary to-bg-secondary rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between h-48 relative cursor-pointer"
             onClick={() => handleKnowledgeBaseClick(kb)}
           >
             <div className="p-6">
