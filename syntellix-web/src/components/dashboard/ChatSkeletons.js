@@ -24,9 +24,9 @@ export function AgentInfoSkeleton() {
 
 export function ConversationListSkeleton() {
   return (
-    <div className="flex-1 overflow-y-auto p-2">
-      <div className="h-4 bg-secondary rounded w-1/2 mb-2 mx-2"></div>
-      <div className="space-y-2">
+    <div className="flex-1 overflow-y-auto">
+      <div className="h-4 bg-secondary rounded w-1/2 mb-2 mx-4"></div>
+      <div className="space-y-2 p-2">
         {[...Array(5)].map((_, i) => (
           <div key={i} className="h-8 bg-secondary rounded-lg mx-2"></div>
         ))}
@@ -41,7 +41,7 @@ export function ChatAreaSkeleton() {
       <div className="flex-1 overflow-y-auto py-4">
         <div className="space-y-6">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className={`flex ${i % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
+            <div key={i} className={`mb-4 flex ${i % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
               {i % 2 === 0 && (
                 <div className="w-8 h-8 rounded-full bg-secondary mr-2 flex-shrink-0"></div>
               )}

@@ -479,12 +479,17 @@ function Chat({ selectedAgentId }) {
 
   if (loading) {
     return (
-      <div className="h-full flex overflow-hidden gap-6 p-3">
-        <div className="w-72 flex flex-col bg-bg-primary overflow-hidden rounded-lg shadow-sm">
+      <div className="h-full flex overflow-hidden">
+        {/* Left sidebar */}
+        <div className="w-72 flex flex-col bg-bg-primary overflow-hidden border-r border-bg-tertiary">
           <AgentInfoSkeleton />
           <ConversationListSkeleton />
         </div>
-        <ChatAreaSkeleton />
+
+        {/* Main chat area */}
+        <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden px-14">
+          <ChatAreaSkeleton />
+        </div>
       </div>
     );
   }
