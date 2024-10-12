@@ -1,15 +1,11 @@
 import json
 from collections import defaultdict
-from datetime import datetime
-from typing import Generator, Union
+from typing import Generator, List, Union
 
 from syntellix_api.extensions.ext_database import db
 from syntellix_api.extensions.ext_redis import redis_client
-from syntellix_api.models.chat_model import (
-    Conversation,
-    ConversationMessage,
-    ConversationMessageType,
-)
+from syntellix_api.models.chat_model import (Conversation, ConversationMessage,
+                                             ConversationMessageType)
 from syntellix_api.services.agent_service import AgentService
 from syntellix_api.services.rag_service import RAGService
 
@@ -98,7 +94,7 @@ class ChatService:
         # 更新缓存
         ChatService.update_conversation_messages_cache(
             conversation_id,
-            conversation_message.to_dict(),
+            conversation_message,
         )
 
         return conversation_message
@@ -157,7 +153,7 @@ class ChatService:
         # 只有当请求的是最新的消息时，才更新缓存
         if page == 1:
             ChatService.update_conversation_messages_cache(
-                conversation_id, ordered_messages[-ChatService.CACHE_MESSAGE_LIMIT:]
+                conversation_id, ordered_messages[-ChatService.CACHE_MESSAGE_LIMIT :]
             )
 
         return conversation, paginated_messages, has_more
@@ -287,15 +283,7 @@ class ChatService:
         # 更新缓存
         ChatService.update_conversation_messages_cache(
             conversation_id,
-            {
-                'id': user_message.id,
-                'user_id': user_id,
-                'agent_id': agent_id,
-                'message': message,
-                'message_type': ConversationMessageType.USER.value,
-                'created_at': user_message.created_at.isoformat(),
-                'pre_message_id': pre_message_id
-            }
+            user_message,
         )
 
         return user_message.id
@@ -309,7 +297,7 @@ class ChatService:
         user_message_id: int,
     ):
         # 保存 AI 响应消息
-        conversation_message = ConversationMessage(
+        ai_conversation_message = ConversationMessage(
             conversation_id=conversation_id,
             user_id=user_id,
             agent_id=agent_id,
@@ -317,21 +305,13 @@ class ChatService:
             message_type=ConversationMessageType.AGENT,
             pre_message_id=user_message_id,
         )
-        db.session.add(conversation_message)
+        db.session.add(ai_conversation_message)
         db.session.commit()
 
         # 更新缓存
         ChatService.update_conversation_messages_cache(
             conversation_id,
-            {
-                "id": conversation_message.id,
-                "user_id": user_id,
-                "agent_id": agent_id,
-                "message": llm_response,
-                "message_type": ConversationMessageType.AGENT.value,
-                "created_at": conversation_message.created_at.isoformat(),
-                "pre_message_id": user_message_id,
-            },
+            ai_conversation_message,
         )
 
     @staticmethod
@@ -373,23 +353,33 @@ class ChatService:
             return []
 
     @staticmethod
-    def update_conversation_messages_cache(conversation_id: int, messages: list):
+    def update_conversation_messages_cache(
+        conversation_id: int,
+        messages: Union[
+            ConversationMessage, List[ConversationMessage], dict, List[dict]
+        ],
+    ):
         cache_key = ChatService.CONVERSATION_MESSAGES_CACHE_KEY.format(conversation_id)
-        
+
         # 清除旧的缓存
         redis_client.delete(cache_key)
-        
+
+        if not isinstance(messages, list):
+            messages = [messages]
+
         # 添加新的消息到缓存
         for message in messages:
-            redis_client.rpush(cache_key, json.dumps({
-                'id': message.id,
-                'user_id': message.user_id,
-                'agent_id': message.agent_id,
-                'message': message.message,
-                'message_type': message.message_type.value,
-                'created_at': message.created_at.isoformat(),
-                'pre_message_id': message.pre_message_id
-            }))
-        
+            if isinstance(message, dict):
+                message_dict = message
+            elif isinstance(message, ConversationMessage):
+                message_dict = message.to_dict()
+            else:
+                raise ValueError("Unsupported message type")
+
+            redis_client.rpush(
+                cache_key,
+                json.dumps(message_dict),
+            )
+
         # 设置缓存过期时间，例如1小时
         redis_client.expire(cache_key, 3600)

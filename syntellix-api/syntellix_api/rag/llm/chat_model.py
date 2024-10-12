@@ -59,6 +59,9 @@ class Base(ABC):
             history.insert(0, self.system_message(system))
         ans = ""
         try:
+
+            print(history)
+
             response = self.client.chat.completions.create(
                 model=self.model_name, messages=history, stream=True, **gen_conf
             )
