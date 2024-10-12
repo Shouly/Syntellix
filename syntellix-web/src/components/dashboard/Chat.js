@@ -658,7 +658,7 @@ function Chat({ selectedAgentId }) {
             </div>
 
             {/* Chat input with edge background */}
-            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2">
               <div className="relative w-[700px]">
                 {/* Edge background */}
                 <div className="absolute inset-0 bg-primary bg-opacity-10 rounded-full blur-md"></div>
