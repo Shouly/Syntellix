@@ -51,7 +51,7 @@ module.exports = {
         },
         bg: {
           primary: '#ffffff',
-          secondary: '#f1f5f9',
+          secondary: '#fafafa',
           tertiary: '#f0f2f5',
         },
         sidebar: {
