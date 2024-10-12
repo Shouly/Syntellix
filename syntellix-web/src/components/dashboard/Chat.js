@@ -771,7 +771,7 @@ function SidebarItem({ text, isActive = false, onClick, onRename, onDelete }) {
   return (
     <>
       <li
-        className={`py-1.5 px-3 mx-2 my-0.5 transition-all duration-200 cursor-pointer rounded-md ${
+        className={`py-1 px-3 mx-2 transition-all duration-200 cursor-pointer rounded-md ${
           isActive 
             ? 'bg-bg-secondary text-primary'
             : 'text-text-body hover:bg-bg-secondary hover:bg-opacity-50'
