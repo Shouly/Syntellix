@@ -524,17 +524,6 @@ function Chat({ selectedAgentId }) {
               )}
             </div>
 
-            {/* New chat button */}
-            <div className="px-4 mb-4">
-              <button
-                onClick={handleNewChat}
-                className="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center transition-colors duration-200 text-sm"
-              >
-                <PlusIcon className="w-4 h-4 mr-2" />
-                <span className="font-sans-sc">新对话</span>
-              </button>
-            </div>
-
             {/* Knowledge bases */}
             {chatDetails?.agent_info?.knowledge_bases?.length > 0 && (
               <div className="px-4 mb-4">
@@ -673,7 +662,20 @@ function Chat({ selectedAgentId }) {
                 <div className="absolute inset-0 bg-primary bg-opacity-10 rounded-full blur-md"></div>
               
                 {/* Input container */}
-                <div className="relative">
+                <div className="relative flex items-center">
+                  {/* New chat button */}
+                  <div className="absolute left-4 group">
+                    <button
+                      onClick={handleNewChat}
+                      className="w-8 h-8 flex items-center justify-center bg-bg-secondary rounded-full text-primary hover:bg-primary hover:text-white transition-colors duration-200"
+                    >
+                      <PlusIcon className="w-5 h-5" />
+                    </button>
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-bg-secondary text-text-primary text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                      新会话
+                    </div>
+                  </div>
+
                   <input
                     type="text"
                     value={inputMessage}
@@ -685,7 +687,7 @@ function Chat({ selectedAgentId }) {
                       }
                     }}
                     placeholder="请输入问题，Enter发送"
-                    className="w-full py-4 px-6 pr-14 bg-bg-primary rounded-full border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 shadow-md text-sm"
+                    className="w-full py-4 px-6 pl-16 pr-14 bg-bg-primary rounded-full border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 shadow-md text-sm"
                     disabled={isSubmitting || isWaitingForResponse}
                   />
                   <button
@@ -697,7 +699,7 @@ function Chat({ selectedAgentId }) {
                     } transition-colors duration-200`}
                     disabled={isSubmitting || isWaitingForResponse || !inputMessage.trim()}
                   >
-                    <ArrowUpIcon className="w-6 h-6" />
+                    <ArrowUpIcon className="w-5 h-5" />
                   </button>
                 </div>
               </div>
