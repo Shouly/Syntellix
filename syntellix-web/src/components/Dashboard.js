@@ -297,7 +297,10 @@ function Dashboard({ setIsAuthenticated }) {
                 {activeMenu === item.name ? (
                   <item.icon className="w-5 h-5 mb-1 relative z-10" />
                 ) : (
-                  <item.outlineIcon className="w-5 h-5 mb-1" />
+                  <div className="group">
+                    <item.outlineIcon className="w-5 h-5 mb-1 group-hover:hidden" />
+                    <item.icon className="w-5 h-5 mb-1 hidden group-hover:block" />
+                  </div>
                 )}
                 <span className="relative z-10">{item.displayName}</span>
               </button>
