@@ -485,11 +485,12 @@ function Chat({ selectedAgentId }) {
         {/* Left sidebar */}
         <div className="w-72 flex flex-col bg-bg-primary overflow-hidden border-r border-bg-tertiary">
           <AgentInfoSkeleton />
+          <div className="mx-4 my-4 border-t border-bg-tertiary"></div>
           <ConversationListSkeleton />
         </div>
 
         {/* Main chat area */}
-        <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden px-14">
+        <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden px-14 relative">
           <ChatAreaSkeleton />
         </div>
       </div>
