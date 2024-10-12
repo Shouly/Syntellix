@@ -1,5 +1,7 @@
 import json
-from typing import Generator
+from collections import defaultdict
+from datetime import datetime
+from typing import Generator, Union
 
 from syntellix_api.extensions.ext_database import db
 from syntellix_api.extensions.ext_redis import redis_client
@@ -10,11 +12,11 @@ from syntellix_api.models.chat_model import (
 )
 from syntellix_api.services.agent_service import AgentService
 from syntellix_api.services.rag_service import RAGService
-from syntellix_api.tasks.chat_tasks import save_message_task
 
 
 class ChatService:
-    CONVERSATION_HISTORY_CACHE_KEY = "chat:conversation:history:{}"
+    CONVERSATION_MESSAGES_CACHE_KEY = "chat:conversation:messages:{}"
+    CACHE_MESSAGE_LIMIT = 20
 
     @staticmethod
     def create_conversation(user_id: int, agent_id: int, name: str):
@@ -93,34 +95,72 @@ class ChatService:
         db.session.add(conversation_message)
         db.session.commit()
 
+        # 更新缓存
+        ChatService.update_conversation_messages_cache(
+            conversation_id,
+            conversation_message.to_dict(),
+        )
+
         return conversation_message
 
     @staticmethod
     def get_conversation_messages(
-        conversation_id: int, page: int = 1, per_page: int = 7
+        conversation_id: int, page: int = 1, per_page: int = 10
     ):
         conversation = Conversation.query.get(conversation_id)
         if not conversation:
             return None
 
-        offset = (page - 1) * per_page
+        cache_key = ChatService.CONVERSATION_MESSAGES_CACHE_KEY.format(conversation_id)
+        cached_messages = redis_client.lrange(cache_key, 0, -1)
 
-        messages = (
-            ConversationMessage.query.filter_by(conversation_id=conversation_id)
-            .order_by(ConversationMessage.created_at.desc())
-            .offset(offset)
-            .limit(per_page)
-            .all()
-        )
+        if cached_messages and len(cached_messages) >= (page * per_page):
+            # 如果缓存中的消息足够，直接从缓存中获取
+            start = (page - 1) * per_page
+            end = start + per_page
+            paginated_messages = [json.loads(msg) for msg in cached_messages[start:end]]
+            has_more = len(cached_messages) > end
+            return conversation, paginated_messages, has_more
 
-        messages.reverse()
-
-        total_messages = ConversationMessage.query.filter_by(
+        # 缓存中的消息不足，需要查询数据库
+        all_messages = ConversationMessage.query.filter_by(
             conversation_id=conversation_id
-        ).count()
-        has_more = total_messages > offset + len(messages)
+        ).all()
 
-        return conversation, messages, has_more
+        # 构建消息树和有序消息列表
+        message_tree = defaultdict(list)
+        root_messages = []
+        for message in all_messages:
+            if message.pre_message_id is None:
+                root_messages.append(message)
+            else:
+                message_tree[message.pre_message_id].append(message)
+
+        ordered_messages = []
+
+        def build_ordered_list(message):
+            ordered_messages.append(message)
+            for child in message_tree[message.id]:
+                build_ordered_list(child)
+
+        for root_message in root_messages:
+            build_ordered_list(root_message)
+
+        # 计算分页
+        total_messages = len(ordered_messages)
+        start = (page - 1) * per_page
+        end = start + per_page
+        paginated_messages = ordered_messages[start:end]
+
+        has_more = total_messages > end
+
+        # 只有当请求的是最新的消息时，才更新缓存
+        if page == 1:
+            ChatService.update_conversation_messages_cache(
+                conversation_id, ordered_messages[-ChatService.CACHE_MESSAGE_LIMIT:]
+            )
+
+        return conversation, paginated_messages, has_more
 
     @staticmethod
     def get_all_pinned_conversations(user_id: int, agent_id: int):
@@ -154,7 +194,12 @@ class ChatService:
 
     @staticmethod
     def chat_stream(
-        tenant_id: int, conversation_id: int, user_id: int, agent_id: int, message: str
+        tenant_id: int,
+        conversation_id: int,
+        user_id: int,
+        agent_id: int,
+        user_message: str,
+        pre_message_id: int,
     ) -> Generator[str, None, None]:
         # 初始化检查
         agent, conversation = ChatService._initialize_chat(
@@ -164,22 +209,30 @@ class ChatService:
             yield json.dumps({"error": "Agent or Conversation not found"})
             return
 
-        # 保存用户消息
-        ChatService._save_user_message(conversation_id, user_id, agent_id, message)
+        # 保存用户消息并获取消息ID
+        user_message_id = ChatService._save_user_message(
+            conversation_id, user_id, agent_id, user_message, pre_message_id
+        )
 
-        # 发送状态更新，表明正在检索文档
+        # 发送状态更新，表明正在检文档
         yield json.dumps({"status": "retrieving_documents"})
 
         # 检索相关文档
         filtered_nodes, context_str = RAGService.retrieve_relevant_documents(
-            tenant_id, agent_id, message
+            tenant_id, agent_id, user_message
         )
 
         yield json.dumps({"status": "retrieving_documents_done"})
 
         if not filtered_nodes:
-            yield json.dumps(
-                {"chunk": agent.advanced_config.get("empty_response", "I don't know")}
+            response_message = agent.empty_response
+            yield json.dumps({"chunk": response_message})
+            ChatService._save_ai_response_and_update_cache(
+                conversation_id,
+                user_id,
+                agent_id,
+                response_message,
+                user_message_id,
             )
             return
 
@@ -191,13 +244,19 @@ class ChatService:
 
         # 生成响应
         full_response = ""
-        for chunk in RAGService.call_llm(conversation_history, message, context_str):
+        for chunk in RAGService.call_llm(
+            conversation_history, user_message, context_str
+        ):
             full_response += chunk
             yield json.dumps({"chunk": chunk}, ensure_ascii=False)
 
         # 保存AI响应并更新对话历史
-        ChatService._save_ai_response_and_update_history(
-            conversation_id, user_id, agent_id, message, full_response
+        ChatService._save_ai_response_and_update_cache(
+            conversation_id,
+            user_id,
+            agent_id,
+            full_response,
+            user_message_id,
         )
 
     @staticmethod
@@ -208,78 +267,129 @@ class ChatService:
 
     @staticmethod
     def _save_user_message(
-        conversation_id: int, user_id: int, agent_id: int, message: str
-    ):
-        save_message_task.delay(
+        conversation_id: int,
+        user_id: int,
+        agent_id: int,
+        message: str,
+        pre_message_id: int = None,
+    ) -> int:
+        user_message = ConversationMessage(
             conversation_id=conversation_id,
             user_id=user_id,
             agent_id=agent_id,
             message=message,
             message_type=ConversationMessageType.USER,
+            pre_message_id=pre_message_id,
+        )
+        db.session.add(user_message)
+        db.session.commit()
+
+        # 更新缓存
+        ChatService.update_conversation_messages_cache(
+            conversation_id,
+            {
+                'id': user_message.id,
+                'user_id': user_id,
+                'agent_id': agent_id,
+                'message': message,
+                'message_type': ConversationMessageType.USER.value,
+                'created_at': user_message.created_at.isoformat(),
+                'pre_message_id': pre_message_id
+            }
         )
 
+        return user_message.id
+
     @staticmethod
-    def _save_ai_response_and_update_history(
+    def _save_ai_response_and_update_cache(
         conversation_id: int,
         user_id: int,
         agent_id: int,
-        message: str,
-        full_response: str,
+        llm_response: str,
+        user_message_id: int,
     ):
         # 保存 AI 响应消息
-        save_message_task.delay(
+        conversation_message = ConversationMessage(
             conversation_id=conversation_id,
             user_id=user_id,
             agent_id=agent_id,
-            message=full_response,
+            message=llm_response,
             message_type=ConversationMessageType.AGENT,
+            pre_message_id=user_message_id,
         )
+        db.session.add(conversation_message)
+        db.session.commit()
 
-        # 更新对话历史缓存
-        ChatService.update_conversation_history_cache(
-            conversation_id, {"role": "user", "content": message}
-        )
-        ChatService.update_conversation_history_cache(
-            conversation_id, {"role": "assistant", "content": full_response}
+        # 更新缓存
+        ChatService.update_conversation_messages_cache(
+            conversation_id,
+            {
+                "id": conversation_message.id,
+                "user_id": user_id,
+                "agent_id": agent_id,
+                "message": llm_response,
+                "message_type": ConversationMessageType.AGENT.value,
+                "created_at": conversation_message.created_at.isoformat(),
+                "pre_message_id": user_message_id,
+            },
         )
 
     @staticmethod
     def get_conversation_histories(conversation_id: int, max_messages: int = 10):
-        # 使用类常量来生成 cache_key
-        cache_key = ChatService.CONVERSATION_HISTORY_CACHE_KEY.format(conversation_id)
-        cached_history = redis_client.lrange(cache_key, 0, -1)
-
-        if cached_history:
-            # 如果有缓存，直接返回
-            return [json.loads(msg) for msg in cached_history][-max_messages:]
-        else:
-            # 如果没有缓存，从数据库获取并缓存
-            messages = (
-                ConversationMessage.query.filter_by(conversation_id=conversation_id)
-                .order_by(ConversationMessage.created_at)
-                .limit(max_messages)
-                .all()
+        try:
+            cache_key = ChatService.CONVERSATION_MESSAGES_CACHE_KEY.format(
+                conversation_id
             )
+            cached_messages = redis_client.lrange(cache_key, 0, -1)
+
+            if cached_messages:
+                messages = [json.loads(msg) for msg in cached_messages][-max_messages:]
+            else:
+                _, messages, _ = ChatService.get_conversation_messages(
+                    conversation_id, page=1, per_page=max_messages
+                )
+
             history = []
             for msg in messages:
+                if isinstance(msg, dict):
+                    message_type = msg.get("message_type")
+                    message_content = msg.get("message")
+                else:
+                    message_type = msg.message_type.value
+                    message_content = msg.message
+
                 role = (
                     "user"
-                    if msg.message_type == ConversationMessageType.USER
+                    if message_type == ConversationMessageType.USER.value
                     else "assistant"
                 )
-                history_item = {"role": role, "content": msg.message}
+                history_item = {"role": role, "content": message_content}
                 history.append(history_item)
-                redis_client.rpush(cache_key, json.dumps(history_item))
-
-            # 设置缓存过期时间，例如 1 小时
-            redis_client.expire(cache_key, 3600)
 
             return history
+        except Exception as e:
+            # 记录错误并返回空列表
+            print(f"Error in get_conversation_histories: {str(e)}")
+            return []
 
     @staticmethod
-    def update_conversation_history_cache(conversation_id: int, message: dict):
-        # 使用类常量来生成 cache_key
-        cache_key = ChatService.CONVERSATION_HISTORY_CACHE_KEY.format(conversation_id)
-        redis_client.rpush(cache_key, json.dumps(message))
-        redis_client.ltrim(cache_key, -10, -1)  # 保留最新的 10 条消息
-        redis_client.expire(cache_key, 3600)  # 重新设置过期时间
+    def update_conversation_messages_cache(conversation_id: int, messages: list):
+        cache_key = ChatService.CONVERSATION_MESSAGES_CACHE_KEY.format(conversation_id)
+        
+        # 清除旧的缓存
+        redis_client.delete(cache_key)
+        
+        # 添加新的消息到缓存
+        for message in messages:
+            redis_client.rpush(cache_key, json.dumps({
+                'id': message.id,
+                'user_id': message.user_id,
+                'agent_id': message.agent_id,
+                'message': message.message,
+                'message_type': message.message_type.value,
+                'created_at': message.created_at.isoformat(),
+                'pre_message_id': message.pre_message_id
+            }))
+        
+        # 设置缓存过期时间，例如1小时
+        redis_client.expire(cache_key, 3600)

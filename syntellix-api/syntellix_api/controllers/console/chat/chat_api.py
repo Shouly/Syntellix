@@ -30,7 +30,7 @@ class ChatConversationApi(Resource):
 
         name = args["name"]
         if name is None:
-            name = f"未命名会话"
+            name = f"新会话"
 
         agent = AgentService.get_agent_by_id(
             args["agent_id"], current_user.current_tenant_id
@@ -86,6 +86,7 @@ class ChatConversationStreamApi(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument("agent_id", type=int, required=True, location="args")
         parser.add_argument("message", type=str, required=True, location="args")
+        parser.add_argument("pre_message_id", type=int, required=True, location="args")
         args = parser.parse_args()
 
         tenant_id = current_user.current_tenant_id
@@ -98,7 +99,8 @@ class ChatConversationStreamApi(Resource):
                     conversation_id=conversation_id,
                     user_id=user_id,
                     agent_id=args["agent_id"],
-                    message=args["message"],
+                    user_message=args["message"],
+                    pre_message_id=args["pre_message_id"],
                 ):
                     yield f"data: {chunk}\n\n"
             except Exception as e:

@@ -59,3 +59,17 @@ class ConversationMessage(db.Model):
         nullable=False,
         server_default=db.text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
     )
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "agent_id": self.agent_id,
+            "conversation_id": self.conversation_id,
+            "user_id": self.user_id,
+            "message": self.message,
+            "message_type": self.message_type.value,
+            "pre_message_id": self.pre_message_id,
+            "citation": self.citation,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }

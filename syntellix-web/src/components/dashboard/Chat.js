@@ -191,7 +191,8 @@ function Chat({ selectedAgentId }) {
         // Construct URL with query parameters
         const params = new URLSearchParams({
           agent_id: chatDetails.agent_info.id.toString(),
-          message: inputMessage
+          message: inputMessage,
+          pre_message_id: conversationMessages[conversationMessages.length - 1]?.id
         });
         const url = `${API_BASE_URL}/console/api/chat/conversation/${currentConversationId}/stream?${params}`;
 
