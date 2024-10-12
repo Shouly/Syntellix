@@ -52,7 +52,7 @@ module.exports = {
         bg: {
           primary: '#fcfcf9',
           secondary: '#f3f3ee',
-          tertiary: '#E8E8E3',
+          tertiary: '#e8e8e3',
         },
         sidebar: {
           light: '#4fd1d9',

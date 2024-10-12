@@ -523,7 +523,7 @@ function Chat({ selectedAgentId }) {
                 </p>
               )}
               {chatDetails?.agent_info?.knowledge_bases?.length > 0 && (
-                <div className="text-xs text-text-muted bg-bg-tertiary rounded-lg p-3 mb-4 ">
+                <div className="text-xs text-text-muted bg-bg-secondary rounded-lg p-3 mb-4 ">
                   <h4 className="font-semibold mb-2 text-text-body">关联知识库:</h4>
                   <ul className="space-y-1">
                     {chatDetails.agent_info.knowledge_bases.map((kb) => (
@@ -541,7 +541,7 @@ function Chat({ selectedAgentId }) {
               )}
               <button
                 onClick={handleNewChat}
-                className="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center transition-colors duration-200 text-sm"
+                className="w-md bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center transition-colors duration-200 text-sm"
               >
                 <PlusIcon className="w-4 h-4 mr-2" />
                 <span className="font-sans-sc">新对话</span>
@@ -550,9 +550,9 @@ function Chat({ selectedAgentId }) {
 
             {/* Recent conversations */}
             <div className="flex-1 overflow-hidden flex flex-col mt-10">
-              <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider px-4 mb-2 flex items-center">
+              <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider px-4 mb-2 flex items-center">
                 <ClockIcon className="w-4 h-4 mr-2" />
-                最近对话
+                最近会话
               </h3>
               {isConversationListLoading ? (
                 <ConversationListSkeleton />
@@ -626,8 +626,8 @@ function Chat({ selectedAgentId }) {
                     message.message_type === 'user'
                       ? 'bg-primary text-white'
                       : message.message_type === 'status'
-                      ? 'bg-bg-tertiary text-text-secondary'
-                      : 'bg-bg-tertiary text-text-primary'
+                      ? 'bg-bg-secondary text-text-secondary'
+                      : 'bg-bg-secondary text-text-primary'
                   } max-w-[70%]`}
                   >
                     {message.message_type === 'user' ? (
@@ -763,8 +763,8 @@ function SidebarItem({ text, isActive = false, onClick, onRename, onDelete }) {
       <li
         className={`py-1 px-3 mx-2 my-1 transition-all duration-200 cursor-pointer rounded-lg ${
           isActive 
-            ? 'bg-primary bg-opacity-10 text-primary border-l-3 border-primary' 
-            : 'text-text-body hover:bg-bg-tertiary'
+            ? 'bg-bg-secondary text-primary border-primary'
+            : 'text-text-body hover:bg-bg-secondary'
         } flex items-center justify-between group`}
         onClick={isEditing ? undefined : onClick}
       >
