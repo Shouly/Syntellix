@@ -10,7 +10,7 @@ import AgentAvatar from '../AgentAvatar';
 import DeleteConfirmationModal from '../DeleteConfirmationModal';
 
 const PaginationCard = ({ currentPage, totalPages, onPageChange, isLoading }) => (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden flex items-center justify-center h-64 px-4">
+    <div className="bg-bg-secondary rounded-lg shadow-sm overflow-hidden flex items-center justify-center h-64 px-4">
         {isLoading ? (
             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
         ) : (
@@ -120,7 +120,7 @@ function Agent({ onCreateNew, onAgentClick }) {
             <select
                 value={selectedTag}
                 onChange={(e) => setSelectedTag(e.target.value)}
-                className="pl-10 pr-8 py-2 text-sm rounded-md bg-bg-primary border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 appearance-none cursor-pointer font-noto-sans-sc text-text-body"
+                className="pl-10 pr-8 py-2 text-sm rounded-md bg-bg-secondary border border-bg-tertiary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 appearance-none cursor-pointer font-noto-sans-sc text-text-body"
             >
                 {tags.map((tag) => (
                     <option key={tag} value={tag}>{tag}</option>
@@ -134,12 +134,14 @@ function Agent({ onCreateNew, onAgentClick }) {
     const NewAgentCard = () => (
         <div
             onClick={handleCreateAgent}
-            className="bg-white rounded-lg shadow-sm overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-md flex flex-col h-64"
+            className="bg-bg-secondary rounded-lg shadow-sm overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-md flex flex-col h-64"
         >
-            <div className="bg-gradient-to-r from-primary-light/30 to-secondary-light h-2/3 flex items-center justify-center">
-                <PlusIcon className="w-16 h-16 text-primary group-hover:scale-110 transition-transform duration-300" />
+            <div className="bg-gradient-to-br from-primary-light/5 to-primary-light/20 h-2/3 flex items-center justify-center">
+                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all duration-300">
+                    <PlusIcon className="w-12 h-12 text-primary group-hover:scale-110 transition-transform duration-300" />
+                </div>
             </div>
-            <div className="p-4 flex-grow flex flex-col justify-center">
+            <div className="p-4 flex-grow flex flex-col justify-center bg-bg-secondary">
                 <h3 className="text-base font-semibold text-primary group-hover:text-primary-dark transition-colors duration-300">创建智能体</h3>
                 <p className="text-xs text-text-secondary mt-1">开启您的新AI助手之旅</p>
             </div>
@@ -154,7 +156,7 @@ function Agent({ onCreateNew, onAgentClick }) {
                 onClick={() => onAgentClick(agent.id)}
                 onMouseEnter={() => setShowActions(true)}
                 onMouseLeave={() => setShowActions(false)}
-                className="bg-white rounded-lg shadow-sm overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-md flex flex-col h-64 relative"
+                className="bg-bg-secondary rounded-lg shadow-sm overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-md flex flex-col h-64 relative"
             >
                 <div className="h-2/3 flex items-center justify-center bg-gradient-to-br from-primary-light/10 to-primary-light/30">
                     <AgentAvatar avatarData={agent.avatar} agentName={agent.name} size="large" />
@@ -166,7 +168,7 @@ function Agent({ onCreateNew, onAgentClick }) {
                     </div>
                     <div className="flex flex-wrap gap-1 mt-1">
                         {agent.tags && agent.tags.slice(0, 2).map((tag, index) => (
-                            <span key={index} className="text-xs bg-bg-secondary text-text-secondary px-1.5 py-0.5 rounded-full">{tag}</span>
+                            <span key={index} className="text-xs bg-bg-tertiary text-text-secondary px-1.5 py-0.5 rounded-full">{tag}</span>
                         ))}
                         {agent.tags && agent.tags.length > 2 && (
                             <span className="text-xs text-text-secondary">+{agent.tags.length - 2}</span>
@@ -174,7 +176,7 @@ function Agent({ onCreateNew, onAgentClick }) {
                     </div>
                 </div>
                 {showActions && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-bg-primary bg-opacity-90 p-2 flex justify-end space-x-2">
+                    <div className="absolute bottom-0 left-0 right-0 bg-bg-secondary bg-opacity-90 p-2 flex justify-end space-x-2">
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -200,15 +202,15 @@ function Agent({ onCreateNew, onAgentClick }) {
     };
 
     const SkeletonCard = () => (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col h-64 animate-pulse">
+        <div className="bg-bg-secondary rounded-lg shadow-sm overflow-hidden flex flex-col h-64 animate-pulse">
             <div className="h-2/3 bg-gradient-to-br from-primary-light/10 to-primary-light/30 flex items-center justify-center">
-                <div className="w-24 h-24 bg-primary/20 rounded-full"></div>
+                <div className="w-24 h-24 bg-bg-tertiary rounded-full"></div>
             </div>
             <div className="p-4 flex-grow flex flex-col justify-between">
-                <div className="h-5 bg-primary/20 rounded w-3/4"></div>
+                <div className="h-5 bg-bg-tertiary rounded w-3/4"></div>
                 <div className="flex flex-wrap gap-1 mt-2">
-                    <div className="h-4 bg-bg-secondary rounded-full w-16"></div>
-                    <div className="h-4 bg-bg-secondary rounded-full w-20"></div>
+                    <div className="h-4 bg-bg-tertiary rounded-full w-16"></div>
+                    <div className="h-4 bg-bg-tertiary rounded-full w-20"></div>
                 </div>
             </div>
         </div>

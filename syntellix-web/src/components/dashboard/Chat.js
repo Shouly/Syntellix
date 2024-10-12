@@ -677,7 +677,7 @@ function Chat({ selectedAgentId }) {
                       }
                     }}
                     placeholder="请输入问题，Enter发送"
-                    className="w-full py-4 px-6 pr-14 bg-white bg-opacity-90 rounded-full border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 shadow-md text-sm"
+                    className="w-full py-4 px-6 pr-14 bg-bg-primary rounded-full border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 shadow-md text-sm"
                     disabled={isSubmitting || isWaitingForResponse}
                   />
                   <button
@@ -764,7 +764,7 @@ function SidebarItem({ text, isActive = false, onClick, onRename, onDelete }) {
         className={`py-1 px-3 mx-2 my-1 transition-all duration-200 cursor-pointer rounded-lg ${
           isActive 
             ? 'bg-primary bg-opacity-10 text-primary border-l-3 border-primary' 
-            : 'text-text-body hover:bg-bg-tertiary hover:bg-opacity-50'
+            : 'text-text-body hover:bg-bg-tertiary'
         } flex items-center justify-between group`}
         onClick={isEditing ? undefined : onClick}
       >
