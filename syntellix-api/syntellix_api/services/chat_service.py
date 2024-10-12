@@ -113,17 +113,20 @@ class ChatService:
         cache_key = ChatService.CONVERSATION_MESSAGES_CACHE_KEY.format(conversation_id)
         cached_messages = redis_client.lrange(cache_key, 0, -1)
 
-        if cached_messages and len(cached_messages) >= (page * per_page):
-            start = (page - 1) * per_page
-            end = start + per_page
+        if cached_messages:
+            total_cached = len(cached_messages)
+            start = max(0, total_cached - page * per_page)
+            end = total_cached - (page - 1) * per_page
             paginated_messages = [
                 ConversationMessage.from_dict(json.loads(msg))
                 for msg in cached_messages[start:end]
             ]
-            has_more = len(cached_messages) > end
-            return conversation, paginated_messages, has_more
+            
+            # 如果请求的页面完全在缓存中，直接返回
+            if start > 0 or total_cached == ChatService.CACHE_MESSAGE_LIMIT:
+                return conversation, paginated_messages, start > 0
 
-        # 缓存中的消息不足，需要查询数据库
+        # 需要查询数据库
         all_messages = ConversationMessage.query.filter_by(
             conversation_id=conversation_id
         ).all()
@@ -147,6 +150,9 @@ class ChatService:
         for root_message in root_messages:
             build_ordered_list(root_message)
 
+        # 反转有序消息列表，使最新的消息在列表末尾
+        ordered_messages.reverse()
+
         # 计算分页
         total_messages = len(ordered_messages)
         start = (page - 1) * per_page
@@ -155,11 +161,10 @@ class ChatService:
 
         has_more = total_messages > end
 
-        # 只有当请求的是最新的消息时，才更新缓存
-        if page == 1:
-            ChatService.update_conversation_messages_cache(
-                conversation_id, ordered_messages[-ChatService.CACHE_MESSAGE_LIMIT :]
-            )
+        # 更新缓存（只存储最新的20条记录）
+        ChatService.update_conversation_messages_cache(
+            conversation_id, ordered_messages[:ChatService.CACHE_MESSAGE_LIMIT]
+        )
 
         return conversation, paginated_messages, has_more
 
