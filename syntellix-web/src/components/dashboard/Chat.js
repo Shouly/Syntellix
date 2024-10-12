@@ -592,13 +592,13 @@ function Chat({ selectedAgentId }) {
       </div>
 
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden px-14">
+      <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden px-14 relative">
         {(isChatMessagesLoading || isChangingConversation) && !isLoadingMore ? (
           <ChatAreaSkeleton />
         ) : currentConversationId ? (
           <>
             <div 
-              className="flex-1 overflow-y-auto py-4 bg-bg-primary" 
+              className="flex-1 overflow-y-auto py-4 bg-bg-primary pb-24" 
               ref={chatContainerRef} 
               onScroll={handleScroll}
             >
@@ -657,35 +657,40 @@ function Chat({ selectedAgentId }) {
               ))}
             </div>
 
-            {/* Chat input - textarea with updated placeholder */}
-            <div className="pb-6 pt-2 bg-bg-primary">
-              <div className="relative flex flex-col"> {/* Changed to flex-col for adding hint */}
-                <textarea
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.ctrlKey && !e.shiftKey && !isSubmitting && !isWaitingForResponse) {
-                      e.preventDefault();
-                      handleSendMessage();
-                    }
-                  }}
-                  placeholder="请输入问题，Enter发送，Ctrl + Enter 换行"
-                  className="w-full py-3 px-4 pr-12 bg-bg-primary rounded-lg border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 resize-none"
-                  style={{ minHeight: '55px', maxHeight: '150px' }}
-                  rows="1"
-                  disabled={isSubmitting || isWaitingForResponse}
-                />
-                <button
-                  onClick={handleSendMessage}
-                  className={`absolute right-4 bottom-3 ${
-                    isSubmitting || isWaitingForResponse || !inputMessage.trim()
-                      ? 'text-text-muted cursor-not-allowed'
-                      : 'text-primary hover:text-primary-dark'
-                  } transition-colors duration-200`}
-                  disabled={isSubmitting || isWaitingForResponse || !inputMessage.trim()}
-                >
-                  <PaperAirplaneIcon className="w-8 h-8" />
-                </button>
+            {/* Chat input with edge background */}
+            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+              <div className="relative w-[700px]">
+                {/* Edge background */}
+                <div className="absolute inset-0 bg-primary bg-opacity-10 rounded-full blur-md"></div>
+              
+                {/* Input container */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !isSubmitting && !isWaitingForResponse) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    placeholder="请输入问题，Enter发送"
+                    className="w-full py-4 px-6 pr-14 bg-white bg-opacity-90 rounded-full border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 shadow-md text-sm"
+                    disabled={isSubmitting || isWaitingForResponse}
+                  />
+                  <button
+                    onClick={handleSendMessage}
+                    className={`absolute right-4 top-1/2 transform -translate-y-1/2 ${
+                      isSubmitting || isWaitingForResponse || !inputMessage.trim()
+                        ? 'text-text-muted cursor-not-allowed'
+                        : 'text-primary hover:text-primary-dark'
+                    } transition-colors duration-200`}
+                    disabled={isSubmitting || isWaitingForResponse || !inputMessage.trim()}
+                  >
+                    <PaperAirplaneIcon className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
             </div>
           </>
