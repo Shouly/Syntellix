@@ -272,7 +272,7 @@ function Dashboard({ setIsAuthenticated }) {
   return (
     <div className="h-screen flex bg-bg-secondary">
       {/* Left Sidebar Navigation */}
-      <nav className="w-16 z-10 flex flex-col items-center py-4">
+      <nav className="w-16 z-10 flex flex-col items-center py-4 bg-bg-secondary">
         {/* Logo */}
         <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
           <span className="text-xl font-bold text-bg-primary">S</span>
@@ -312,9 +312,8 @@ function Dashboard({ setIsAuthenticated }) {
         <div className="w-10 h-10"></div>
       </nav>
 
-      {/* Main content area with reduced padding */}
-      <div className="flex-1 overflow-hidden p-1">
-        <main className="h-full overflow-hidden bg-bg-primary rounded-lg shadow-lg flex flex-col">
+      <div className="flex-1 overflow-hidden p-1 bg-bg-secondary">
+        <main className="h-full flex flex-col bg-bg-primary rounded-lg shadow-md border border-[#e0e0e0]">
           {/* Search bar */}
           <div className="p-2 border-b border-bg-tertiary flex items-center justify-between">
             <div className="w-16"></div> {/* Spacer */}
@@ -338,8 +337,8 @@ function Dashboard({ setIsAuthenticated }) {
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-hidden">
-              {renderContent()}
+          <div className="flex-1 overflow-hidden rounded-lg">
+            {renderContent()}
           </div>
         </main>
       </div>
