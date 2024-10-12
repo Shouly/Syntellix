@@ -1,4 +1,4 @@
-import { ClockIcon, PaperAirplaneIcon, PlusIcon, UserCircleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { ClockIcon, ArrowUpIcon, PlusIcon, UserCircleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { ChatBubbleLeftRightIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import axios from 'axios';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -689,7 +689,7 @@ function Chat({ selectedAgentId }) {
                     } transition-colors duration-200`}
                     disabled={isSubmitting || isWaitingForResponse || !inputMessage.trim()}
                   >
-                    <PaperAirplaneIcon className="w-6 h-6" />
+                    <ArrowUpIcon className="w-6 h-6" />
                   </button>
                 </div>
               </div>
