@@ -304,9 +304,6 @@ function Dashboard({ setIsAuthenticated }) {
                 )}
                 <span className="relative z-10">{item.displayName}</span>
               </button>
-              {index === 0 && (
-                <div className="w-8 h-px bg-bg-tertiary my-2"></div>
-              )}
             </React.Fragment>
           ))}
         </div>

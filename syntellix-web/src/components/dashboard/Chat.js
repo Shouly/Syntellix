@@ -503,7 +503,7 @@ function Chat({ selectedAgentId }) {
           <AgentInfoSkeleton />
         ) : (
           <div className="flex flex-col h-full">
-            {/* Agent info and new chat button */}
+            {/* Agent info */}
             <div className="flex-shrink-0 p-4">
               <div className="flex items-center mb-4 cursor-pointer group">
                 <div className="mr-3">
@@ -522,8 +522,23 @@ function Chat({ selectedAgentId }) {
                   {chatDetails.agent_info.description}
                 </p>
               )}
-              {chatDetails?.agent_info?.knowledge_bases?.length > 0 && (
-                <div className="text-xs text-text-muted bg-bg-secondary rounded-lg p-3 mb-4 ">
+            </div>
+
+            {/* New chat button */}
+            <div className="px-4 mb-4">
+              <button
+                onClick={handleNewChat}
+                className="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center transition-colors duration-200 text-sm"
+              >
+                <PlusIcon className="w-4 h-4 mr-2" />
+                <span className="font-sans-sc">新对话</span>
+              </button>
+            </div>
+
+            {/* Knowledge bases */}
+            {chatDetails?.agent_info?.knowledge_bases?.length > 0 && (
+              <div className="px-4 mb-4">
+                <div className="text-xs text-text-muted bg-bg-secondary rounded-lg p-3">
                   <h4 className="font-semibold mb-2 text-text-body">关联知识库:</h4>
                   <ul className="space-y-1">
                     {chatDetails.agent_info.knowledge_bases.map((kb) => (
@@ -538,18 +553,11 @@ function Chat({ selectedAgentId }) {
                     ))}
                   </ul>
                 </div>
-              )}
-              <button
-                onClick={handleNewChat}
-                className="w-md bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center transition-colors duration-200 text-sm"
-              >
-                <PlusIcon className="w-4 h-4 mr-2" />
-                <span className="font-sans-sc">新对话</span>
-              </button>
-            </div>
+              </div>
+            )}
 
             {/* Recent conversations */}
-            <div className="flex-1 overflow-hidden flex flex-col mt-10">
+            <div className="flex-1 overflow-hidden flex flex-col mt-2">
               <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider px-4 mb-2 flex items-center">
                 <ClockIcon className="w-4 h-4 mr-2" />
                 最近会话
