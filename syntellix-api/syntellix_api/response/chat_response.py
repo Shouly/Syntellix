@@ -19,7 +19,6 @@ conversation_message_fields = {
     "message_type": fields.String,
     "citation": fields.Raw,
     "pre_message_id": fields.Integer,
-    "next_message_id": fields.Integer,
     "created_at": fields.DateTime,
     "updated_at": fields.DateTime,
 }
@@ -39,7 +38,6 @@ conversation_with_messages_fields = {
         "message_type": fields.String,
         "citation": fields.Raw,
         "pre_message_id": fields.Integer,
-        "next_message_id": fields.Integer,
         "created_at": fields.DateTime,
         "updated_at": fields.DateTime,
     })),

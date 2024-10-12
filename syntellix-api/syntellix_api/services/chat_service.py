@@ -79,7 +79,6 @@ class ChatService:
         message_type: ConversationMessageType,
         citation: dict = None,
         pre_message_id: int = None,
-        next_message_id: int = None,
     ):
         conversation_message = ConversationMessage(
             conversation_id=conversation_id,
@@ -89,7 +88,6 @@ class ChatService:
             message_type=message_type,
             citation=citation,
             pre_message_id=pre_message_id,
-            next_message_id=next_message_id,
         )
 
         db.session.add(conversation_message)

@@ -161,7 +161,6 @@ class ChatConversationMessageApi(Resource):
                     "message_type": msg.message_type.value,
                     "citation": msg.citation,
                     "pre_message_id": msg.pre_message_id,
-                    "next_message_id": msg.next_message_id,
                     "created_at": msg.created_at,
                     "updated_at": msg.updated_at,
                 }

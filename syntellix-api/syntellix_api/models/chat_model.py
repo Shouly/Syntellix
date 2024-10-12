@@ -50,7 +50,6 @@ class ConversationMessage(db.Model):
         server_default=ConversationMessageType.USER.value,
     )
     pre_message_id = db.Column(db.Integer, nullable=True)
-    next_message_id = db.Column(db.Integer, nullable=True)
     citation = db.Column(JSON, nullable=True)
     created_at = db.Column(
         db.DateTime, nullable=False, server_default=db.func.current_timestamp()
