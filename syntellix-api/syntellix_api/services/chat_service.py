@@ -101,7 +101,7 @@ class ChatService:
 
     @staticmethod
     def get_conversation_messages(
-        conversation_id: int, page: int = 1, per_page: int = 10
+        conversation_id: int, page: int = 1, per_page: int = 5
     ):
         conversation = Conversation.query.get(conversation_id)
         if not conversation:
@@ -404,4 +404,4 @@ class ChatService:
             redis_client.rpush(cache_key, json.dumps(message))
 
         # 设置缓存过期时间，例如1小时
-        redis_client.expire(cache_key, 3600)
+        redis_client.expire(cache_key, 3600 * 24 * 7)
