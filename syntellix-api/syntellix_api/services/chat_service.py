@@ -363,23 +363,40 @@ class ChatService:
 
         if not isinstance(messages, list):
             messages = [messages]
+            is_single_update = True
+        else:
+            is_single_update = False
 
-        # 获取当前缓存中的消息
-        current_messages = redis_client.lrange(cache_key, 0, -1)
-        current_messages = [json.loads(msg) for msg in current_messages]
+        if is_single_update:
+            # 单条消息更新：获取当前缓存中的消息并追加新消息
+            current_messages = redis_client.lrange(cache_key, 0, -1)
+            current_messages = [json.loads(msg) for msg in current_messages]
 
-        # 添加新的消息
-        for message in messages:
-            if isinstance(message, dict):
-                message_dict = message
-            elif isinstance(message, ConversationMessage):
-                message_dict = message.to_dict()
-            else:
-                raise ValueError("Unsupported message type")
-            current_messages.append(message_dict)
+            for message in messages:
+                if isinstance(message, dict):
+                    message_dict = message
+                elif isinstance(message, ConversationMessage):
+                    message_dict = message.to_dict()
+                else:
+                    raise ValueError("Unsupported message type")
+                current_messages.append(message_dict)
 
-        # 只保留最近的 CACHE_MESSAGE_LIMIT 条消息
-        current_messages = current_messages[-ChatService.CACHE_MESSAGE_LIMIT:]
+            # 只保留最近的 CACHE_MESSAGE_LIMIT 条消息
+            current_messages = current_messages[-ChatService.CACHE_MESSAGE_LIMIT:]
+        else:
+            # 多条消息更新：直接使用新的消息列表
+            current_messages = []
+            for message in messages:
+                if isinstance(message, dict):
+                    message_dict = message
+                elif isinstance(message, ConversationMessage):
+                    message_dict = message.to_dict()
+                else:
+                    raise ValueError("Unsupported message type")
+                current_messages.append(message_dict)
+
+            # 只保留最近的 CACHE_MESSAGE_LIMIT 条消息
+            current_messages = current_messages[-ChatService.CACHE_MESSAGE_LIMIT:]
 
         # 清除旧的缓存并添加更新后的消息
         redis_client.delete(cache_key)
