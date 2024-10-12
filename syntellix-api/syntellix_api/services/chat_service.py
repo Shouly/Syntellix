@@ -361,13 +361,14 @@ class ChatService:
     ):
         cache_key = ChatService.CONVERSATION_MESSAGES_CACHE_KEY.format(conversation_id)
 
-        # 清除旧的缓存
-        redis_client.delete(cache_key)
-
         if not isinstance(messages, list):
             messages = [messages]
 
-        # 添加新的消息到缓存
+        # 获取当前缓存中的消息
+        current_messages = redis_client.lrange(cache_key, 0, -1)
+        current_messages = [json.loads(msg) for msg in current_messages]
+
+        # 添加新的消息
         for message in messages:
             if isinstance(message, dict):
                 message_dict = message
@@ -375,11 +376,15 @@ class ChatService:
                 message_dict = message.to_dict()
             else:
                 raise ValueError("Unsupported message type")
+            current_messages.append(message_dict)
 
-            redis_client.rpush(
-                cache_key,
-                json.dumps(message_dict),
-            )
+        # 只保留最近的 CACHE_MESSAGE_LIMIT 条消息
+        current_messages = current_messages[-ChatService.CACHE_MESSAGE_LIMIT:]
+
+        # 清除旧的缓存并添加更新后的消息
+        redis_client.delete(cache_key)
+        for message in current_messages:
+            redis_client.rpush(cache_key, json.dumps(message))
 
         # 设置缓存过期时间，例如1小时
         redis_client.expire(cache_key, 3600)
