@@ -505,7 +505,7 @@ function Chat({ selectedAgentId }) {
           <div className="flex flex-col h-full">
             {/* Agent info */}
             <div className="flex-shrink-0 p-4">
-              <div className="flex items-center mb-4 cursor-pointer group">
+              <div className="flex items-center mb-3 cursor-pointer group">
                 <div className="mr-3">
                   <AgentAvatar
                     avatarData={chatDetails?.agent_info?.avatar}
@@ -518,44 +518,44 @@ function Chat({ selectedAgentId }) {
                 </h1>
               </div>
               {chatDetails?.agent_info?.description && (
-                <p className="text-xs text-text-muted mb-4 line-clamp-3 hover:line-clamp-none transition-all duration-300">
+                <p className="text-xs text-text-muted line-clamp-2 hover:line-clamp-none transition-all duration-300">
                   {chatDetails.agent_info.description}
                 </p>
               )}
-            </div>
-
-            {/* Knowledge bases */}
-            {chatDetails?.agent_info?.knowledge_bases?.length > 0 && (
-              <div className="px-4 mb-4">
-                <div className="text-xs text-text-muted bg-bg-secondary rounded-lg p-3">
-                  <h4 className="font-semibold mb-2 text-text-body">关联知识库:</h4>
+              {/* Knowledge bases */}
+              {chatDetails?.agent_info?.knowledge_bases?.length > 0 && (
+                <div className="mt-3">
+                  <h4 className="text-xs font-semibold text-text-secondary mb-2">关联知识库:</h4>
                   <ul className="space-y-1">
                     {chatDetails.agent_info.knowledge_bases.map((kb) => (
                       <li
                         key={kb.id}
-                        className="flex items-center cursor-pointer hover:text-primary transition-colors duration-200"
+                        className="flex items-center cursor-pointer text-xs text-text-muted hover:text-primary transition-colors duration-200"
                         onClick={() => handleKnowledgeBaseClick(kb.id)}
                       >
-                        <span className="w-2 h-2 bg-primary rounded-full mr-2"></span>
+                        <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></span>
                         <span className="truncate">{kb.name}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+
+            {/* Divider */}
+            <div className="mx-4 my-4 border-t border-bg-tertiary"></div>
 
             {/* Recent conversations */}
-            <div className="flex-1 overflow-hidden flex flex-col mt-2">
-              <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider px-4 mb-2 flex items-center">
+            <div className="flex-1 overflow-hidden flex mt-2 flex-col">
+              <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider px-4 mb-3 flex items-center">
                 <ClockIcon className="w-4 h-4 mr-2" />
                 最近会话
               </h3>
               {isConversationListLoading ? (
                 <ConversationListSkeleton />
               ) : (
-                <div className="flex-1 overflow-y-auto">
-                  <ul className="p-2">
+                <div className="flex-1 overflow-y-auto px-2">
+                  <ul className="space-y-1">
                     {conversationHistory.map(chat => (
                       <SidebarItem
                         key={chat.id}
@@ -574,10 +574,10 @@ function Chat({ selectedAgentId }) {
                   {hasMoreConversations && (
                     <div
                       onClick={() => fetchConversationHistory(chatDetails.agent_info.id, conversationHistory[conversationHistory.length - 1]?.id)}
-                      className="py-2 px-4 transition-colors duration-200 cursor-pointer text-primary hover:bg-primary hover:bg-opacity-10 flex items-center justify-center group"
+                      className="py-2 px-4 mt-2 text-primary hover:bg-primary hover:bg-opacity-10 flex items-center justify-center cursor-pointer rounded-md"
                     >
-                      <span className="font-sans-sc text-sm font-semibold flex items-center">
-                        <PlusIcon className="w-4 h-4 mr-2" />
+                      <span className="font-sans-sc text-xs font-semibold flex items-center">
+                        <PlusIcon className="w-3 h-3 mr-1" />
                         加载更多
                       </span>
                     </div>
@@ -771,10 +771,10 @@ function SidebarItem({ text, isActive = false, onClick, onRename, onDelete }) {
   return (
     <>
       <li
-        className={`py-1 px-3 mx-2 my-1 transition-all duration-200 cursor-pointer rounded-lg ${
+        className={`py-1.5 px-3 mx-2 my-0.5 transition-all duration-200 cursor-pointer rounded-md ${
           isActive 
-            ? 'bg-bg-secondary text-primary border-primary'
-            : 'text-text-body hover:bg-bg-secondary'
+            ? 'bg-bg-secondary text-primary'
+            : 'text-text-body hover:bg-bg-secondary hover:bg-opacity-50'
         } flex items-center justify-between group`}
         onClick={isEditing ? undefined : onClick}
       >
@@ -788,14 +788,14 @@ function SidebarItem({ text, isActive = false, onClick, onRename, onDelete }) {
                 handleRename();
               }
             }}
-            className="bg-transparent border-none focus:outline-none text-sm font-sans-sc flex-grow mr-2"
+            className="bg-transparent border-none focus:outline-none text-xs font-sans-sc flex-grow mr-2"
             autoFocus
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
-          <span className={`font-sans-sc text-sm ${isActive ? 'font-semibold' : ''} truncate flex-grow mr-2`}>{text}</span>
+          <span className={`font-sans-sc text-xs ${isActive ? 'font-semibold' : ''} truncate flex-grow mr-2`}>{text}</span>
         )}
-        <div onClick={(e) => e.stopPropagation()}>
+        <div onClick={(e) => e.stopPropagation()} className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <ConversationActionMenu
             onRename={handleRename}
             onDelete={() => setIsDeleteModalOpen(true)}
