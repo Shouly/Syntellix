@@ -156,14 +156,14 @@ function Agent({ onCreateNew, onAgentClick }) {
                 onClick={() => onAgentClick(agent.id)}
                 onMouseEnter={() => setShowActions(true)}
                 onMouseLeave={() => setShowActions(false)}
-                className="bg-bg-secondary rounded-lg shadow-sm overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-md flex flex-col h-64 relative"
+                className="bg-bg-secondary rounded-lg shadow-sm overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-md flex flex-col h-64 relative border border-primary/10 hover:border-primary/30"
             >
-                <div className="h-2/3 flex items-center justify-center bg-gradient-to-br from-primary-light/10 to-primary-light/30">
+                <div className="h-2/3 flex items-center justify-center bg-gradient-to-br from-primary-light/5 to-primary/10">
                     <AgentAvatar avatarData={agent.avatar} agentName={agent.name} size="large" />
                 </div>
-                <div className="h-1/3 p-3 flex flex-col justify-between">
+                <div className="h-1/3 p-3 flex flex-col justify-between bg-bg-primary">
                     <div className="overflow-hidden">
-                        <h3 className="text-sm font-semibold text-text-body group-hover:text-primary transition-colors duration-300 truncate">{agent.name}</h3>
+                        <h3 className="text-sm font-semibold text-text-primary group-hover:text-primary transition-colors duration-300 truncate">{agent.name}</h3>
                         <p className="text-xs text-text-secondary mt-1 line-clamp-2 overflow-hidden">{agent.description}</p>
                     </div>
                     <div className="flex flex-wrap gap-1 mt-1">
@@ -176,13 +176,13 @@ function Agent({ onCreateNew, onAgentClick }) {
                     </div>
                 </div>
                 {showActions && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-bg-secondary bg-opacity-90 p-2 flex justify-end space-x-2">
+                    <div className="absolute bottom-0 left-0 right-0 bg-bg-primary bg-opacity-90 p-2 flex justify-end space-x-2">
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
                                 console.log('Settings clicked for', agent.name);
                             }}
-                            className="text-text-muted hover:text-primary transition-colors duration-200 p-1 rounded-full hover:bg-primary-light/20"
+                            className="text-text-muted hover:text-primary transition-colors duration-200 p-1 rounded-full hover:bg-primary-light/10"
                         >
                             <Cog6ToothIcon className="w-5 h-5" />
                         </button>
@@ -191,7 +191,7 @@ function Agent({ onCreateNew, onAgentClick }) {
                                 e.stopPropagation();
                                 onDeleteClick(agent);
                             }}
-                            className="text-text-muted hover:text-danger transition-colors duration-200 p-1 rounded-full hover:bg-danger-light/20"
+                            className="text-text-muted hover:text-danger transition-colors duration-200 p-1 rounded-full hover:bg-danger-light/10"
                         >
                             <TrashIcon className="w-5 h-5" />
                         </button>
