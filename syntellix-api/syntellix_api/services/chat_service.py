@@ -115,15 +115,18 @@ class ChatService:
 
         if cached_messages:
             total_cached = len(cached_messages)
-            start = max(0, total_cached - page * per_page)
-            end = total_cached - (page - 1) * per_page
-            paginated_messages = [
-                ConversationMessage.from_dict(json.loads(msg))
-                for msg in cached_messages[start:end]
-            ]
-            
-            # 如果请求的页面完全在缓存中，直接返回
-            if start > 0 or total_cached == ChatService.CACHE_MESSAGE_LIMIT:
+
+            # 提前判断是否可以直接从缓存返回
+            if (
+                total_cached >= page * per_page
+                or total_cached == ChatService.CACHE_MESSAGE_LIMIT
+            ):
+                start = max(0, total_cached - page * per_page)
+                end = total_cached - (page - 1) * per_page
+                paginated_messages = [
+                    ConversationMessage.from_dict(json.loads(msg))
+                    for msg in cached_messages[start:end]
+                ]
                 return conversation, paginated_messages, start > 0
 
         # 需要查询数据库
@@ -131,12 +134,12 @@ class ChatService:
             conversation_id=conversation_id
         ).all()
 
-        # 构建消息树和有序消息列表
+        # 构建消息树
         message_tree = defaultdict(list)
-        root_messages = []
+        first_message = None
         for message in all_messages:
             if message.pre_message_id is None:
-                root_messages.append(message)
+                first_message = message
             else:
                 message_tree[message.pre_message_id].append(message)
 
@@ -147,23 +150,21 @@ class ChatService:
             for child in message_tree[message.id]:
                 build_ordered_list(child)
 
-        for root_message in root_messages:
-            build_ordered_list(root_message)
-
-        # 反转有序消息列表，使最新的消息在列表末尾
-        ordered_messages.reverse()
+        # 从第一条消息开始构建有序列表
+        if first_message:
+            build_ordered_list(first_message)
 
         # 计算分页
         total_messages = len(ordered_messages)
-        start = (page - 1) * per_page
-        end = start + per_page
+        start = max(0, total_messages - page * per_page)
+        end = max(0, total_messages - (page - 1) * per_page)
         paginated_messages = ordered_messages[start:end]
 
-        has_more = total_messages > end
+        has_more = start > 0
 
         # 更新缓存（只存储最新的20条记录）
         ChatService.update_conversation_messages_cache(
-            conversation_id, ordered_messages[-ChatService.CACHE_MESSAGE_LIMIT:]
+            conversation_id, ordered_messages[-ChatService.CACHE_MESSAGE_LIMIT :]
         )
 
         return conversation, paginated_messages, has_more
@@ -248,7 +249,7 @@ class ChatService:
         # 获取对话历史
         conversation_history = ChatService.get_conversation_histories(conversation_id)
 
-        # 生成响应
+        # 生成响���
         full_response = ""
         for chunk in RAGService.call_llm(
             conversation_history, user_message, context_str
@@ -392,9 +393,9 @@ class ChatService:
                 current_messages.append(message_dict)
 
             # 只保留最近的 CACHE_MESSAGE_LIMIT 条消息
-            current_messages = current_messages[-ChatService.CACHE_MESSAGE_LIMIT:]
+            current_messages = current_messages[-ChatService.CACHE_MESSAGE_LIMIT :]
         else:
-            # 多条消息更新：直接使用新的消息列表
+            # 多条消息更新：直接使用新的消息表
             current_messages = []
             for message in messages:
                 if isinstance(message, dict):
@@ -406,7 +407,7 @@ class ChatService:
                 current_messages.append(message_dict)
 
             # 只保留最近的 CACHE_MESSAGE_LIMIT 条消息
-            current_messages = current_messages[-ChatService.CACHE_MESSAGE_LIMIT:]
+            current_messages = current_messages[-ChatService.CACHE_MESSAGE_LIMIT :]
 
         # 清除旧的缓存并添加更新后的消息
         redis_client.delete(cache_key)
