@@ -163,7 +163,7 @@ class ChatService:
 
         # 更新缓存（只存储最新的20条记录）
         ChatService.update_conversation_messages_cache(
-            conversation_id, ordered_messages[:ChatService.CACHE_MESSAGE_LIMIT]
+            conversation_id, ordered_messages[-ChatService.CACHE_MESSAGE_LIMIT:]
         )
 
         return conversation, paginated_messages, has_more
@@ -392,7 +392,7 @@ class ChatService:
                 current_messages.append(message_dict)
 
             # 只保留最近的 CACHE_MESSAGE_LIMIT 条消息
-            current_messages = current_messages[-ChatService.CACHE_MESSAGE_LIMIT :]
+            current_messages = current_messages[-ChatService.CACHE_MESSAGE_LIMIT:]
         else:
             # 多条消息更新：直接使用新的消息列表
             current_messages = []
@@ -406,7 +406,7 @@ class ChatService:
                 current_messages.append(message_dict)
 
             # 只保留最近的 CACHE_MESSAGE_LIMIT 条消息
-            current_messages = current_messages[-ChatService.CACHE_MESSAGE_LIMIT :]
+            current_messages = current_messages[-ChatService.CACHE_MESSAGE_LIMIT:]
 
         # 清除旧的缓存并添加更新后的消息
         redis_client.delete(cache_key)
