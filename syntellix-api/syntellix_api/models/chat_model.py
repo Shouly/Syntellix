@@ -1,4 +1,5 @@
 import enum
+from datetime import datetime
 
 from sqlalchemy.dialects.mysql import JSON, LONGTEXT
 from syntellix_api.extensions.ext_database import db
@@ -73,3 +74,22 @@ class ConversationMessage(db.Model):
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
+
+    @classmethod
+    def from_dict(cls, data):
+        message = cls()
+        message.id = data.get("id")
+        message.agent_id = data.get("agent_id")
+        message.conversation_id = data.get("conversation_id")
+        message.user_id = data.get("user_id")
+        message.message = data.get("message")
+        message.message_type = ConversationMessageType(data.get("message_type"))
+        message.pre_message_id = data.get("pre_message_id")
+        message.citation = data.get("citation")
+
+        if data.get("created_at"):
+            message.created_at = datetime.fromisoformat(data["created_at"])
+        if data.get("updated_at"):
+            message.updated_at = datetime.fromisoformat(data["updated_at"])
+
+        return message

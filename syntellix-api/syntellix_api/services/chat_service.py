@@ -4,8 +4,11 @@ from typing import Generator, List, Union
 
 from syntellix_api.extensions.ext_database import db
 from syntellix_api.extensions.ext_redis import redis_client
-from syntellix_api.models.chat_model import (Conversation, ConversationMessage,
-                                             ConversationMessageType)
+from syntellix_api.models.chat_model import (
+    Conversation,
+    ConversationMessage,
+    ConversationMessageType,
+)
 from syntellix_api.services.agent_service import AgentService
 from syntellix_api.services.rag_service import RAGService
 
@@ -111,10 +114,12 @@ class ChatService:
         cached_messages = redis_client.lrange(cache_key, 0, -1)
 
         if cached_messages and len(cached_messages) >= (page * per_page):
-            # 如果缓存中的消息足够，直接从缓存中获取
             start = (page - 1) * per_page
             end = start + per_page
-            paginated_messages = [json.loads(msg) for msg in cached_messages[start:end]]
+            paginated_messages = [
+                ConversationMessage.from_dict(json.loads(msg))
+                for msg in cached_messages[start:end]
+            ]
             has_more = len(cached_messages) > end
             return conversation, paginated_messages, has_more
 
@@ -382,7 +387,7 @@ class ChatService:
                 current_messages.append(message_dict)
 
             # 只保留最近的 CACHE_MESSAGE_LIMIT 条消息
-            current_messages = current_messages[-ChatService.CACHE_MESSAGE_LIMIT:]
+            current_messages = current_messages[-ChatService.CACHE_MESSAGE_LIMIT :]
         else:
             # 多条消息更新：直接使用新的消息列表
             current_messages = []
@@ -396,7 +401,7 @@ class ChatService:
                 current_messages.append(message_dict)
 
             # 只保留最近的 CACHE_MESSAGE_LIMIT 条消息
-            current_messages = current_messages[-ChatService.CACHE_MESSAGE_LIMIT:]
+            current_messages = current_messages[-ChatService.CACHE_MESSAGE_LIMIT :]
 
         # 清除旧的缓存并添加更新后的消息
         redis_client.delete(cache_key)
