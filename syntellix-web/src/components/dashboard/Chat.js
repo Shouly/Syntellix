@@ -1,19 +1,20 @@
-import { ClockIcon, ArrowUpIcon, PlusIcon, UserCircleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon, ArrowUpIcon, ClockIcon, PencilSquareIcon, PlusIcon, TrashIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 import { ChatBubbleLeftRightIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid';
+import { fetchEventSource } from '@microsoft/fetch-event-source';
 import axios from 'axios';
+import { formatDistanceToNow } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../components/Toast';
+import { API_BASE_URL } from '../../config';
 import AgentAvatar from '../AgentAvatar';
 import DeleteConfirmationModal from '../DeleteConfirmationModal';
 import RenameModal from '../RenameModal';
 import { AgentInfoSkeleton, ChatAreaSkeleton, ConversationListSkeleton } from './ChatSkeletons';
-import ConversationActionMenu from './ConversationActionMenu';
 import KnowledgeBaseDetail from './KnowledgeBaseDetail';
 import NewChatPrompt from './NewChatPrompt';
-import { fetchEventSource } from '@microsoft/fetch-event-source';
-import { API_BASE_URL } from '../../config';
 
 function Chat({ selectedAgentId }) {
   const [chatDetails, setChatDetails] = useState(null);
@@ -554,34 +555,33 @@ function Chat({ selectedAgentId }) {
               {isConversationListLoading ? (
                 <ConversationListSkeleton />
               ) : (
-                <div className="flex-1 overflow-y-auto px-2">
-                  <ul className="space-y-1">
-                    {conversationHistory.map(chat => (
-                      <SidebarItem
-                        key={chat.id}
-                        text={chat.name}
-                        isActive={chat.id === currentConversationId}
-                        onClick={() => {
-                          setCurrentConversationId(chat.id);
-                          setIsChangingConversation(true);
-                          fetchConversationMessages(chat.id);
-                        }}
-                        onRename={(newName) => handleRenameConversation(chat.id, newName)}
-                        onDelete={() => handleDeleteConversation(chat.id)}
-                      />
-                    ))}
-                  </ul>
-                  {hasMoreConversations && (
-                    <div
-                      onClick={() => fetchConversationHistory(chatDetails.agent_info.id, conversationHistory[conversationHistory.length - 1]?.id)}
-                      className="py-2 px-4 mt-2 text-primary hover:bg-primary hover:bg-opacity-10 flex items-center justify-center cursor-pointer rounded-md"
-                    >
-                      <span className="font-sans-sc text-xs font-semibold flex items-center">
-                        <PlusIcon className="w-3 h-3 mr-1" />
-                        加载更多
-                      </span>
-                    </div>
-                  )}
+                <div className="flex-1 overflow-y-auto px-2 space-y-1">
+                  {conversationHistory.map(chat => (
+                    <SidebarItem
+                      key={chat.id}
+                      text={chat.name}
+                      timestamp={chat.updated_at || chat.created_at}
+                      isActive={chat.id === currentConversationId}
+                      onClick={() => {
+                        setCurrentConversationId(chat.id);
+                        setIsChangingConversation(true);
+                        fetchConversationMessages(chat.id);
+                      }}
+                      onRename={(newName) => handleRenameConversation(chat.id, newName)}
+                      onDelete={() => handleDeleteConversation(chat.id)}
+                    />
+                  ))}
+                </div>
+              )}
+              {hasMoreConversations && (
+                <div
+                  onClick={() => fetchConversationHistory(chatDetails.agent_info.id, conversationHistory[conversationHistory.length - 1]?.id)}
+                  className="py-2 px-4 mt-2 text-primary hover:bg-primary hover:bg-opacity-10 flex items-center justify-center cursor-pointer rounded-md"
+                >
+                  <span className="font-sans-sc text-sm font-semibold flex items-center">
+                    <PlusIcon className="w-4 h-4 mr-1" />
+                    加载更多
+                  </span>
                 </div>
               )}
             </div>
@@ -595,9 +595,9 @@ function Chat({ selectedAgentId }) {
           <ChatAreaSkeleton />
         ) : currentConversationId ? (
           <>
-            <div 
-              className="flex-1 overflow-y-auto py-4 bg-bg-primary pb-24" 
-              ref={chatContainerRef} 
+            <div
+              className="flex-1 overflow-y-auto py-4 bg-bg-primary pb-24"
+              ref={chatContainerRef}
               onScroll={handleScroll}
             >
               {isLoadingMore && (
@@ -619,13 +619,12 @@ function Chat({ selectedAgentId }) {
                       />
                     </div>
                   )}
-                  <div className={`inline-block p-3 rounded-xl ${
-                    message.message_type === 'user'
-                      ? 'bg-primary text-white'
-                      : message.message_type === 'status'
+                  <div className={`inline-block p-3 rounded-xl ${message.message_type === 'user'
+                    ? 'bg-primary text-white'
+                    : message.message_type === 'status'
                       ? 'bg-bg-secondary text-text-secondary'
                       : 'bg-bg-secondary text-text-primary'
-                  } max-w-[70%]`}
+                    } max-w-[70%]`}
                   >
                     {message.message_type === 'user' ? (
                       <p className="text-sm leading-relaxed font-sans-sc font-medium">
@@ -660,7 +659,7 @@ function Chat({ selectedAgentId }) {
               <div className="relative w-[700px]">
                 {/* Edge background */}
                 <div className="absolute inset-0 bg-primary bg-opacity-10 rounded-full blur-md"></div>
-              
+
                 {/* Input container */}
                 <div className="relative flex items-center">
                   {/* New chat button */}
@@ -692,11 +691,10 @@ function Chat({ selectedAgentId }) {
                   />
                   <button
                     onClick={handleSendMessage}
-                    className={`absolute right-4 top-1/2 transform -translate-y-1/2 ${
-                      isSubmitting || isWaitingForResponse || !inputMessage.trim()
-                        ? 'text-text-muted cursor-not-allowed'
-                        : 'text-primary hover:text-primary-dark'
-                    } transition-colors duration-200`}
+                    className={`absolute right-4 top-1/2 transform -translate-y-1/2 ${isSubmitting || isWaitingForResponse || !inputMessage.trim()
+                      ? 'text-text-muted cursor-not-allowed'
+                      : 'text-primary hover:text-primary-dark'
+                      } transition-colors duration-200`}
                     disabled={isSubmitting || isWaitingForResponse || !inputMessage.trim()}
                   >
                     <ArrowUpIcon className="w-5 h-5" />
@@ -746,7 +744,7 @@ function Chat({ selectedAgentId }) {
   );
 }
 
-function SidebarItem({ text, isActive = false, onClick, onRename, onDelete }) {
+function SidebarItem({ text, timestamp, isActive = false, onClick, onRename, onDelete }) {
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(text);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -768,38 +766,68 @@ function SidebarItem({ text, isActive = false, onClick, onRename, onDelete }) {
     setIsDeleteModalOpen(false);
   };
 
+  const formatRelativeTime = (dateString) => {
+    const date = new Date(dateString);
+    const distance = formatDistanceToNow(date, { locale: zhCN });
+    return distance.replace(/大约 /, '') // 移除"大约"字
+      .replace(/ 天/, '天')
+      .replace(/ 个?小时/, '小时')
+      .replace(/ 分钟/, '分钟')
+      .replace(/不到 /, ''); // 移除"不到"
+  };
+
+  const formattedTimestamp = timestamp ? formatRelativeTime(timestamp) : '';
+
   return (
     <>
       <li
-        className={`py-1 px-3 mx-2 transition-all duration-200 cursor-pointer rounded-md ${
-          isActive 
-            ? 'bg-bg-secondary text-primary'
-            : 'text-text-body hover:bg-bg-secondary hover:bg-opacity-50'
-        } flex items-center justify-between group`}
+        className={`py-2.5 px-3 mx-2 transition-all duration-200 cursor-pointer rounded-md ${isActive
+          ? 'bg-bg-secondary text-primary'
+          : 'text-text-body hover:bg-bg-secondary hover:bg-opacity-50'
+          } flex items-center justify-between group`}
         onClick={isEditing ? undefined : onClick}
       >
-        {isEditing ? (
-          <input
-            type="text"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleRename();
-              }
-            }}
-            className="bg-transparent border-none focus:outline-none text-xs font-sans-sc flex-grow mr-2"
-            autoFocus
-            onClick={(e) => e.stopPropagation()}
-          />
-        ) : (
-          <span className={`font-sans-sc text-xs ${isActive ? 'font-semibold' : ''} truncate flex-grow mr-2`}>{text}</span>
-        )}
-        <div onClick={(e) => e.stopPropagation()} className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <ConversationActionMenu
-            onRename={handleRename}
-            onDelete={() => setIsDeleteModalOpen(true)}
-          />
+        <div className="flex-grow mr-2 min-w-0 flex items-center">
+          {isEditing ? (
+            <input
+              type="text"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleRename();
+                }
+              }}
+              className="bg-transparent border-none focus:outline-none text-sm font-sans-sc w-full"
+              autoFocus
+              onClick={(e) => e.stopPropagation()}
+            />
+          ) : (
+            <span className={`font-sans-sc text-sm ${isActive ? 'font-medium' : ''} truncate flex-shrink min-w-0`}>{text}</span>
+          )}
+        </div>
+        <div className="flex items-center space-x-2">
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditing(true);
+              }}
+              className="text-text-muted hover:text-primary transition-colors duration-200"
+            >
+              <PencilSquareIcon className="w-4 h-4" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsDeleteModalOpen(true);
+              }}
+              className="text-text-muted hover:text-danger transition-colors duration-200"
+            >
+              <TrashIcon className="w-4 h-4" />
+            </button>
+          </div>
+          <span className="text-xs text-text-muted flex-shrink-0">{formattedTimestamp}前</span>
         </div>
       </li>
       <DeleteConfirmationModal
