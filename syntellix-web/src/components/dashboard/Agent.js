@@ -134,9 +134,9 @@ function Agent({ onCreateNew, onAgentClick }) {
     const NewAgentCard = () => (
         <div
             onClick={handleCreateAgent}
-            className="bg-bg-secondary rounded-lg shadow-sm overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-md flex flex-col h-64"
+            className="bg-bg-secondary rounded-lg shadow-sm overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-md flex flex-col h-64 border border-primary/20 hover:border-primary/50"
         >
-            <div className="bg-gradient-to-br from-primary-light/5 to-primary-light/20 h-2/3 flex items-center justify-center">
+            <div className="bg-bg-tertiary h-2/3 flex items-center justify-center">
                 <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all duration-300">
                     <PlusIcon className="w-12 h-12 text-primary group-hover:scale-110 transition-transform duration-300" />
                 </div>
@@ -156,12 +156,12 @@ function Agent({ onCreateNew, onAgentClick }) {
                 onClick={() => onAgentClick(agent.id)}
                 onMouseEnter={() => setShowActions(true)}
                 onMouseLeave={() => setShowActions(false)}
-                className="bg-bg-secondary rounded-lg shadow-sm overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-md flex flex-col h-64 relative border border-primary/10 hover:border-primary/30"
+                className="bg-bg-secondary rounded-lg shadow-sm overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-md flex flex-col h-64 relative border border-primary/20 hover:border-primary/50"
             >
-                <div className="h-2/3 flex items-center justify-center bg-gradient-to-br from-primary-light/5 to-primary/10">
+                <div className="h-2/3 flex items-center justify-center bg-bg-tertiary">
                     <AgentAvatar avatarData={agent.avatar} agentName={agent.name} size="large" />
                 </div>
-                <div className="h-1/3 p-3 flex flex-col justify-between bg-bg-primary">
+                <div className="h-1/3 p-3 flex flex-col justify-between bg-bg-secondary">
                     <div className="overflow-hidden">
                         <h3 className="text-sm font-semibold text-text-primary group-hover:text-primary transition-colors duration-300 truncate">{agent.name}</h3>
                         <p className="text-xs text-text-secondary mt-1 line-clamp-2 overflow-hidden">{agent.description}</p>
@@ -176,7 +176,7 @@ function Agent({ onCreateNew, onAgentClick }) {
                     </div>
                 </div>
                 {showActions && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-bg-primary bg-opacity-90 p-2 flex justify-end space-x-2">
+                    <div className="absolute bottom-0 left-0 right-0 bg-bg-secondary bg-opacity-90 p-2 flex justify-end space-x-2">
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -203,8 +203,8 @@ function Agent({ onCreateNew, onAgentClick }) {
 
     const SkeletonCard = () => (
         <div className="bg-bg-secondary rounded-lg shadow-sm overflow-hidden flex flex-col h-64 animate-pulse">
-            <div className="h-2/3 bg-gradient-to-br from-primary-light/10 to-primary-light/30 flex items-center justify-center">
-                <div className="w-24 h-24 bg-bg-tertiary rounded-full"></div>
+            <div className="h-2/3 bg-bg-tertiary flex items-center justify-center">
+                <div className="w-24 h-24 bg-bg-primary rounded-full"></div>
             </div>
             <div className="p-4 flex-grow flex flex-col justify-between">
                 <div className="h-5 bg-bg-tertiary rounded w-3/4"></div>
