@@ -64,6 +64,7 @@ module.exports = {
         wave: 'wave 1.5s ease-in-out infinite',
         'opacity-change': 'opacityChange 2s infinite',
         'expand': 'expand 2s infinite',
+        'spin': 'spin 3s linear infinite',
       },
       keyframes: {
         wave: {
@@ -82,6 +83,10 @@ module.exports = {
         expand: {
           '0%, 100%': { width: '0' },
           '50%': { width: '100%' },
+        },
+        spin: {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
         },
       }
     }

@@ -43,7 +43,7 @@ function App() {
 
   if (isInitialized === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-light via-primary to-primary-dark relative overflow-hidden">
+      <div className="min-h-screen w-full bg-bg-primary">
         <LoadingSpinner />
       </div>
     );
