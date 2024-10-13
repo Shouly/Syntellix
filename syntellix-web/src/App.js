@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import axios from 'axios';
-import { QueryClient, QueryClientProvider } from 'react-query';  // 添加这行
-import { ToastProvider } from './components/Toast';
+import React, { useEffect, useState } from 'react';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import Dashboard from './components/Dashboard';
+import LoadingSpinner from './components/LoadingSpinner';
 import Login from './components/Login';
 import SystemInit from './components/SystemInit';
-import Dashboard from './components/Dashboard';
-import LoadingSpinner from './components/LoadingSpinner'; // 导入 LoadingSpinner 组件
+import { ToastProvider } from './components/Toast';
 
 import { API_BASE_URL } from './config';
 
 axios.defaults.baseURL = API_BASE_URL;
 
-const queryClient = new QueryClient();  // 添加这行
+const queryClient = new QueryClient();
 
 function App() {
   const [isInitialized, setIsInitialized] = useState(null);
