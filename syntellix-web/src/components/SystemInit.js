@@ -3,7 +3,7 @@ import { ArrowPathIcon } from '@heroicons/react/24/solid';
 import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import syntellixLogo from '../assets/syntellix_login_logo.png';
+import logoWithName from '../assets/logo_with_name.svg';
 
 function SystemInit({ setIsInitialized }) {
   const [email, setEmail] = useState('');
@@ -93,17 +93,17 @@ function SystemInit({ setIsInitialized }) {
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-primary-light to-primary-dark overflow-hidden relative">
-      {/* 添加背景装饰 */}
-      <div className="absolute inset-0 overflow-hidden opacity-10">
+      {/* Background decoration */}
+      <div className="absolute inset-0 overflow-hidden opacity-20">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white via-transparent to-primary-dark"></div>
       </div>
 
-      {/* Logo */}
-      <div className="absolute top-4 left-4 z-10">
+      {/* Updated Logo */}
+      <div className="absolute top-2 left-3 z-10">
         <img
-          src={syntellixLogo}
+          src={logoWithName}
           alt="Syntellix"
-          className="h-5 w-auto object-contain"
+          className="h-12 w-auto object-contain"
         />
       </div>
 
@@ -139,7 +139,7 @@ function SystemInit({ setIsInitialized }) {
 
       {/* Right side - Form */}
       <div className="flex-1 flex items-center justify-center">
-        <div className="bg-white bg-opacity-95 p-12 rounded-3xl shadow-2xl w-full max-w-md space-y-8 backdrop-blur-sm">
+        <div className="bg-bg-primary bg-opacity-95 p-12 rounded-3xl shadow-2xl w-full max-w-md space-y-8 backdrop-blur-sm">
           <div>
             <h2 className="text-3xl font-bold text-primary-dark font-noto-sans-sc">
               设置系统管理员
@@ -149,8 +149,9 @@ function SystemInit({ setIsInitialized }) {
             </p>
           </div>
           <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* Name input */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 font-noto-sans-sc">
+              <label htmlFor="name" className="block text-sm font-medium text-text-secondary font-noto-sans-sc">
                 用户名
               </label>
               <input
@@ -158,14 +159,16 @@ function SystemInit({ setIsInitialized }) {
                 name="name"
                 type="text"
                 autoComplete="name"
-                className={`mt-1 block w-full px-3 py-2 border ${nameError ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light`}
+                className={`mt-1 block w-full px-3 py-2 border ${nameError ? 'border-danger' : 'border-bg-tertiary'} rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light bg-bg-secondary text-text-primary`}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
-              {nameError && <p className="mt-1 text-sm text-red-600">{nameError}</p>}
+              {nameError && <p className="mt-1 text-sm text-danger">{nameError}</p>}
             </div>
+
+            {/* Email input */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 font-noto-sans-sc">
+              <label htmlFor="email" className="block text-sm font-medium text-text-secondary font-noto-sans-sc">
                 邮箱
               </label>
               <input
@@ -173,14 +176,16 @@ function SystemInit({ setIsInitialized }) {
                 name="email"
                 type="email"
                 autoComplete="email"
-                className={`mt-1 block w-full px-3 py-2 border ${emailError ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light`}
+                className={`mt-1 block w-full px-3 py-2 border ${emailError ? 'border-danger' : 'border-bg-tertiary'} rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light bg-bg-secondary text-text-primary`}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              {emailError && <p className="mt-1 text-sm text-red-600">{emailError}</p>}
+              {emailError && <p className="mt-1 text-sm text-danger">{emailError}</p>}
             </div>
+
+            {/* Password input */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 font-noto-sans-sc">
+              <label htmlFor="password" className="block text-sm font-medium text-text-secondary font-noto-sans-sc">
                 密码
               </label>
               <div className="relative">
@@ -189,7 +194,7 @@ function SystemInit({ setIsInitialized }) {
                   name="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
-                  className={`mt-1 block w-full px-3 py-2 border ${passwordError ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light pr-10`}
+                  className={`mt-1 block w-full px-3 py-2 border ${passwordError ? 'border-danger' : 'border-bg-tertiary'} rounded-md shadow-sm focus:outline-none focus:ring-primary-light focus:border-primary-light bg-bg-secondary text-text-primary pr-10`}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -199,21 +204,24 @@ function SystemInit({ setIsInitialized }) {
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeSlashIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                    <EyeSlashIcon className="h-5 w-5 text-text-muted" aria-hidden="true" />
                   ) : (
-                    <EyeIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                    <EyeIcon className="h-5 w-5 text-text-muted" aria-hidden="true" />
                   )}
                 </button>
               </div>
-              {passwordError && <p className="mt-1 text-sm text-red-600">{passwordError}</p>}
-              <p className="mt-1 text-xs text-gray-500 font-noto-sans-sc">密码必须包含字母和数字，且长度不小于8位</p>
+              {passwordError && <p className="mt-1 text-sm text-danger">{passwordError}</p>}
+              <p className="mt-1 text-xs text-text-muted font-noto-sans-sc">密码必须包含字母和数字，且长度不小于8位</p>
             </div>
+
             {error && <p className="text-sm text-danger">{error}</p>}
+
+            {/* Submit button */}
             <div>
               <button
                 type="submit"
                 disabled={isLoading || !isFormValid}
-                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${isFormValid ? 'bg-primary hover:bg-primary-dark' : 'bg-gray-400 cursor-not-allowed'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-light transition duration-150 ease-in-out`}
+                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${isFormValid ? 'bg-primary hover:bg-primary-dark' : 'bg-text-muted cursor-not-allowed'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-light transition duration-150 ease-in-out`}
               >
                 {isLoading ? (
                   <ArrowPathIcon className="animate-spin h-5 w-5" />
