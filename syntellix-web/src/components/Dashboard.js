@@ -21,7 +21,7 @@ import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SystemLogo from '../assets/lg.png';
+import SystemLogo from '../assets/logo.svg';
 import AccountSettings from './AccountSettings';
 import Agent from './dashboard/Agent';
 import Chat from './dashboard/Chat';
