@@ -4,7 +4,6 @@ import {
   BeakerIcon,
   BookOpenIcon,
   ChatBubbleLeftRightIcon,
-  ChevronDownIcon,
   CircleStackIcon,
   Cog6ToothIcon as Cog6ToothIconOutline,
   UserCircleIcon
@@ -18,21 +17,21 @@ import {
   Cog6ToothIcon as Cog6ToothIconSolid
 } from '@heroicons/react/24/solid';
 
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import SystemLogo from '../assets/lg.png';
 import AccountSettings from './AccountSettings';
 import Agent from './dashboard/Agent';
 import Chat from './dashboard/Chat';
+import CreateAgent from './dashboard/CreateAgent';
+import CreateKnowledgeBase from './dashboard/CreateKnowledgeBase';
 import Database from './dashboard/Database';
 import KnowledgeBase from './dashboard/KnowledgeBase';
-import Settings from './dashboard/Settings';
-import CreateKnowledgeBase from './dashboard/CreateKnowledgeBase';
 import KnowledgeBaseDetail from './dashboard/KnowledgeBaseDetail';
+import Settings from './dashboard/Settings';
 import UploadFiles from './dashboard/UploadFiles';
-import CreateAgent from './dashboard/CreateAgent';
-import syntellixLogo from '../assets/syntellix_logo.png';
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
 function Dashboard({ setIsAuthenticated }) {
   const navigate = useNavigate();
@@ -274,8 +273,12 @@ function Dashboard({ setIsAuthenticated }) {
       {/* Left Sidebar Navigation */}
       <nav className="w-16 z-10 flex flex-col items-center py-4 bg-bg-secondary">
         {/* Logo */}
-        <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-          <span className="text-xl font-bold text-bg-primary">S</span>
+        <div className="w-12 h-12 mb-4 flex items-center justify-center group">
+          <img
+            src={SystemLogo}
+            alt="System Logo"
+            className="w-10 h-10 transition-all duration-300 group-hover:w-12 group-hover:h-12 group-hover:rotate-90"
+          />
         </div>
 
         {/* Menu Items - Vertically centered */}
@@ -284,10 +287,9 @@ function Dashboard({ setIsAuthenticated }) {
             <React.Fragment key={item.name}>
               <button
                 className={`flex flex-col items-center justify-center w-12 h-12 rounded-lg text-[11px] font-medium transition-all duration-200 relative
-                  ${
-                    activeMenu === item.name
-                      ? 'text-primary bg-bg-secondary'
-                      : 'text-text-body hover:text-primary'
+                  ${activeMenu === item.name
+                    ? 'text-primary bg-bg-secondary'
+                    : 'text-text-body hover:text-primary'
                   }`}
                 onClick={() => handleMenuChange(item.name)}
               >
