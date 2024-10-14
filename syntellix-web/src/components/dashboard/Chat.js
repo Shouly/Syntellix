@@ -447,7 +447,7 @@ function Chat({ selectedAgentId }) {
               ref={chatContainerRef}
               onScroll={handleScroll}
             >
-              <div className="max-w-4xl mx-auto w-full"> {/* 修改这里：从 max-w-3xl 改为 max-w-4xl */}
+              <div className="max-w-4xl mx-auto w-full">
                 {isNewConversation ? (
                   <NewChatInput
                     inputMessage={inputMessage}
@@ -604,7 +604,7 @@ function NewChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubm
   };
 
   return (
-    <div className="w-full max-w-3xl mt-[-200px]">
+    <div className="w-full max-w-3xl mt-[-200px] mx-auto">
       <h2 className="text-4xl font-bold mb-8 text-center text-primary">
         {`${getGreeting()}，${userProfile?.name || '用户'}！`}
       </h2>
