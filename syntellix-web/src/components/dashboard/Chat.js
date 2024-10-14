@@ -519,16 +519,15 @@ function Chat({ selectedAgentId }) {
               onScroll={handleScroll}
             >
               {isNewChat ? (
-                <div className="w-full max-w-3xl">
-                  <ChatInput
-                    inputMessage={inputMessage}
-                    setInputMessage={setInputMessage}
-                    handleSendMessage={handleSendMessage}
-                    isSubmitting={isSubmitting}
-                    isWaitingForResponse={isWaitingForResponse}
-                    handleNewChat={handleNewChat}
-                  />
-                </div>
+                <NewChatInput
+                  inputMessage={inputMessage}
+                  setInputMessage={setInputMessage}
+                  handleSendMessage={handleSendMessage}
+                  isSubmitting={isSubmitting}
+                  isWaitingForResponse={isWaitingForResponse}
+                  agentName={chatDetails?.agent_info?.name || '智能助手'}
+                  userName="用户名"
+                />
               ) : (
                 <>
                   {isLoadingMore && (
@@ -682,6 +681,51 @@ function Chat({ selectedAgentId }) {
         itemType="对话"
         isLoading={isRenaming}
       />
+    </div>
+  );
+}
+
+// New component for the redesigned input in new chat state
+function NewChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubmitting, isWaitingForResponse, agentName, userName }) {
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return '上午好';
+    if (hour < 18) return '下午好';
+    return '晚上好';
+  };
+
+  return (
+    <div className="w-full max-w-3xl mt-[-200px]">
+      <h2 className="text-3xl font-bold mb-8 text-center text-primary">
+        {`${getGreeting()}，${userName}。`}
+      </h2>
+      
+      <div className="relative">
+        <textarea
+          value={inputMessage}
+          onChange={(e) => setInputMessage(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey && !isSubmitting && !isWaitingForResponse) {
+              e.preventDefault();
+              handleSendMessage();
+            }
+          }}
+          placeholder={`请输入您想问 ${agentName} 的问题...`}
+          className="w-full h-32 p-4 bg-bg-primary rounded-xl border border-primary focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200 text-sm resize-none pr-12"
+          disabled={isSubmitting || isWaitingForResponse}
+        />
+        <button
+          onClick={handleSendMessage}
+          className={`absolute right-3 bottom-3 p-2 rounded-full ${
+            isSubmitting || isWaitingForResponse || !inputMessage.trim()
+              ? 'bg-bg-tertiary text-text-muted cursor-not-allowed'
+              : 'bg-primary text-white hover:bg-primary-dark'
+          } transition-colors duration-200 flex items-center justify-center`}
+          disabled={isSubmitting || isWaitingForResponse || !inputMessage.trim()}
+        >
+          <ArrowUpIcon className="w-5 h-5" />
+        </button>
+      </div>
     </div>
   );
 }
