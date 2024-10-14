@@ -1,6 +1,6 @@
 import json
 from collections import defaultdict
-from typing import Generator, List, Union
+from typing import Generator, List, Union, Optional
 
 from syntellix_api.extensions.ext_database import db
 from syntellix_api.extensions.ext_redis import redis_client
@@ -206,7 +206,7 @@ class ChatService:
         user_id: int,
         agent_id: int,
         user_message: str,
-        pre_message_id: int,
+        pre_message_id: Optional[int] = None,
     ) -> Generator[str, None, None]:
         # 初始化检查
         agent, conversation = ChatService._initialize_chat(
@@ -249,7 +249,7 @@ class ChatService:
         # 获取对话历史
         conversation_history = ChatService.get_conversation_histories(conversation_id)
 
-        # 生成响���
+        # 生成响应
         full_response = ""
         for chunk in RAGService.call_llm(
             conversation_history, user_message, context_str
@@ -278,7 +278,7 @@ class ChatService:
         user_id: int,
         agent_id: int,
         message: str,
-        pre_message_id: int = None,
+        pre_message_id: Optional[int] = None,
     ) -> int:
         user_message = ConversationMessage(
             conversation_id=conversation_id,

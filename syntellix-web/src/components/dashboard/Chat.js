@@ -196,7 +196,10 @@ function Chat({ selectedAgentId }) {
         const params = new URLSearchParams({
           agent_id: chatDetails.agent_info.id.toString(),
           message: inputMessage,
-          pre_message_id: conversationMessages[conversationMessages.length - 1]?.id
+          // Only include pre_message_id if it's not the first message
+          ...(conversationMessages.length > 0 && {
+            pre_message_id: conversationMessages[conversationMessages.length - 1]?.id
+          })
         });
         const url = `${API_BASE_URL}/console/api/chat/conversation/${currentConversationId}/stream?${params}`;
 
@@ -453,6 +456,8 @@ function Chat({ selectedAgentId }) {
     }
   }, [currentConversationId, handleRenameConversation]);
 
+  const isNewChat = conversationMessages.length === 0;
+
   if (selectedKnowledgeBaseId) {
     return (
       <KnowledgeBaseDetail
@@ -506,133 +511,96 @@ function Chat({ selectedAgentId }) {
       <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden px-6 relative">
         {(isChatMessagesLoading || isChangingConversation) && !isLoadingMore ? (
           <ChatAreaSkeleton />
-        ) : currentConversationId ? (
+        ) : (
           <>
             <div
-              className="flex-1 overflow-y-auto py-4 bg-bg-primary pb-24"
+              className={`flex-1 overflow-y-auto py-4 bg-bg-primary ${isNewChat ? 'flex items-center justify-center' : 'pb-24'}`}
               ref={chatContainerRef}
               onScroll={handleScroll}
             >
-              {isLoadingMore && (
-                <div className="flex justify-center items-center py-3">
-                  <div className="bg-bg-secondary rounded-full px-4 py-2 flex items-center shadow-sm">
-                    <ArrowPathIcon className="w-4 h-4 text-primary animate-spin mr-2" />
-                    <span className="text-xs text-text-secondary font-medium">加载更多历史消息...</span>
-                  </div>
-                </div>
-              )}
-              {conversationMessages.map((message, index) => (
-                <div key={index} className={`mb-4 flex ${message.message_type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  {(message.message_type === 'agent' || message.message_type === 'status') && (
-                    <div className="mr-2">
-                      <AgentAvatar
-                        avatarData={chatDetails?.agent_info?.avatar}
-                        agentName={chatDetails?.agent_info?.name || '智能助手'}
-                        size="xs"
-                      />
-                    </div>
-                  )}
-                  <div className={`inline-block p-3 rounded-xl ${message.message_type === 'user'
-                    ? 'bg-primary text-white'
-                    : message.message_type === 'status'
-                      ? 'bg-bg-secondary text-text-secondary'
-                      : 'bg-bg-secondary text-text-primary'
-                    } max-w-[70%]`}
-                  >
-                    {message.message_type === 'user' ? (
-                      <p className="text-sm leading-relaxed font-sans-sc font-medium">
-                        {message.message}
-                      </p>
-                    ) : message.message_type === 'status' ? (
-                      <p className="text-xs leading-relaxed font-sans-sc font-medium italic flex items-center">
-                        <span className="mr-1">{message.message}</span>
-                        <span className="inline-flex">
-                          <span className="animate-ellipsis">.</span>
-                          <span className="animate-ellipsis" style={{ animationDelay: '0.2s' }}>.</span>
-                          <span className="animate-ellipsis" style={{ animationDelay: '0.4s' }}>.</span>
-                        </span>
-                      </p>
-                    ) : (
-                      <ReactMarkdown className="markdown-content">
-                        {message.message}
-                      </ReactMarkdown>
-                    )}
-                  </div>
-                  {message.message_type === 'user' && (
-                    <div className="w-8 h-8 ml-2">
-                      <UserCircleIcon className="w-full h-full text-primary" />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Chat input */}
-            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-full max-w-3xl">
-              <div className="relative">
-                {/* Edge background */}
-                <div className="absolute inset-0 bg-primary bg-opacity-10 rounded-full blur-md"></div>
-
-                {/* Input container */}
-                <div className="relative flex items-center">
-                  {/* New chat button */}
-                  <div className="absolute left-4 group">
-                    <button
-                      onClick={handleNewChat}
-                      className="w-8 h-8 flex items-center justify-center bg-bg-secondary rounded-full text-primary hover:bg-primary hover:text-white transition-colors duration-200"
-                    >
-                      <PlusIcon className="w-5 h-5" />
-                    </button>
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-bg-secondary text-text-primary text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-                      新会话
-                    </div>
-                  </div>
-
-                  <input
-                    type="text"
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !isSubmitting && !isWaitingForResponse) {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }
-                    }}
-                    placeholder="请输入问题，Enter发送"
-                    className="w-full py-4 px-6 pl-16 pr-14 bg-bg-primary rounded-full border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 shadow-md text-sm"
-                    disabled={isSubmitting || isWaitingForResponse}
+              {isNewChat ? (
+                <div className="w-full max-w-3xl">
+                  <ChatInput
+                    inputMessage={inputMessage}
+                    setInputMessage={setInputMessage}
+                    handleSendMessage={handleSendMessage}
+                    isSubmitting={isSubmitting}
+                    isWaitingForResponse={isWaitingForResponse}
+                    handleNewChat={handleNewChat}
                   />
-                  <button
-                    onClick={handleSendMessage}
-                    className={`absolute right-4 top-1/2 transform -translate-y-1/2 ${isSubmitting || isWaitingForResponse || !inputMessage.trim()
-                      ? 'text-text-muted cursor-not-allowed'
-                      : 'text-primary hover:text-primary-dark'
-                      } transition-colors duration-200`}
-                    disabled={isSubmitting || isWaitingForResponse || !inputMessage.trim()}
-                  >
-                    <ArrowUpIcon className="w-5 h-5" />
-                  </button>
                 </div>
+              ) : (
+                <>
+                  {isLoadingMore && (
+                    <div className="flex justify-center items-center py-3">
+                      <div className="bg-bg-secondary rounded-full px-4 py-2 flex items-center shadow-sm">
+                        <ArrowPathIcon className="w-4 h-4 text-primary animate-spin mr-2" />
+                        <span className="text-xs text-text-secondary font-medium">加载更多历史消息...</span>
+                      </div>
+                    </div>
+                  )}
+                  {conversationMessages.map((message, index) => (
+                    <div key={index} className={`mb-4 flex ${message.message_type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      {(message.message_type === 'agent' || message.message_type === 'status') && (
+                        <div className="mr-2">
+                          <AgentAvatar
+                            avatarData={chatDetails?.agent_info?.avatar}
+                            agentName={chatDetails?.agent_info?.name || '智能助手'}
+                            size="xs"
+                          />
+                        </div>
+                      )}
+                      <div className={`inline-block p-3 rounded-xl ${message.message_type === 'user'
+                        ? 'bg-primary text-white'
+                        : message.message_type === 'status'
+                          ? 'bg-bg-secondary text-text-secondary'
+                          : 'bg-bg-secondary text-text-primary'
+                        } max-w-[70%]`}
+                      >
+                        {message.message_type === 'user' ? (
+                          <p className="text-sm leading-relaxed font-sans-sc font-medium">
+                            {message.message}
+                          </p>
+                        ) : message.message_type === 'status' ? (
+                          <p className="text-xs leading-relaxed font-sans-sc font-medium italic flex items-center">
+                            <span className="mr-1">{message.message}</span>
+                            <span className="inline-flex">
+                              <span className="animate-ellipsis">.</span>
+                              <span className="animate-ellipsis" style={{ animationDelay: '0.2s' }}>.</span>
+                              <span className="animate-ellipsis" style={{ animationDelay: '0.4s' }}>.</span>
+                            </span>
+                          </p>
+                        ) : (
+                          <ReactMarkdown className="markdown-content">
+                            {message.message}
+                          </ReactMarkdown>
+                        )}
+                      </div>
+                      {message.message_type === 'user' && (
+                        <div className="w-8 h-8 ml-2">
+                          <UserCircleIcon className="w-full h-full text-primary" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+
+            {/* Chat input for existing conversations */}
+            {!isNewChat && (
+              <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-full max-w-3xl">
+                <ChatInput
+                  inputMessage={inputMessage}
+                  setInputMessage={setInputMessage}
+                  handleSendMessage={handleSendMessage}
+                  isSubmitting={isSubmitting}
+                  isWaitingForResponse={isWaitingForResponse}
+                  handleNewChat={handleNewChat}
+                />
               </div>
-            </div>
+            )}
           </>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full bg-bg-primary text-center px-4">
-            <div className="flex flex-col items-center -mt-40">
-              <ChatBubbleLeftRightIcon className="w-16 h-16 text-primary mb-4" />
-              <h3 className="text-lg font-semibold text-text-primary mb-2 font-sans-sc">开始新的对话</h3>
-              <p className="text-sm text-text-muted mb-6 max-w-md font-sans-sc">
-                您可以选择历史对话或开启一个新的对话
-              </p>
-              <button
-                onClick={handleNewChat}
-                className="flex items-center justify-center px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors duration-200 text-sm font-semibold font-sans-sc"
-              >
-                <PlusIcon className="w-5 h-5 mr-2" />
-                开启新对话
-              </button>
-            </div>
-          </div>
         )}
       </div>
 
@@ -714,6 +682,58 @@ function Chat({ selectedAgentId }) {
         itemType="对话"
         isLoading={isRenaming}
       />
+    </div>
+  );
+}
+
+// New ChatInput component
+function ChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubmitting, isWaitingForResponse, handleNewChat }) {
+  return (
+    <div className="relative">
+      {/* Edge background */}
+      <div className="absolute inset-0 bg-primary bg-opacity-10 rounded-full blur-md"></div>
+
+      {/* Input container */}
+      <div className="relative flex items-center">
+        {/* New chat button */}
+        <div className="absolute left-4 group">
+          <button
+            onClick={handleNewChat}
+            className="w-8 h-8 flex items-center justify-center bg-bg-secondary rounded-full text-primary hover:bg-primary hover:text-white transition-colors duration-200"
+          >
+            <PlusIcon className="w-5 h-5" />
+          </button>
+          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-bg-secondary text-text-primary text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+            新会话
+          </div>
+        </div>
+
+        <input
+          type="text"
+          value={inputMessage}
+          onChange={(e) => setInputMessage(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !isSubmitting && !isWaitingForResponse) {
+              e.preventDefault();
+              handleSendMessage();
+            }
+          }}
+          placeholder="请输入问题，Enter发送"
+          className="w-full py-4 px-6 pl-16 pr-14 bg-bg-primary rounded-full border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 shadow-md text-sm"
+          disabled={isSubmitting || isWaitingForResponse}
+        />
+        <button
+          onClick={handleSendMessage}
+          className={`absolute right-4 top-1/2 transform -translate-y-1/2 ${
+            isSubmitting || isWaitingForResponse || !inputMessage.trim()
+              ? 'text-text-muted cursor-not-allowed'
+              : 'text-primary hover:text-primary-dark'
+          } transition-colors duration-200`}
+          disabled={isSubmitting || isWaitingForResponse || !inputMessage.trim()}
+        >
+          <ArrowUpIcon className="w-5 h-5" />
+        </button>
+      </div>
     </div>
   );
 }

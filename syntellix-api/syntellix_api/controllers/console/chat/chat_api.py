@@ -74,15 +74,16 @@ class ChatConversationStreamApi(Resource):
 
     @login_required
     def get(self, conversation_id):
-
         parser = reqparse.RequestParser()
         parser.add_argument("agent_id", type=int, required=True, location="args")
         parser.add_argument("message", type=str, required=True, location="args")
-        parser.add_argument("pre_message_id", type=int, required=True, location="args")
+        parser.add_argument("pre_message_id", type=int, required=False, location="args")
         args = parser.parse_args()
 
         tenant_id = current_user.current_tenant_id
         user_id = current_user.id
+
+        pre_message_id = args.get("pre_message_id")
 
         def generate():
             try:
@@ -92,7 +93,7 @@ class ChatConversationStreamApi(Resource):
                     user_id=user_id,
                     agent_id=args["agent_id"],
                     user_message=args["message"],
-                    pre_message_id=args["pre_message_id"],
+                    pre_message_id=pre_message_id,
                 ):
                     yield f"data: {chunk}\n\n"
             except Exception as e:
