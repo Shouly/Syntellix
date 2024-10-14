@@ -698,7 +698,7 @@ function NewChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubm
 
   return (
     <div className="w-full max-w-3xl mt-[-200px]">
-      <h2 className="text-3xl font-bold mb-8 text-center text-primary">
+      <h2 className="text-4xl font-bold mb-8 text-center text-primary">
         {`${getGreeting()}，${userProfile?.name || '用户'}！`}
       </h2>
       
