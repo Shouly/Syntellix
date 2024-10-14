@@ -322,10 +322,10 @@ function Dashboard({ setIsAuthenticated }) {
             <div className="relative w-1/2 max-w-md">
               <input
                 type="text"
-                placeholder="搜索..."
+                placeholder="搜索"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full py-1.5 pl-8 pr-3 text-sm bg-bg-secondary rounded-md border border-bg-tertiary focus:outline-none focus:ring-1 focus:ring-primary focus:border-transparent"
+                className="w-full py-1.5 pl-8 pr-3 text-sm bg-bg-primary rounded-md border border-bg-tertiary focus:outline-none focus:ring-1 focus:ring-primary focus:border-transparent"
               />
               <MagnifyingGlassIcon className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-muted" />
             </div>
