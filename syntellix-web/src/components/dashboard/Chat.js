@@ -346,7 +346,7 @@ function Chat({ selectedAgentId }) {
     setIsChangingConversation(true);
     try {
       const response = await axios.get(`/console/api/chat/conversation/${chatId}/messages`, {
-        params: { page: 1, per_page: 5 }
+        params: { page: 1, per_page: 4 }
       });
       setConversationMessages(response.data.messages);
       setIsNewConversation(response.data.messages.length === 0);
@@ -440,7 +440,7 @@ function Chat({ selectedAgentId }) {
               ref={chatContainerRef}
               onScroll={handleScroll}
             >
-              <div className="max-w-3xl mx-auto w-full">
+              <div className="max-w-4xl mx-auto w-full"> {/* 修改这里：从 max-w-3xl 改为 max-w-4xl */}
                 {isNewConversation ? (
                   <NewChatInput
                     inputMessage={inputMessage}
