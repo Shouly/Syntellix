@@ -10,7 +10,7 @@ import AgentAvatar from '../AgentAvatar';
 import { useUser } from '../contexts/UserContext';
 import AgentInfo from './ChatAgentInfo';
 import RecentConversations from './ChatRecentConversations';
-import { AgentInfoSkeleton, ChatAreaSkeleton, ConversationListSkeleton } from './ChatSkeletons';
+import { ChatAreaSkeleton, MainChatSkeleton } from './ChatSkeletons';
 import SlidingPanel from './ChatSlidingPanel';
 import KnowledgeBaseDetail from './KnowledgeBaseDetail';
 import NewChatPrompt from './NewChatPrompt';
@@ -431,21 +431,7 @@ function Chat({ selectedAgentId }) {
   }
 
   if (loading) {
-    return (
-      <div className="h-full flex overflow-hidden">
-        {/* Left sidebar */}
-        <div className="w-72 flex flex-col bg-bg-primary overflow-hidden border-r border-bg-tertiary">
-          <AgentInfoSkeleton />
-          <div className="mx-4 my-4 border-t border-bg-tertiary"></div>
-          <ConversationListSkeleton />
-        </div>
-
-        {/* Main chat area */}
-        <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden px-14 relative">
-          <ChatAreaSkeleton />
-        </div>
-      </div>
-    );
+    return <MainChatSkeleton />;
   }
 
   return (
@@ -492,12 +478,11 @@ function Chat({ selectedAgentId }) {
                             />
                           </div>
                         )}
-                        <div className={`inline-block p-3 rounded-xl ${
-                          message.message_type === 'user'
-                            ? 'bg-primary text-white'
-                            : message.message_type === 'status'
-                              ? 'bg-bg-secondary text-text-secondary'
-                              : 'bg-bg-secondary text-text-primary'
+                        <div className={`inline-block p-3 rounded-xl ${message.message_type === 'user'
+                          ? 'bg-primary text-white'
+                          : message.message_type === 'status'
+                            ? 'bg-bg-secondary text-text-secondary'
+                            : 'bg-bg-secondary text-text-primary'
                           } max-w-[80%]`}
                         >
                           {message.message_type === 'user' ? (
@@ -667,9 +652,8 @@ function ChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubmitt
           <button
             onClick={handleNewChat}
             disabled={isCreatingNewChat}
-            className={`w-8 h-8 flex items-center justify-center bg-bg-secondary rounded-full text-primary hover:bg-primary hover:text-white transition-colors duration-200 ${
-              isCreatingNewChat ? 'cursor-not-allowed opacity-50' : ''
-            }`}
+            className={`w-8 h-8 flex items-center justify-center bg-bg-secondary rounded-full text-primary hover:bg-primary hover:text-white transition-colors duration-200 ${isCreatingNewChat ? 'cursor-not-allowed opacity-50' : ''
+              }`}
           >
             {isCreatingNewChat ? (
               <ArrowPathIcon className="w-5 h-5 animate-spin" />
