@@ -1,19 +1,17 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { ArrowPathIcon, MagnifyingGlassIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { ConversationListSkeleton } from './ChatSkeletons';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import DeleteConfirmationModal from '../DeleteConfirmationModal';
+import axios from 'axios';
 
 function RecentConversations({
-  conversationHistory,
+  agentId,
   currentConversationId,
-  isConversationListLoading,
-  hasMoreConversations,
   onConversationClick,
   onRenameConversation,
   onDeleteConversation,
-  onLoadMore
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingId, setEditingId] = useState(null);
@@ -21,6 +19,35 @@ function RecentConversations({
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [conversationHistory, setConversationHistory] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
+
+  const fetchConversationHistory = useCallback(async () => {
+    if (!agentId) return;
+    setIsLoading(true);
+    try {
+      const response = await axios.get(`/console/api/chat/agent/${agentId}/conversation-history`, {
+        params: { limit: 10, page }
+      });
+      setConversationHistory(prev => [...prev, ...response.data]);
+      setHasMore(response.data.length === 10);
+      setPage(prev => prev + 1);
+    } catch (error) {
+      console.error('Failed to fetch conversation history:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [agentId, page]);
+
+  useEffect(() => {
+    if (agentId) {
+      setConversationHistory([]);
+      setPage(1);
+      fetchConversationHistory();
+    }
+  }, [agentId]);
 
   const filteredConversations = useMemo(() => {
     return conversationHistory.filter(chat =>
@@ -70,7 +97,7 @@ function RecentConversations({
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-text-secondary" />
         </div>
       </div>
-      {isConversationListLoading ? (
+      {isLoading && page === 1 ? (
         <ConversationListSkeleton />
       ) : (
         <ul className="flex-1 overflow-y-auto py-2 space-y-1">
@@ -139,14 +166,19 @@ function RecentConversations({
           ))}
         </ul>
       )}
-      {hasMoreConversations && (
+      {hasMore && (
         <div className="px-4 py-3 border-t border-border-primary">
           <button
-            onClick={onLoadMore}
+            onClick={fetchConversationHistory}
             className="w-full py-2 px-4 bg-bg-secondary hover:bg-bg-tertiary text-primary font-medium text-sm rounded-md transition-colors duration-200 flex items-center justify-center"
+            disabled={isLoading}
           >
-            <ArrowPathIcon className="w-4 h-4 mr-2" />
-            加载更多
+            {isLoading ? (
+              <ArrowPathIcon className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <ArrowPathIcon className="w-4 h-4 mr-2" />
+            )}
+            {isLoading ? '加载中...' : '加载更多'}
           </button>
         </div>
       )}

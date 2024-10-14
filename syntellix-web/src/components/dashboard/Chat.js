@@ -23,22 +23,20 @@ function Chat({ selectedAgentId }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [inputMessage, setInputMessage] = useState('');
+  const [currentConversationId, setCurrentConversationId] = useState(null);
+  const [conversationMessages, setConversationMessages] = useState([]);
+  const [conversationName, setConversationName] = useState('');
+  const [isNewConversation, setIsNewConversation] = useState(true);
   const chatContainerRef = useRef(null);
   const { showToast } = useToast();
   const navigate = useNavigate();
   const [selectedKnowledgeBaseId, setSelectedKnowledgeBaseId] = useState(null);
-  const [conversationMessages, setConversationMessages] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [conversationHistory, setConversationHistory] = useState([]);
-  const [conversationPage, setConversationPage] = useState(1);
-  const [hasMoreConversations, setHasMoreConversations] = useState(true);
-  const [currentConversationId, setCurrentConversationId] = useState(null);
   const [isMessagesLoaded, setIsMessagesLoaded] = useState(false);
   const [isAgentInfoLoading, setIsAgentInfoLoading] = useState(true);
   const [isConversationListLoading, setIsConversationListLoading] = useState(true);
   const [isChatMessagesLoading, setIsChatMessagesLoading] = useState(true);
-  const [conversationName, setConversationName] = useState('');
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -52,7 +50,6 @@ function Chat({ selectedAgentId }) {
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
   const [isAgentInfoOpen, setIsAgentInfoOpen] = useState(false);
   const [isRecentConversationsOpen, setIsRecentConversationsOpen] = useState(false);
-  const [isNewConversation, setIsNewConversation] = useState(true);
 
   const fetchChatDetails = useCallback(async (agentId = null) => {
     setIsAgentInfoLoading(true);
@@ -319,33 +316,6 @@ function Chat({ selectedAgentId }) {
     setSelectedKnowledgeBaseId(null);
   };
 
-  const fetchConversationHistory = useCallback(async (agentId, lastId = null, limit = 10) => {
-    setIsConversationListLoading(true);
-    try {
-      const response = await axios.get(`/console/api/chat/agent/${agentId}/conversation-history`, {
-        params: { last_id: lastId, limit }
-      });
-      if (lastId === null) {
-        setConversationHistory(response.data);
-      } else {
-        setConversationHistory(prevHistory => [...prevHistory, ...response.data]);
-      }
-      setHasMoreConversations(response.data.length === limit);
-      setConversationPage(prevPage => prevPage + 1);
-    } catch (error) {
-      console.error('Failed to fetch conversation history:', error);
-      showToast('历史对话获取失败', 'error');
-    } finally {
-      setIsConversationListLoading(false);
-    }
-  }, [showToast]);
-
-  useEffect(() => {
-    if (chatDetails?.agent_info?.id) {
-      fetchConversationHistory(chatDetails.agent_info.id);
-    }
-  }, [chatDetails, fetchConversationHistory]);
-
   const handleNewChat = useCallback(async () => {
     if (!chatDetails?.agent_info?.id) {
       showToast('无法创建新会话，请先选择一个智能助手', 'error');
@@ -362,10 +332,7 @@ function Chat({ selectedAgentId }) {
       setConversationMessages([]);
       setIsMessagesLoaded(false);
       setCurrentConversationId(newConversation.id);
-      setIsNewConversation(true);  // Set this to true for new conversations
-
-      // Update only the conversation history
-      await fetchConversationHistory(chatDetails.agent_info.id);
+      setIsNewConversation(true);
 
       // Update chat details without fetching agent info again
       setChatDetails(prevDetails => ({
@@ -380,7 +347,7 @@ function Chat({ selectedAgentId }) {
     } finally {
       setIsConversationListLoading(false);
     }
-  }, [chatDetails, showToast, fetchConversationHistory]);
+  }, [chatDetails, showToast]);
 
   const handleDeleteConversation = async (conversationId) => {
     try {
@@ -388,8 +355,6 @@ function Chat({ selectedAgentId }) {
         data: { conversation_id: conversationId }
       });
       showToast('对话删除成功', 'success');
-      // Remove the deleted conversation from the list
-      setConversationHistory(prevHistory => prevHistory.filter(conv => conv.id !== conversationId));
       // If the deleted conversation was the current one, reset the current conversation
       if (currentConversationId === conversationId) {
         setCurrentConversationId(null);
@@ -398,9 +363,7 @@ function Chat({ selectedAgentId }) {
         setConversationName('');
       }
       // If this was the last conversation, fetch the latest agent
-      if (conversationHistory.length === 1) {
-        fetchChatDetails();
-      }
+      fetchChatDetails();
     } catch (error) {
       console.error('Failed to delete conversation:', error);
       showToast('删除对话失败', 'error');
@@ -414,12 +377,6 @@ function Chat({ selectedAgentId }) {
         new_name: newName
       });
       showToast('对话已重命名', 'success');
-      // Update the conversation name in the list
-      setConversationHistory(prevHistory =>
-        prevHistory.map(conv =>
-          conv.id === conversationId ? { ...conv, name: response.data.name } : conv
-        )
-      );
       // If the renamed conversation is the current one, update the conversation name
       if (currentConversationId === conversationId) {
         setConversationName(response.data.name);
@@ -433,7 +390,7 @@ function Chat({ selectedAgentId }) {
       }));
     } catch (error) {
       console.error('Failed to rename conversation:', error);
-      showToast('重命名对话失', 'error');
+      showToast('重命名对话失败', 'error');
     }
   };
 
@@ -460,6 +417,26 @@ function Chat({ selectedAgentId }) {
       }
     }
   }, [currentConversationId, handleRenameConversation]);
+
+  const handleConversationClick = useCallback(async (chatId) => {
+    setCurrentConversationId(chatId);
+    setIsChangingConversation(true);
+    try {
+      const response = await axios.get(`/console/api/chat/conversation/${chatId}/messages`, {
+        params: { page: 1, per_page: 5 }
+      });
+      setConversationMessages(response.data.messages);
+      setConversationName(response.data.conversation.name);
+      setIsNewConversation(response.data.messages.length === 0);
+      setIsMessagesLoaded(true);
+    } catch (error) {
+      console.error('Failed to fetch conversation messages:', error);
+      showToast('消息获取失败', 'error');
+    } finally {
+      setIsChangingConversation(false);
+      setIsRecentConversationsOpen(false);
+    }
+  }, [showToast]);
 
   if (selectedKnowledgeBaseId) {
     return (
@@ -650,19 +627,11 @@ function Chat({ selectedAgentId }) {
         title="最近会话"
       >
         <RecentConversations
-          conversationHistory={conversationHistory}
+          agentId={chatDetails?.agent_info?.id}
           currentConversationId={currentConversationId}
-          isConversationListLoading={isConversationListLoading}
-          hasMoreConversations={hasMoreConversations}
-          onConversationClick={(chatId) => {
-            setCurrentConversationId(chatId);
-            setIsChangingConversation(true);
-            fetchConversationMessages(chatId);
-            setIsRecentConversationsOpen(false);
-          }}
+          onConversationClick={handleConversationClick}
           onRenameConversation={handleRenameConversation}
           onDeleteConversation={handleDeleteConversation}
-          onLoadMore={() => fetchConversationHistory(chatDetails.agent_info.id, conversationHistory[conversationHistory.length - 1]?.id)}
         />
       </SlidingPanel>
 
