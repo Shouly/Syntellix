@@ -40,6 +40,7 @@ function Chat({ selectedAgentId }) {
   const [isAgentInfoOpen, setIsAgentInfoOpen] = useState(false);
   const [isRecentConversationsOpen, setIsRecentConversationsOpen] = useState(false);
   const [recentConversations, setRecentConversations] = useState([]);
+  const [isCreatingNewChat, setIsCreatingNewChat] = useState(false);
 
   const fetchChatDetails = useCallback(async (agentId = null) => {
     setError(null);
@@ -309,6 +310,8 @@ function Chat({ selectedAgentId }) {
       return;
     }
 
+    setIsCreatingNewChat(true);
+
     try {
       const response = await axios.post('/console/api/chat/conversations', {
         agent_id: chatDetails.agent_info.id,
@@ -333,6 +336,8 @@ function Chat({ selectedAgentId }) {
     } catch (error) {
       console.error('Failed to create new conversation:', error);
       showToast('新会话创建失败', 'error');
+    } finally {
+      setIsCreatingNewChat(false);
     }
   }, [chatDetails, showToast]);
 
@@ -512,6 +517,7 @@ function Chat({ selectedAgentId }) {
                   isSubmitting={isSubmitting}
                   isWaitingForResponse={isWaitingForResponse}
                   handleNewChat={handleNewChat}
+                  isCreatingNewChat={isCreatingNewChat}
                 />
               </div>
             )}
@@ -624,7 +630,7 @@ function NewChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubm
 }
 
 // New ChatInput component
-function ChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubmitting, isWaitingForResponse, handleNewChat }) {
+function ChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubmitting, isWaitingForResponse, handleNewChat, isCreatingNewChat }) {
   return (
     <div className="relative">
       {/* Edge background */}
@@ -636,12 +642,19 @@ function ChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubmitt
         <div className="absolute left-4 group">
           <button
             onClick={handleNewChat}
-            className="w-8 h-8 flex items-center justify-center bg-bg-secondary rounded-full text-primary hover:bg-primary hover:text-white transition-colors duration-200"
+            disabled={isCreatingNewChat}
+            className={`w-8 h-8 flex items-center justify-center bg-bg-secondary rounded-full text-primary hover:bg-primary hover:text-white transition-colors duration-200 ${
+              isCreatingNewChat ? 'cursor-not-allowed opacity-50' : ''
+            }`}
           >
-            <PlusIcon className="w-5 h-5" />
+            {isCreatingNewChat ? (
+              <ArrowPathIcon className="w-5 h-5 animate-spin" />
+            ) : (
+              <PlusIcon className="w-5 h-5" />
+            )}
           </button>
           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-bg-secondary text-text-primary text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-            新会话
+            {isCreatingNewChat ? '创建中...' : '新会话'}
           </div>
         </div>
 
