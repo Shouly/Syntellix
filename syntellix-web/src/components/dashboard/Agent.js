@@ -134,14 +134,14 @@ function Agent({ onCreateNew, onAgentClick }) {
     const NewAgentCard = () => (
         <div
             onClick={handleCreateAgent}
-            className="bg-bg-secondary rounded-lg shadow-sm overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-md flex flex-col h-64 border border-primary/20 hover:border-primary/50"
+            className="bg-gradient-to-br from-bg-primary to-bg-secondary rounded-lg shadow-sm overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-md flex flex-col h-64 relative"
         >
-            <div className="bg-bg-tertiary h-2/3 flex items-center justify-center">
+            <div className="h-2/3 flex items-center justify-center bg-primary bg-opacity-5">
                 <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-all duration-300">
                     <PlusIcon className="w-12 h-12 text-primary group-hover:scale-110 transition-transform duration-300" />
                 </div>
             </div>
-            <div className="p-4 flex-grow flex flex-col justify-center bg-bg-secondary">
+            <div className="h-1/3 p-4 flex flex-col justify-center bg-bg-secondary">
                 <h3 className="text-base font-semibold text-primary group-hover:text-primary-dark transition-colors duration-300">创建智能体</h3>
                 <p className="text-xs text-text-secondary mt-1">开启您的新AI助手之旅</p>
             </div>
@@ -156,9 +156,9 @@ function Agent({ onCreateNew, onAgentClick }) {
                 onClick={() => onAgentClick(agent.id)}
                 onMouseEnter={() => setShowActions(true)}
                 onMouseLeave={() => setShowActions(false)}
-                className="bg-bg-secondary rounded-lg shadow-sm overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-md flex flex-col h-64 relative border border-primary/20 hover:border-primary/50"
+                className="bg-gradient-to-br from-bg-primary to-bg-secondary rounded-lg shadow-sm overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-md flex flex-col h-64 relative"
             >
-                <div className="h-2/3 flex items-center justify-center bg-bg-tertiary">
+                <div className="h-2/3 flex items-center justify-center bg-primary bg-opacity-5">
                     <AgentAvatar avatarData={agent.avatar} agentName={agent.name} size="large" />
                 </div>
                 <div className="h-1/3 p-3 flex flex-col justify-between bg-bg-secondary">
@@ -202,12 +202,15 @@ function Agent({ onCreateNew, onAgentClick }) {
     };
 
     const SkeletonCard = () => (
-        <div className="bg-bg-secondary rounded-lg shadow-sm overflow-hidden flex flex-col h-64 animate-pulse">
-            <div className="h-2/3 bg-bg-tertiary flex items-center justify-center">
-                <div className="w-24 h-24 bg-bg-primary rounded-full"></div>
+        <div className="bg-gradient-to-br from-bg-primary to-bg-secondary rounded-lg shadow-sm overflow-hidden flex flex-col h-64 animate-pulse">
+            <div className="h-2/3 bg-primary bg-opacity-5 flex items-center justify-center">
+                <div className="w-24 h-24 bg-bg-tertiary rounded-full"></div>
             </div>
-            <div className="p-4 flex-grow flex flex-col justify-between">
-                <div className="h-5 bg-bg-tertiary rounded w-3/4"></div>
+            <div className="h-1/3 p-4 bg-bg-secondary flex flex-col justify-between">
+                <div>
+                    <div className="h-4 bg-bg-tertiary rounded w-3/4 mb-2"></div>
+                    <div className="h-3 bg-bg-tertiary rounded w-1/2"></div>
+                </div>
                 <div className="flex flex-wrap gap-1 mt-2">
                     <div className="h-4 bg-bg-tertiary rounded-full w-16"></div>
                     <div className="h-4 bg-bg-tertiary rounded-full w-20"></div>
@@ -231,7 +234,7 @@ function Agent({ onCreateNew, onAgentClick }) {
             return (
                 <>
                     <NewAgentCard />
-                    {[...Array(7)].map((_, index) => (
+                    {[...Array(6)].map((_, index) => (
                         <SkeletonCard key={index} />
                     ))}
                 </>
@@ -299,7 +302,7 @@ function Agent({ onCreateNew, onAgentClick }) {
                 isOpen={isDeleteModalOpen}
                 onClose={() => setIsDeleteModalOpen(false)}
                 onConfirm={handleDeleteConfirm}
-                itemType="智能体"
+                itemType="能体"
                 itemName={agentToDelete?.name}
                 isLoading={isDeleting}
             />
