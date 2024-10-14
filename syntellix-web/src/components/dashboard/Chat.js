@@ -1,5 +1,5 @@
-import { ArrowPathIcon, ArrowUpIcon, ClockIcon, PencilSquareIcon, PlusIcon, TrashIcon, UserCircleIcon } from '@heroicons/react/24/outline';
-import { ChatBubbleLeftRightIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid';
+import { ArrowPathIcon, ArrowUpIcon, BeakerIcon, ChatBubbleLeftRightIcon, ClockIcon, PencilSquareIcon, PlusIcon, TrashIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import axios from 'axios';
 import { formatDistanceToNow } from 'date-fns';
@@ -48,6 +48,8 @@ function Chat({ selectedAgentId }) {
   const [isChangingConversation, setIsChangingConversation] = useState(false);
   const [scrollPosition, setScrollPosition] = useState(0);
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
+  const [isAgentInfoExpanded, setIsAgentInfoExpanded] = useState(false);
+  const [isRecentConversationsExpanded, setIsRecentConversationsExpanded] = useState(false);
 
   const fetchChatDetails = useCallback(async (agentId = null) => {
     setIsAgentInfoLoading(true);
@@ -499,99 +501,8 @@ function Chat({ selectedAgentId }) {
 
   return (
     <div className="h-full flex overflow-hidden">
-      {/* Left sidebar */}
-      <div className="w-72 flex flex-col bg-bg-primary overflow-hidden border-r border-bg-tertiary">
-        {isAgentInfoLoading ? (
-          <AgentInfoSkeleton />
-        ) : (
-          <div className="flex flex-col h-full">
-            {/* Agent info */}
-            <div className="flex-shrink-0 p-4">
-              <div className="flex items-center mb-3 cursor-pointer group">
-                <div className="mr-3">
-                  <AgentAvatar
-                    avatarData={chatDetails?.agent_info?.avatar}
-                    agentName={chatDetails?.agent_info?.name || '智能助手'}
-                    size="small"
-                  />
-                </div>
-                <h1 className="text-base font-semibold text-text-body font-sans-sc truncate">
-                  {chatDetails?.agent_info?.name || '智能助手'}
-                </h1>
-              </div>
-              {chatDetails?.agent_info?.description && (
-                <p className="text-xs text-text-muted line-clamp-2 hover:line-clamp-none transition-all duration-300">
-                  {chatDetails.agent_info.description}
-                </p>
-              )}
-              {/* Knowledge bases */}
-              {chatDetails?.agent_info?.knowledge_bases?.length > 0 && (
-                <div className="mt-3">
-                  <h4 className="text-xs font-semibold text-text-secondary mb-2">关联知识库:</h4>
-                  <ul className="space-y-1">
-                    {chatDetails.agent_info.knowledge_bases.map((kb) => (
-                      <li
-                        key={kb.id}
-                        className="flex items-center cursor-pointer text-xs text-text-muted hover:text-primary transition-colors duration-200"
-                        onClick={() => handleKnowledgeBaseClick(kb.id)}
-                      >
-                        <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></span>
-                        <span className="truncate">{kb.name}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-
-            {/* Divider */}
-            <div className="mx-4 my-4 border-t border-bg-tertiary"></div>
-
-            {/* Recent conversations */}
-            <div className="flex-1 overflow-hidden flex mt-2 flex-col">
-              <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider px-4 mb-3 flex items-center">
-                <ClockIcon className="w-4 h-4 mr-2" />
-                最近会话
-              </h3>
-              {isConversationListLoading ? (
-                <ConversationListSkeleton />
-              ) : (
-                <div className="flex-1 overflow-y-auto px-2 space-y-1">
-                  {conversationHistory.map(chat => (
-                    <SidebarItem
-                      key={chat.id}
-                      text={chat.name}
-                      timestamp={chat.updated_at || chat.created_at}
-                      isActive={chat.id === currentConversationId}
-                      onClick={() => {
-                        setCurrentConversationId(chat.id);
-                        setIsChangingConversation(true);
-                        fetchConversationMessages(chat.id);
-                      }}
-                      onRename={(newName) => handleRenameConversation(chat.id, newName)}
-                      onDelete={() => handleDeleteConversation(chat.id)}
-                    />
-                  ))}
-                </div>
-              )}
-              {hasMoreConversations && (
-                <div
-                  onClick={() => fetchConversationHistory(chatDetails.agent_info.id, conversationHistory[conversationHistory.length - 1]?.id)}
-                  className="py-2 px-4 mt-2 text-primary hover:bg-primary hover:bg-opacity-10 flex items-center justify-center cursor-pointer rounded-md"
-                >
-                  <span className="font-sans-sc text-sm font-semibold flex items-center">
-                    <PlusIcon className="w-4 h-4 mr-1" />
-                    加载更多
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Main chat area */}
-      <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden px-14 relative">
+      {/* Main chat area (left side) */}
+      <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden px-6 relative">
         {(isChatMessagesLoading || isChangingConversation) && !isLoadingMore ? (
           <ChatAreaSkeleton />
         ) : currentConversationId ? (
@@ -655,9 +566,9 @@ function Chat({ selectedAgentId }) {
               ))}
             </div>
 
-            {/* Chat input with edge background */}
-            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2">
-              <div className="relative w-[700px]">
+            {/* Chat input */}
+            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-full max-w-3xl">
+              <div className="relative">
                 {/* Edge background */}
                 <div className="absolute inset-0 bg-primary bg-opacity-10 rounded-full blur-md"></div>
 
@@ -722,6 +633,112 @@ function Chat({ selectedAgentId }) {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Right sidebar */}
+      <div className={`w-16 flex flex-col bg-bg-primary overflow-hidden transition-all duration-300 ease-in-out ${
+        isAgentInfoExpanded || isRecentConversationsExpanded ? 'w-72 border-l border-bg-tertiary' : ''
+      }`}>
+        {/* Agent info */}
+        <div className="flex-shrink-0 p-4">
+          <div 
+            className="flex items-center justify-center cursor-pointer group"
+            onClick={() => setIsAgentInfoExpanded(!isAgentInfoExpanded)}
+          >
+            <div className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-bg-secondary transition-colors duration-200">
+              {isAgentInfoExpanded ? (
+                <AgentAvatar
+                  avatarData={chatDetails?.agent_info?.avatar}
+                  agentName={chatDetails?.agent_info?.name || '智能助手'}
+                  size="small"
+                />
+              ) : (
+                <BeakerIcon className="w-6 h-6 text-text-secondary group-hover:text-primary transition-colors duration-200" />
+              )}
+            </div>
+          </div>
+          {isAgentInfoExpanded && (
+            <div className="mt-4">
+              <h1 className="text-base font-semibold text-text-body font-sans-sc truncate">
+                {chatDetails?.agent_info?.name || '智能助手'}
+              </h1>
+              {chatDetails?.agent_info?.description && (
+                <p className="text-xs text-text-muted mt-2 line-clamp-2 hover:line-clamp-none transition-all duration-300">
+                  {chatDetails.agent_info.description}
+                </p>
+              )}
+              {/* Knowledge bases */}
+              {chatDetails?.agent_info?.knowledge_bases?.length > 0 && (
+                <div className="mt-3">
+                  <h4 className="text-xs font-semibold text-text-secondary mb-2">关联知识库:</h4>
+                  <ul className="space-y-1">
+                    {chatDetails.agent_info.knowledge_bases.map((kb) => (
+                      <li
+                        key={kb.id}
+                        className="flex items-center cursor-pointer text-xs text-text-muted hover:text-primary transition-colors duration-200"
+                        onClick={() => handleKnowledgeBaseClick(kb.id)}
+                      >
+                        <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></span>
+                        <span className="truncate">{kb.name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Recent conversations */}
+        <div className="flex-1 overflow-hidden flex flex-col">
+          <div 
+            className="flex items-center justify-center cursor-pointer group"
+            onClick={() => setIsRecentConversationsExpanded(!isRecentConversationsExpanded)}
+          >
+            <div className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-bg-secondary transition-colors duration-200">
+              <ClockIcon className="w-6 h-6 text-text-secondary group-hover:text-primary transition-colors duration-200" />
+            </div>
+          </div>
+          {isRecentConversationsExpanded && (
+            <>
+              <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider px-4 mt-4 mb-3">
+                最近会话
+              </h3>
+              {isConversationListLoading ? (
+                <ConversationListSkeleton />
+              ) : (
+                <div className="flex-1 overflow-y-auto px-2 space-y-1">
+                  {conversationHistory.map(chat => (
+                    <SidebarItem
+                      key={chat.id}
+                      text={chat.name}
+                      timestamp={chat.updated_at || chat.created_at}
+                      isActive={chat.id === currentConversationId}
+                      onClick={() => {
+                        setCurrentConversationId(chat.id);
+                        setIsChangingConversation(true);
+                        fetchConversationMessages(chat.id);
+                      }}
+                      onRename={(newName) => handleRenameConversation(chat.id, newName)}
+                      onDelete={() => handleDeleteConversation(chat.id)}
+                    />
+                  ))}
+                </div>
+              )}
+              {hasMoreConversations && (
+                <div
+                  onClick={() => fetchConversationHistory(chatDetails.agent_info.id, conversationHistory[conversationHistory.length - 1]?.id)}
+                  className="py-2 px-4 mt-2 text-primary hover:bg-primary hover:bg-opacity-10 flex items-center justify-center cursor-pointer rounded-md"
+                >
+                  <span className="font-sans-sc text-sm font-semibold flex items-center">
+                    <PlusIcon className="w-4 h-4 mr-1" />
+                    加载更多
+                  </span>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       <DeleteConfirmationModal
