@@ -17,7 +17,7 @@ function AgentInfo({ agentInfo, onKnowledgeBaseClick }) {
         </h1>
       </div>
       {agentInfo.description && (
-        <p className="text-sm text-text-secondary mt-2 mb-4">
+        <p className="text-sm text-text-muted text-sm mt-2 mb-4">
           {agentInfo.description}
         </p>
       )}
