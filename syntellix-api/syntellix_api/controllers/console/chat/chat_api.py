@@ -202,14 +202,7 @@ class ChatAgentConversationApi(Resource):
             latest_conversation = ChatService.create_conversation(
                 user_id=current_user.id,
                 agent_id=agent_id,
-                name=f"未命名会话",
-            )
-            ChatService.save_conversation_message(
-                conversation_id=latest_conversation.id,
-                user_id=current_user.id,
-                agent_id=agent_id,
-                message=agent.get("greeting_message", "Welcome!"),
-                message_type=ConversationMessageType.AGENT,
+                name=f"新会话",
             )
 
         return {
