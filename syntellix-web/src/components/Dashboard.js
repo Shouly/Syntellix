@@ -32,6 +32,7 @@ import KnowledgeBase from './dashboard/KnowledgeBase';
 import KnowledgeBaseDetail from './dashboard/KnowledgeBaseDetail';
 import Settings from './dashboard/Settings';
 import UploadFiles from './dashboard/UploadFiles';
+import { useUser } from './contexts/UserContext';
 
 function Dashboard({ setIsAuthenticated }) {
   const navigate = useNavigate();
@@ -39,8 +40,7 @@ function Dashboard({ setIsAuthenticated }) {
   const [showMenu, setShowMenu] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const menuRef = useRef(null);
-  const [userProfile, setUserProfile] = useState(null);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const { userProfile, isLoadingProfile, updateUserProfile } = useUser();
   const [isAccountSettingsOpen, setIsAccountSettingsOpen] = useState(false);
   const [isCreatingKnowledgeBase, setIsCreatingKnowledgeBase] = useState(false);
   const [selectedKnowledgeBaseId, setSelectedKnowledgeBaseId] = useState(null);
@@ -61,23 +61,6 @@ function Dashboard({ setIsAuthenticated }) {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
-
-  useEffect(() => {
-    // Fetch user profile
-    const fetchUserProfile = async () => {
-      setIsLoadingProfile(true);
-      try {
-        const response = await axios.get('/console/api/account/profile');
-        setUserProfile(response.data);
-      } catch (error) {
-        console.error('Failed to fetch user profile:', error);
-      } finally {
-        setIsLoadingProfile(false);
-      }
-    };
-
-    fetchUserProfile();
   }, []);
 
   const handleLogout = async () => {
@@ -101,10 +84,7 @@ function Dashboard({ setIsAuthenticated }) {
   };
 
   const handleProfileUpdate = (updatedProfile) => {
-    setUserProfile(prevProfile => ({
-      ...prevProfile,
-      ...updatedProfile
-    }));
+    updateUserProfile(updatedProfile);
   };
 
   const handleMenuChange = (menuName) => {

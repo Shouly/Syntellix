@@ -16,6 +16,7 @@ import RecentConversations from './ChatRecentConversations';
 import { AgentInfoSkeleton, ChatAreaSkeleton, ConversationListSkeleton } from './ChatSkeletons';
 import KnowledgeBaseDetail from './KnowledgeBaseDetail';
 import NewChatPrompt from './NewChatPrompt';
+import { useUser } from '../contexts/UserContext';
 
 function Chat({ selectedAgentId }) {
   const [chatDetails, setChatDetails] = useState(null);
@@ -526,7 +527,6 @@ function Chat({ selectedAgentId }) {
                   isSubmitting={isSubmitting}
                   isWaitingForResponse={isWaitingForResponse}
                   agentName={chatDetails?.agent_info?.name || '智能助手'}
-                  userName="用户名"
                 />
               ) : (
                 <>
@@ -686,7 +686,9 @@ function Chat({ selectedAgentId }) {
 }
 
 // New component for the redesigned input in new chat state
-function NewChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubmitting, isWaitingForResponse, agentName, userName }) {
+function NewChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubmitting, isWaitingForResponse, agentName }) {
+  const { userProfile } = useUser();
+
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return '上午好';
@@ -697,7 +699,7 @@ function NewChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubm
   return (
     <div className="w-full max-w-3xl mt-[-200px]">
       <h2 className="text-3xl font-bold mb-8 text-center text-primary">
-        {`${getGreeting()}，${userName}。`}
+        {`${getGreeting()}，${userProfile?.name || '用户'}！`}
       </h2>
       
       <div className="relative">

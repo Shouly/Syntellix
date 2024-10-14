@@ -7,6 +7,7 @@ import LoadingSpinner from './components/LoadingSpinner';
 import Login from './components/Login';
 import SystemInit from './components/SystemInit';
 import { ToastProvider } from './components/Toast';
+import { UserProvider } from './components/contexts/UserContext';
 
 import { API_BASE_URL } from './config';
 
@@ -53,21 +54,23 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Router>
         <ToastProvider>
-          <div className="App bg-bg-primary min-h-screen">
-            <Routes>
-              <Route path="/system-init" element={
-                isInitialized ? <Navigate to="/" /> : <SystemInit setIsInitialized={setIsInitialized} />
-              } />
-              <Route path="/" element={
-                isInitialized ? (
-                  isAuthenticated ? <Navigate to="/dashboard" /> : <Login setIsAuthenticated={setIsAuthenticated} />
-                ) : <Navigate to="/system-init" />
-              } />
-              <Route path="/dashboard" element={
-                isAuthenticated ? <Dashboard setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/" />
-              } />
-            </Routes>
-          </div>
+          <UserProvider>
+            <div className="App bg-bg-primary min-h-screen">
+              <Routes>
+                <Route path="/system-init" element={
+                  isInitialized ? <Navigate to="/" /> : <SystemInit setIsInitialized={setIsInitialized} />
+                } />
+                <Route path="/" element={
+                  isInitialized ? (
+                    isAuthenticated ? <Navigate to="/dashboard" /> : <Login setIsAuthenticated={setIsAuthenticated} />
+                  ) : <Navigate to="/system-init" />
+                } />
+                <Route path="/dashboard" element={
+                  isAuthenticated ? <Dashboard setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/" />
+                } />
+              </Routes>
+            </div>
+          </UserProvider>
         </ToastProvider>
       </Router>
     </QueryClientProvider>
