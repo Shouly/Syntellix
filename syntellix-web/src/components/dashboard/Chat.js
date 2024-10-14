@@ -470,7 +470,7 @@ function Chat({ selectedAgentId }) {
           onClick={() => fetchChatDetails()}
           className="px-4 py-2 bg-danger text-bg-primary rounded-md hover:bg-danger-dark transition-colors duration-200"
         >
-          ���试
+          重试
         </button>
       </div>
     );
