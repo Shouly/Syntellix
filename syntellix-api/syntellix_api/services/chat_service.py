@@ -258,13 +258,16 @@ class ChatService:
             yield json.dumps({"chunk": chunk}, ensure_ascii=False)
 
         # 保存AI响应并更新对话历史
-        ChatService._save_ai_response_and_update_cache(
+        ai_message_id = ChatService._save_ai_response_and_update_cache(
             conversation_id,
             user_id,
             agent_id,
             full_response,
             user_message_id,
         )
+
+        # 在最后yield AI消息的ID
+        yield json.dumps({"last_message_id": ai_message_id})
 
     @staticmethod
     def _initialize_chat(tenant_id: int, agent_id: int, conversation_id: int):
@@ -306,7 +309,7 @@ class ChatService:
         agent_id: int,
         llm_response: str,
         user_message_id: int,
-    ):
+    ) -> int:
         # 保存 AI 响应消息
         ai_conversation_message = ConversationMessage(
             conversation_id=conversation_id,
@@ -324,6 +327,8 @@ class ChatService:
             conversation_id,
             ai_conversation_message,
         )
+
+        return ai_conversation_message.id
 
     @staticmethod
     def get_conversation_histories(conversation_id: int, max_messages: int = 10):

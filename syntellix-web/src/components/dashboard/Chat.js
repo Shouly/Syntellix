@@ -41,6 +41,7 @@ function Chat({ selectedAgentId }) {
   const [isRecentConversationsOpen, setIsRecentConversationsOpen] = useState(false);
   const [recentConversations, setRecentConversations] = useState([]);
   const [isCreatingNewChat, setIsCreatingNewChat] = useState(false);
+  const [lastMessageId, setLastMessageId] = useState(null);
 
   const fetchChatDetails = useCallback(async (agentId = null) => {
     setError(null);
@@ -86,8 +87,15 @@ function Chat({ selectedAgentId }) {
       if (page === 1) {
         setConversationMessages(response.data.messages);
         setIsNewConversation(response.data.messages.length === 0);
+        // Update lastMessageId if there are messages
+        if (response.data.messages.length > 0) {
+          setLastMessageId(response.data.messages[response.data.messages.length - 1].id);
+        } else {
+          setLastMessageId(null);
+        }
       } else {
         setConversationMessages(prevMessages => [...response.data.messages, ...prevMessages]);
+        // Do not update lastMessageId for pages other than the first one
       }
       setHasMore(response.data.has_more);
       setCurrentPage(page);
@@ -100,7 +108,7 @@ function Chat({ selectedAgentId }) {
       setIsChatMessagesLoading(false);
       setIsChangingConversation(false);
     }
-  }, [showToast]);
+  }, [showToast, isLoadingMore]);
 
   useEffect(() => {
     let isMounted = true;
@@ -161,7 +169,7 @@ function Chat({ selectedAgentId }) {
 
   const handleSendMessage = async () => {
     if (inputMessage.trim() !== '' && !isSubmitting) {
-      setIsNewConversation(false);  // Set this to false after sending the first message
+      setIsNewConversation(false);
       try {
         setIsSubmitting(true);
         setConversationMessages(prevMessages => {
@@ -173,22 +181,16 @@ function Chat({ selectedAgentId }) {
         });
         setInputMessage('');
         setIsWaitingForResponse(true);
-        setShouldScrollToBottom(true);  // Set flag to scroll to bottom after sending message
+        setShouldScrollToBottom(true);
 
-        // Create new AbortController
         abortControllerRef.current = new AbortController();
 
-        // Get token
         const token = localStorage.getItem('token');
 
-        // Construct URL with query parameters
         const params = new URLSearchParams({
           agent_id: chatDetails.agent_info.id.toString(),
           message: inputMessage,
-          // Only include pre_message_id if it's not the first message
-          ...(conversationMessages.length > 0 && {
-            pre_message_id: conversationMessages[conversationMessages.length - 1]?.id
-          })
+          ...(lastMessageId && { pre_message_id: lastMessageId.toString() })
         });
         const url = `${API_BASE_URL}/console/api/chat/conversation/${currentConversationId}/stream?${params}`;
 
@@ -209,7 +211,7 @@ function Chat({ selectedAgentId }) {
                   { message: "正在检索知识库文档", message_type: 'status' }
                 ];
               });
-              setShouldScrollToBottom(true);  // Set flag to scroll to bottom after status update
+              setShouldScrollToBottom(true);
             } else if (data.status === "retrieving_documents_done") {
               setConversationMessages(prevMessages => {
                 const messages = Array.isArray(prevMessages) ? prevMessages : [];
@@ -222,7 +224,7 @@ function Chat({ selectedAgentId }) {
                 }
                 return updatedMessages;
               });
-              setShouldScrollToBottom(true);  // Set flag to scroll to bottom after status update
+              setShouldScrollToBottom(true);
             } else if (data.status === "generating_answer") {
               setConversationMessages(prevMessages => {
                 const messages = Array.isArray(prevMessages) ? prevMessages : [];
@@ -235,7 +237,7 @@ function Chat({ selectedAgentId }) {
                 }
                 return updatedMessages;
               });
-              setShouldScrollToBottom(true);  // Set flag to scroll to bottom after status update
+              setShouldScrollToBottom(true);
             } else if (data.chunk) {
               setConversationMessages(prevMessages => {
                 const messages = Array.isArray(prevMessages) ? prevMessages : [];
@@ -252,14 +254,16 @@ function Chat({ selectedAgentId }) {
                 }
                 return updatedMessages;
               });
-              setShouldScrollToBottom(true);  // Set flag to scroll to bottom after receiving new chunk
+              setShouldScrollToBottom(true);
             } else if (data.error) {
               console.error('Error:', data.error);
               showToast(data.error, 'error');
             } else if (data.done) {
               setIsWaitingForResponse(false);
               setIsSubmitting(false);
-              setShouldScrollToBottom(true);  // Set flag to scroll to bottom when response is complete
+              setShouldScrollToBottom(true);
+            } else if (data.last_message_id) {
+              setLastMessageId(data.last_message_id);
             }
           },
           onclose() {
@@ -351,6 +355,12 @@ function Chat({ selectedAgentId }) {
       setConversationMessages(response.data.messages);
       setIsNewConversation(response.data.messages.length === 0);
       setIsMessagesLoaded(true);
+      // Update lastMessageId
+      if (response.data.messages.length > 0) {
+        setLastMessageId(response.data.messages[response.data.messages.length - 1].id);
+      } else {
+        setLastMessageId(null);
+      }
     } catch (error) {
       console.error('Failed to fetch conversation messages:', error);
       showToast('消息获取失败', 'error');
