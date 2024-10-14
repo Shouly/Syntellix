@@ -10,6 +10,7 @@ import { API_BASE_URL } from '../../config';
 import AgentAvatar from '../AgentAvatar';
 import DeleteConfirmationModal from '../DeleteConfirmationModal';
 import RenameModal from '../RenameModal';
+import SlidingPanel from './ChatSlidingPanel';
 import AgentInfo from './ChatAgentInfo';
 import RecentConversations from './ChatRecentConversations';
 import { AgentInfoSkeleton, ChatAreaSkeleton, ConversationListSkeleton } from './ChatSkeletons';
@@ -48,7 +49,8 @@ function Chat({ selectedAgentId }) {
   const [isChangingConversation, setIsChangingConversation] = useState(false);
   const [scrollPosition, setScrollPosition] = useState(0);
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
-  const [activeRightPanel, setActiveRightPanel] = useState(null);
+  const [isAgentInfoOpen, setIsAgentInfoOpen] = useState(false);
+  const [isRecentConversationsOpen, setIsRecentConversationsOpen] = useState(false);
 
   const fetchChatDetails = useCallback(async (agentId = null) => {
     setIsAgentInfoLoading(true);
@@ -637,57 +639,63 @@ function Chat({ selectedAgentId }) {
       {/* Right sidebar */}
       <div className="w-16 flex flex-col bg-bg-primary overflow-hidden transition-all duration-300 ease-in-out">
         {/* Agent info icon */}
-        <div className="flex-shrink-0 p-4">
+        <div className="flex-shrink-0 p-2">
           <div
             className="flex items-center justify-center cursor-pointer group"
-            onClick={() => setActiveRightPanel(activeRightPanel === 'agent' ? null : 'agent')}
+            onClick={() => setIsAgentInfoOpen(true)}
           >
             <div className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-bg-secondary transition-colors duration-200">
-              <BeakerIcon className="w-6 h-6 text-text-secondary group-hover:text-primary transition-colors duration-200" />
+              <BeakerIcon className={`w-6 h-6 ${isAgentInfoOpen ? 'text-primary' : 'text-text-secondary'} group-hover:text-primary transition-colors duration-200`} />
             </div>
           </div>
         </div>
 
         {/* Recent conversations icon */}
-        <div className="flex-shrink-0 p-4">
+        <div className="flex-shrink-0 p-2">
           <div
             className="flex items-center justify-center cursor-pointer group"
-            onClick={() => setActiveRightPanel(activeRightPanel === 'conversations' ? null : 'conversations')}
+            onClick={() => setIsRecentConversationsOpen(true)}
           >
             <div className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-bg-secondary transition-colors duration-200">
-              <ClockIcon className="w-6 h-6 text-text-secondary group-hover:text-primary transition-colors duration-200" />
+              <ClockIcon className={`w-6 h-6 ${isRecentConversationsOpen ? 'text-primary' : 'text-text-secondary'} group-hover:text-primary transition-colors duration-200`} />
             </div>
           </div>
         </div>
-
-        {/* Active panel */}
-        {activeRightPanel && (
-          <div className="flex-1 overflow-hidden border-l border-bg-tertiary">
-            {activeRightPanel === 'agent' && (
-              <AgentInfo
-                agentInfo={chatDetails?.agent_info}
-                onKnowledgeBaseClick={handleKnowledgeBaseClick}
-              />
-            )}
-            {activeRightPanel === 'conversations' && (
-              <RecentConversations
-                conversationHistory={conversationHistory}
-                currentConversationId={currentConversationId}
-                isConversationListLoading={isConversationListLoading}
-                hasMoreConversations={hasMoreConversations}
-                onConversationClick={(chatId) => {
-                  setCurrentConversationId(chatId);
-                  setIsChangingConversation(true);
-                  fetchConversationMessages(chatId);
-                }}
-                onRenameConversation={handleRenameConversation}
-                onDeleteConversation={handleDeleteConversation}
-                onLoadMore={() => fetchConversationHistory(chatDetails.agent_info.id, conversationHistory[conversationHistory.length - 1]?.id)}
-              />
-            )}
-          </div>
-        )}
       </div>
+
+      {/* Sliding Panels */}
+      <SlidingPanel
+        isOpen={isAgentInfoOpen}
+        onClose={() => setIsAgentInfoOpen(false)}
+        title="智能助手信息"
+      >
+        <AgentInfo
+          agentInfo={chatDetails?.agent_info}
+          onKnowledgeBaseClick={handleKnowledgeBaseClick}
+        />
+      </SlidingPanel>
+
+      <SlidingPanel
+        isOpen={isRecentConversationsOpen}
+        onClose={() => setIsRecentConversationsOpen(false)}
+        title="最近会话"
+      >
+        <RecentConversations
+          conversationHistory={conversationHistory}
+          currentConversationId={currentConversationId}
+          isConversationListLoading={isConversationListLoading}
+          hasMoreConversations={hasMoreConversations}
+          onConversationClick={(chatId) => {
+            setCurrentConversationId(chatId);
+            setIsChangingConversation(true);
+            fetchConversationMessages(chatId);
+            setIsRecentConversationsOpen(false);
+          }}
+          onRenameConversation={handleRenameConversation}
+          onDeleteConversation={handleDeleteConversation}
+          onLoadMore={() => fetchConversationHistory(chatDetails.agent_info.id, conversationHistory[conversationHistory.length - 1]?.id)}
+        />
+      </SlidingPanel>
 
       <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}
