@@ -14,9 +14,10 @@ function SlidingPanel({ isOpen, onClose, children, title }) {
       
       {/* Panel */}
       <div
-        className={`fixed inset-y-0 right-0 w-80 bg-bg-primary shadow-xl transform ${
+        className={`fixed top-4 bottom-4 right-4 w-80 bg-bg-primary shadow-xl transform ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
-        } transition-all duration-300 ease-in-out z-50`}
+        } transition-all duration-300 ease-in-out z-50 rounded-2xl flex flex-col overflow-hidden`}
+        style={{ transform: isOpen ? 'translateX(0)' : 'translateX(calc(100% + 16px))' }}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-bg-tertiary bg-bg-secondary">
@@ -30,7 +31,7 @@ function SlidingPanel({ isOpen, onClose, children, title }) {
         </div>
         
         {/* Content */}
-        <div className="overflow-y-auto h-[calc(100%-4rem)] py-4 px-6">
+        <div className="flex-1 overflow-y-auto py-4 px-4">
           {children}
         </div>
       </div>
