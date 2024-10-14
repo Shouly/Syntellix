@@ -14,6 +14,8 @@ function RecentConversations({
   onConversationClick,
   onConversationUpdate,
   onConversationDelete,
+  recentConversations,
+  setRecentConversations,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingId, setEditingId] = useState(null);
@@ -35,7 +37,7 @@ function RecentConversations({
       const response = await axios.get(`/console/api/chat/agent/${agentId}/conversation-history`, {
         params: { limit: 10, page }
       });
-      setConversationHistory(prev => [...prev, ...response.data]);
+      setRecentConversations(prev => [...prev, ...response.data]);
       setHasMore(response.data.length === 10);
       setPage(prev => prev + 1);
     } catch (error) {
@@ -43,21 +45,21 @@ function RecentConversations({
     } finally {
       setIsLoading(false);
     }
-  }, [agentId, page]);
+  }, [agentId, page, setRecentConversations]);
 
   useEffect(() => {
     if (agentId) {
-      setConversationHistory([]);
+      setRecentConversations([]);
       setPage(1);
       fetchConversationHistory();
     }
-  }, [agentId]);
+  }, [agentId, setRecentConversations]);
 
   const filteredConversations = useMemo(() => {
-    return conversationHistory.filter(chat =>
+    return recentConversations.filter(chat =>
       chat.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [conversationHistory, searchTerm]);
+  }, [recentConversations, searchTerm]);
 
   const formatRelativeTime = (dateString) => {
     const date = new Date(dateString);
@@ -75,7 +77,7 @@ function RecentConversations({
       setEditingId(null);
     } else {
       setEditingId(id);
-      setNewName(conversationHistory.find(chat => chat.id === id).name);
+      setNewName(recentConversations.find(chat => chat.id === id).name);
     }
   };
 
@@ -86,7 +88,7 @@ function RecentConversations({
         data: { conversation_id: conversationId }
       });
       showToast('对话删除成功', 'success');
-      setConversationHistory(prevHistory => 
+      setRecentConversations(prevHistory => 
         prevHistory.filter(conv => conv.id !== conversationId)
       );
       onConversationDelete(conversationId);
@@ -107,7 +109,7 @@ function RecentConversations({
         new_name: newName
       });
       showToast('对话已重命名', 'success');
-      setConversationHistory(prevHistory => 
+      setRecentConversations(prevHistory => 
         prevHistory.map(conv => 
           conv.id === conversationId ? { ...conv, name: response.data.name } : conv
         )
@@ -226,14 +228,14 @@ function RecentConversations({
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={() => handleDeleteConversation(deletingId)}
         itemType="对话"
-        itemName={deletingId ? conversationHistory.find(chat => chat.id === deletingId)?.name : ''}
+        itemName={deletingId ? recentConversations.find(chat => chat.id === deletingId)?.name : ''}
         isLoading={isDeleting}
       />
       <RenameModal
         isOpen={!!editingId}
         onClose={() => setEditingId(null)}
         onRename={(newName) => handleRenameConversation(editingId, newName)}
-        currentName={conversationHistory.find(chat => chat.id === editingId)?.name || ''}
+        currentName={recentConversations.find(chat => chat.id === editingId)?.name || ''}
         itemType="对话"
         isLoading={isRenaming}
       />

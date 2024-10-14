@@ -39,6 +39,7 @@ function Chat({ selectedAgentId }) {
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
   const [isAgentInfoOpen, setIsAgentInfoOpen] = useState(false);
   const [isRecentConversationsOpen, setIsRecentConversationsOpen] = useState(false);
+  const [recentConversations, setRecentConversations] = useState([]);
 
   const fetchChatDetails = useCallback(async (agentId = null) => {
     setError(null);
@@ -319,11 +320,14 @@ function Chat({ selectedAgentId }) {
       setCurrentConversationId(newConversation.id);
       setIsNewConversation(true);
 
-      // Update chat details without fetching agent info again
+      // Update chat details
       setChatDetails(prevDetails => ({
         ...prevDetails,
         latest_conversation: newConversation
       }));
+
+      // Add the new conversation to the recent conversations list
+      setRecentConversations(prevConversations => [newConversation, ...prevConversations]);
 
       showToast('新会话创建成功', 'success');
     } catch (error) {
@@ -565,6 +569,8 @@ function Chat({ selectedAgentId }) {
           onConversationClick={handleConversationClick}
           onConversationUpdate={handleConversationUpdate}
           onConversationDelete={handleConversationDelete}
+          recentConversations={recentConversations}
+          setRecentConversations={setRecentConversations}
         />
       </SlidingPanel>
     </div>
