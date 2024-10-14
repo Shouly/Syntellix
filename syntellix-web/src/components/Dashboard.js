@@ -273,7 +273,7 @@ function Dashboard({ setIsAuthenticated }) {
       {/* Left Sidebar Navigation */}
       <nav className="w-16 z-10 flex flex-col items-center py-4 bg-bg-secondary">
         {/* Logo */}
-        <div className="w-12 h-12 mb-4 flex items-center justify-center group">
+        <div className="w-12 h-12 flex items-center justify-center group">
           <img
             src={SystemLogo}
             alt="System Logo"
@@ -311,7 +311,7 @@ function Dashboard({ setIsAuthenticated }) {
         </div>
 
         {/* Bottom placeholder to match the size of the logo */}
-        <div className="w-10 h-10"></div>
+        <div className="w-12 h-12"></div>
       </nav>
 
       <div className="flex-1 overflow-hidden p-1 bg-bg-secondary">
