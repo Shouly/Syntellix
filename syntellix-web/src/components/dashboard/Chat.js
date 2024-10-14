@@ -1,9 +1,7 @@
-import { ArrowPathIcon, ArrowUpIcon, BeakerIcon, ChatBubbleLeftRightIcon, ClockIcon, PencilSquareIcon, PlusIcon, TrashIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon, ArrowUpIcon, BeakerIcon, ChatBubbleLeftRightIcon, ClockIcon, PlusIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import axios from 'axios';
-import { formatDistanceToNow } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +10,8 @@ import { API_BASE_URL } from '../../config';
 import AgentAvatar from '../AgentAvatar';
 import DeleteConfirmationModal from '../DeleteConfirmationModal';
 import RenameModal from '../RenameModal';
+import AgentInfo from './ChatAgentInfo';
+import RecentConversations from './ChatRecentConversations';
 import { AgentInfoSkeleton, ChatAreaSkeleton, ConversationListSkeleton } from './ChatSkeletons';
 import KnowledgeBaseDetail from './KnowledgeBaseDetail';
 import NewChatPrompt from './NewChatPrompt';
@@ -48,8 +48,7 @@ function Chat({ selectedAgentId }) {
   const [isChangingConversation, setIsChangingConversation] = useState(false);
   const [scrollPosition, setScrollPosition] = useState(0);
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
-  const [isAgentInfoExpanded, setIsAgentInfoExpanded] = useState(false);
-  const [isRecentConversationsExpanded, setIsRecentConversationsExpanded] = useState(false);
+  const [activeRightPanel, setActiveRightPanel] = useState(null);
 
   const fetchChatDetails = useCallback(async (agentId = null) => {
     setIsAgentInfoLoading(true);
@@ -471,7 +470,7 @@ function Chat({ selectedAgentId }) {
           onClick={() => fetchChatDetails()}
           className="px-4 py-2 bg-danger text-bg-primary rounded-md hover:bg-danger-dark transition-colors duration-200"
         >
-          重试
+          ���试
         </button>
       </div>
     );
@@ -636,109 +635,58 @@ function Chat({ selectedAgentId }) {
       </div>
 
       {/* Right sidebar */}
-      <div className={`w-16 flex flex-col bg-bg-primary overflow-hidden transition-all duration-300 ease-in-out ${
-        isAgentInfoExpanded || isRecentConversationsExpanded ? 'w-72 border-l border-bg-tertiary' : ''
-      }`}>
-        {/* Agent info */}
+      <div className="w-16 flex flex-col bg-bg-primary overflow-hidden transition-all duration-300 ease-in-out">
+        {/* Agent info icon */}
         <div className="flex-shrink-0 p-4">
-          <div 
+          <div
             className="flex items-center justify-center cursor-pointer group"
-            onClick={() => setIsAgentInfoExpanded(!isAgentInfoExpanded)}
+            onClick={() => setActiveRightPanel(activeRightPanel === 'agent' ? null : 'agent')}
           >
             <div className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-bg-secondary transition-colors duration-200">
-              {isAgentInfoExpanded ? (
-                <AgentAvatar
-                  avatarData={chatDetails?.agent_info?.avatar}
-                  agentName={chatDetails?.agent_info?.name || '智能助手'}
-                  size="small"
-                />
-              ) : (
-                <BeakerIcon className="w-6 h-6 text-text-secondary group-hover:text-primary transition-colors duration-200" />
-              )}
+              <BeakerIcon className="w-6 h-6 text-text-secondary group-hover:text-primary transition-colors duration-200" />
             </div>
           </div>
-          {isAgentInfoExpanded && (
-            <div className="mt-4">
-              <h1 className="text-base font-semibold text-text-body font-sans-sc truncate">
-                {chatDetails?.agent_info?.name || '智能助手'}
-              </h1>
-              {chatDetails?.agent_info?.description && (
-                <p className="text-xs text-text-muted mt-2 line-clamp-2 hover:line-clamp-none transition-all duration-300">
-                  {chatDetails.agent_info.description}
-                </p>
-              )}
-              {/* Knowledge bases */}
-              {chatDetails?.agent_info?.knowledge_bases?.length > 0 && (
-                <div className="mt-3">
-                  <h4 className="text-xs font-semibold text-text-secondary mb-2">关联知识库:</h4>
-                  <ul className="space-y-1">
-                    {chatDetails.agent_info.knowledge_bases.map((kb) => (
-                      <li
-                        key={kb.id}
-                        className="flex items-center cursor-pointer text-xs text-text-muted hover:text-primary transition-colors duration-200"
-                        onClick={() => handleKnowledgeBaseClick(kb.id)}
-                      >
-                        <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></span>
-                        <span className="truncate">{kb.name}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
-        {/* Recent conversations */}
-        <div className="flex-1 overflow-hidden flex flex-col">
-          <div 
+        {/* Recent conversations icon */}
+        <div className="flex-shrink-0 p-4">
+          <div
             className="flex items-center justify-center cursor-pointer group"
-            onClick={() => setIsRecentConversationsExpanded(!isRecentConversationsExpanded)}
+            onClick={() => setActiveRightPanel(activeRightPanel === 'conversations' ? null : 'conversations')}
           >
             <div className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-bg-secondary transition-colors duration-200">
               <ClockIcon className="w-6 h-6 text-text-secondary group-hover:text-primary transition-colors duration-200" />
             </div>
           </div>
-          {isRecentConversationsExpanded && (
-            <>
-              <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider px-4 mt-4 mb-3">
-                最近会话
-              </h3>
-              {isConversationListLoading ? (
-                <ConversationListSkeleton />
-              ) : (
-                <div className="flex-1 overflow-y-auto px-2 space-y-1">
-                  {conversationHistory.map(chat => (
-                    <SidebarItem
-                      key={chat.id}
-                      text={chat.name}
-                      timestamp={chat.updated_at || chat.created_at}
-                      isActive={chat.id === currentConversationId}
-                      onClick={() => {
-                        setCurrentConversationId(chat.id);
-                        setIsChangingConversation(true);
-                        fetchConversationMessages(chat.id);
-                      }}
-                      onRename={(newName) => handleRenameConversation(chat.id, newName)}
-                      onDelete={() => handleDeleteConversation(chat.id)}
-                    />
-                  ))}
-                </div>
-              )}
-              {hasMoreConversations && (
-                <div
-                  onClick={() => fetchConversationHistory(chatDetails.agent_info.id, conversationHistory[conversationHistory.length - 1]?.id)}
-                  className="py-2 px-4 mt-2 text-primary hover:bg-primary hover:bg-opacity-10 flex items-center justify-center cursor-pointer rounded-md"
-                >
-                  <span className="font-sans-sc text-sm font-semibold flex items-center">
-                    <PlusIcon className="w-4 h-4 mr-1" />
-                    加载更多
-                  </span>
-                </div>
-              )}
-            </>
-          )}
         </div>
+
+        {/* Active panel */}
+        {activeRightPanel && (
+          <div className="flex-1 overflow-hidden border-l border-bg-tertiary">
+            {activeRightPanel === 'agent' && (
+              <AgentInfo
+                agentInfo={chatDetails?.agent_info}
+                onKnowledgeBaseClick={handleKnowledgeBaseClick}
+              />
+            )}
+            {activeRightPanel === 'conversations' && (
+              <RecentConversations
+                conversationHistory={conversationHistory}
+                currentConversationId={currentConversationId}
+                isConversationListLoading={isConversationListLoading}
+                hasMoreConversations={hasMoreConversations}
+                onConversationClick={(chatId) => {
+                  setCurrentConversationId(chatId);
+                  setIsChangingConversation(true);
+                  fetchConversationMessages(chatId);
+                }}
+                onRenameConversation={handleRenameConversation}
+                onDeleteConversation={handleDeleteConversation}
+                onLoadMore={() => fetchConversationHistory(chatDetails.agent_info.id, conversationHistory[conversationHistory.length - 1]?.id)}
+              />
+            )}
+          </div>
+        )}
       </div>
 
       <DeleteConfirmationModal
@@ -759,104 +707,6 @@ function Chat({ selectedAgentId }) {
         isLoading={isRenaming}
       />
     </div>
-  );
-}
-
-function SidebarItem({ text, timestamp, isActive = false, onClick, onRename, onDelete }) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [newName, setNewName] = useState(text);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const handleRename = () => {
-    if (isEditing) {
-      onRename(newName);
-      setIsEditing(false);
-    } else {
-      setIsEditing(true);
-    }
-  };
-
-  const handleDelete = async () => {
-    setIsDeleting(true);
-    await onDelete();
-    setIsDeleting(false);
-    setIsDeleteModalOpen(false);
-  };
-
-  const formatRelativeTime = (dateString) => {
-    const date = new Date(dateString);
-    const distance = formatDistanceToNow(date, { locale: zhCN });
-    return distance.replace(/大约 /, '') // 移除"大约"字
-      .replace(/ 天/, '天')
-      .replace(/ 个?小时/, '小时')
-      .replace(/ 分钟/, '分钟')
-      .replace(/不到 /, ''); // 移除"不到"
-  };
-
-  const formattedTimestamp = timestamp ? formatRelativeTime(timestamp) : '';
-
-  return (
-    <>
-      <li
-        className={`py-2.5 px-3 mx-2 transition-all duration-200 cursor-pointer rounded-md ${isActive
-          ? 'bg-bg-secondary text-primary'
-          : 'text-text-body hover:bg-bg-secondary hover:bg-opacity-50'
-          } flex items-center justify-between group`}
-        onClick={isEditing ? undefined : onClick}
-      >
-        <div className="flex-grow mr-2 min-w-0 flex items-center">
-          {isEditing ? (
-            <input
-              type="text"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleRename();
-                }
-              }}
-              className="bg-transparent border-none focus:outline-none text-sm font-sans-sc w-full"
-              autoFocus
-              onClick={(e) => e.stopPropagation()}
-            />
-          ) : (
-            <span className={`font-sans-sc text-sm ${isActive ? 'font-medium' : ''} truncate flex-shrink min-w-0`}>{text}</span>
-          )}
-        </div>
-        <div className="flex items-center space-x-2">
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsEditing(true);
-              }}
-              className="text-text-muted hover:text-primary transition-colors duration-200"
-            >
-              <PencilSquareIcon className="w-4 h-4" />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsDeleteModalOpen(true);
-              }}
-              className="text-text-muted hover:text-danger transition-colors duration-200"
-            >
-              <TrashIcon className="w-4 h-4" />
-            </button>
-          </div>
-          <span className="text-xs text-text-muted flex-shrink-0">{formattedTimestamp}前</span>
-        </div>
-      </li>
-      <DeleteConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={handleDelete}
-        itemType="对话"
-        itemName={text}
-        isLoading={isDeleting}
-      />
-    </>
   );
 }
 

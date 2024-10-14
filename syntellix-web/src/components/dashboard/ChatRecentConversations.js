@@ -1,7 +1,7 @@
 import React from 'react';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { ConversationListSkeleton } from './ChatSkeletons';
-import SidebarItem from './SidebarItem';
+import SidebarItem from './ChatSidebarItem';
 
 function RecentConversations({
   conversationHistory,
