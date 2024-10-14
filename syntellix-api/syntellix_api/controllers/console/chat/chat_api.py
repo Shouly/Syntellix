@@ -45,14 +45,6 @@ class ChatConversationApi(Resource):
             user_id=current_user.id, agent_id=args["agent_id"], name=name
         )
 
-        ChatService.save_conversation_message(
-            conversation_id=conversation.id,
-            user_id=current_user.id,
-            agent_id=args["agent_id"],
-            message=agent.greeting_message,
-            message_type=ConversationMessageType.AGENT,
-        )
-
         return conversation, 201
 
     @login_required
