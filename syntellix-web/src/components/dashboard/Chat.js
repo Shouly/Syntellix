@@ -71,7 +71,7 @@ function Chat({ selectedAgentId }) {
     }
   }, [selectedAgentId, fetchChatDetails]);
 
-  const fetchConversationMessages = useCallback(async (conversationId, page = 1, perPage = 5) => {
+  const fetchConversationMessages = useCallback(async (conversationId, page = 1, perPage = 4) => {
     if (isLoadingMore && page !== 1) return;
     if (page === 1) {
       setIsChangingConversation(true);
@@ -326,6 +326,7 @@ function Chat({ selectedAgentId }) {
       setIsMessagesLoaded(false);
       setCurrentConversationId(newConversation.id);
       setIsNewConversation(true);
+      setLastMessageId(null);
 
       // Update chat details
       setChatDetails(prevDetails => ({

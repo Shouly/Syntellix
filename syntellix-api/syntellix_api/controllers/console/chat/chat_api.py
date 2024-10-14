@@ -126,7 +126,7 @@ class ChatConversationMessageApi(Resource):
     def get(self, conversation_id):
         parser = reqparse.RequestParser()
         parser.add_argument("page", type=int, location="args", default=1)
-        parser.add_argument("per_page", type=int, location="args", default=7)
+        parser.add_argument("per_page", type=int, location="args", default=4)
         args = parser.parse_args()
 
         result = ChatService.get_conversation_messages(

@@ -234,13 +234,16 @@ class ChatService:
         if not filtered_nodes:
             response_message = agent.empty_response
             yield json.dumps({"chunk": response_message})
-            ChatService._save_ai_response_and_update_cache(
+            ai_message_id = ChatService._save_ai_response_and_update_cache(
                 conversation_id,
                 user_id,
                 agent_id,
                 response_message,
                 user_message_id,
             )
+
+            yield json.dumps({"last_message_id": ai_message_id})
+
             return
 
         # 发送状态更新，表明正在生成回答
