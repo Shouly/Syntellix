@@ -440,76 +440,79 @@ function Chat({ selectedAgentId }) {
               ref={chatContainerRef}
               onScroll={handleScroll}
             >
-              {isNewConversation ? (
-                <NewChatInput
-                  inputMessage={inputMessage}
-                  setInputMessage={setInputMessage}
-                  handleSendMessage={handleSendMessage}
-                  isSubmitting={isSubmitting}
-                  isWaitingForResponse={isWaitingForResponse}
-                  agentName={chatDetails?.agent_info?.name || '智能助手'}
-                />
-              ) : (
-                <>
-                  {isLoadingMore && (
-                    <div className="flex justify-center items-center py-3">
-                      <div className="bg-bg-secondary rounded-full px-4 py-2 flex items-center shadow-sm">
-                        <ArrowPathIcon className="w-4 h-4 text-primary animate-spin mr-2" />
-                        <span className="text-xs text-text-secondary font-medium">加载更多历史消息...</span>
-                      </div>
-                    </div>
-                  )}
-                  {conversationMessages.map((message, index) => (
-                    <div key={index} className={`mb-4 flex ${message.message_type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                      {(message.message_type === 'agent' || message.message_type === 'status') && (
-                        <div className="mr-2">
-                          <AgentAvatar
-                            avatarData={chatDetails?.agent_info?.avatar}
-                            agentName={chatDetails?.agent_info?.name || '智能助手'}
-                            size="xs"
-                          />
+              <div className="max-w-3xl mx-auto w-full">
+                {isNewConversation ? (
+                  <NewChatInput
+                    inputMessage={inputMessage}
+                    setInputMessage={setInputMessage}
+                    handleSendMessage={handleSendMessage}
+                    isSubmitting={isSubmitting}
+                    isWaitingForResponse={isWaitingForResponse}
+                    agentName={chatDetails?.agent_info?.name || '智能助手'}
+                  />
+                ) : (
+                  <>
+                    {isLoadingMore && (
+                      <div className="flex justify-center items-center py-3">
+                        <div className="bg-bg-secondary rounded-full px-4 py-2 flex items-center shadow-sm">
+                          <ArrowPathIcon className="w-4 h-4 text-primary animate-spin mr-2" />
+                          <span className="text-xs text-text-secondary font-medium">加载更多历史消息...</span>
                         </div>
-                      )}
-                      <div className={`inline-block p-3 rounded-xl ${message.message_type === 'user'
-                        ? 'bg-primary text-white'
-                        : message.message_type === 'status'
-                          ? 'bg-bg-secondary text-text-secondary'
-                          : 'bg-bg-secondary text-text-primary'
-                        } max-w-[70%]`}
-                      >
-                        {message.message_type === 'user' ? (
-                          <p className="text-sm leading-relaxed font-sans-sc font-medium">
-                            {message.message}
-                          </p>
-                        ) : message.message_type === 'status' ? (
-                          <p className="text-xs leading-relaxed font-sans-sc font-medium italic flex items-center">
-                            <span className="mr-1">{message.message}</span>
-                            <span className="inline-flex">
-                              <span className="animate-ellipsis">.</span>
-                              <span className="animate-ellipsis" style={{ animationDelay: '0.2s' }}>.</span>
-                              <span className="animate-ellipsis" style={{ animationDelay: '0.4s' }}>.</span>
-                            </span>
-                          </p>
-                        ) : (
-                          <ReactMarkdown className="markdown-content">
-                            {message.message}
-                          </ReactMarkdown>
+                      </div>
+                    )}
+                    {conversationMessages.map((message, index) => (
+                      <div key={index} className={`mb-4 flex ${message.message_type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                        {(message.message_type === 'agent' || message.message_type === 'status') && (
+                          <div className="mr-2 flex-shrink-0">
+                            <AgentAvatar
+                              avatarData={chatDetails?.agent_info?.avatar}
+                              agentName={chatDetails?.agent_info?.name || '智能助手'}
+                              size="xs"
+                            />
+                          </div>
+                        )}
+                        <div className={`inline-block p-3 rounded-xl ${
+                          message.message_type === 'user'
+                            ? 'bg-primary text-white'
+                            : message.message_type === 'status'
+                              ? 'bg-bg-secondary text-text-secondary'
+                              : 'bg-bg-secondary text-text-primary'
+                          } max-w-[80%]`}
+                        >
+                          {message.message_type === 'user' ? (
+                            <p className="text-sm leading-relaxed font-sans-sc font-medium">
+                              {message.message}
+                            </p>
+                          ) : message.message_type === 'status' ? (
+                            <p className="text-xs leading-relaxed font-sans-sc font-medium italic flex items-center">
+                              <span className="mr-1">{message.message}</span>
+                              <span className="inline-flex">
+                                <span className="animate-ellipsis">.</span>
+                                <span className="animate-ellipsis" style={{ animationDelay: '0.2s' }}>.</span>
+                                <span className="animate-ellipsis" style={{ animationDelay: '0.4s' }}>.</span>
+                              </span>
+                            </p>
+                          ) : (
+                            <ReactMarkdown className="markdown-content">
+                              {message.message}
+                            </ReactMarkdown>
+                          )}
+                        </div>
+                        {message.message_type === 'user' && (
+                          <div className="w-8 h-8 ml-2 flex-shrink-0">
+                            <UserCircleIcon className="w-full h-full text-primary" />
+                          </div>
                         )}
                       </div>
-                      {message.message_type === 'user' && (
-                        <div className="w-8 h-8 ml-2">
-                          <UserCircleIcon className="w-full h-full text-primary" />
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </>
-              )}
+                    ))}
+                  </>
+                )}
+              </div>
             </div>
 
             {/* Chat input for existing conversations */}
             {!isNewConversation && (
-              <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-full max-w-3xl">
+              <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-full max-w-3xl px-6">
                 <ChatInput
                   inputMessage={inputMessage}
                   setInputMessage={setInputMessage}
