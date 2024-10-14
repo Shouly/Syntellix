@@ -12,27 +12,27 @@ function AgentInfo({ agentInfo, onKnowledgeBaseClick }) {
           agentName={agentInfo.name || '智能助手'}
           size="small"
         />
-        <h1 className="text-base font-semibold text-text-body font-sans-sc truncate ml-2">
+        <h1 className="text-lg font-semibold text-text-primary font-sans-sc truncate ml-2">
           {agentInfo.name || '智能助手'}
         </h1>
       </div>
       {agentInfo.description && (
-        <p className="text-xs text-text-muted mt-2 line-clamp-2 hover:line-clamp-none transition-all duration-300">
+        <p className="text-sm text-text-secondary mt-2 mb-4">
           {agentInfo.description}
         </p>
       )}
       {/* Knowledge bases */}
       {agentInfo.knowledge_bases?.length > 0 && (
-        <div className="mt-3">
-          <h4 className="text-xs font-semibold text-text-secondary mb-2">关联知识库:</h4>
-          <ul className="space-y-1">
+        <div className="mt-6">
+          <h4 className="text-sm font-semibold text-text-secondary mb-3">关联知识库:</h4>
+          <ul className="space-y-2">
             {agentInfo.knowledge_bases.map((kb) => (
               <li
                 key={kb.id}
-                className="flex items-center cursor-pointer text-xs text-text-muted hover:text-primary transition-colors duration-200"
+                className="flex items-center cursor-pointer text-sm text-text-primary hover:text-primary transition-colors duration-200 py-1"
                 onClick={() => onKnowledgeBaseClick(kb.id)}
               >
-                <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></span>
+                <span className="w-2 h-2 bg-primary rounded-full mr-2 flex-shrink-0"></span>
                 <span className="truncate">{kb.name}</span>
               </li>
             ))}

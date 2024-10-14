@@ -667,7 +667,7 @@ function Chat({ selectedAgentId }) {
       <SlidingPanel
         isOpen={isAgentInfoOpen}
         onClose={() => setIsAgentInfoOpen(false)}
-        title="智能助手信息"
+        title="智能体信息"
       >
         <AgentInfo
           agentInfo={chatDetails?.agent_info}
