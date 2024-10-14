@@ -34,16 +34,16 @@ export function ToastProvider({ children }) {
 
 function Toast({ message, type, onClose }) {
   const config = {
-    success: { icon: CheckCircleIcon, bgColor: 'bg-success-DEFAULT', textColor: 'text-white' },
-    error: { icon: ExclamationCircleIcon, bgColor: 'bg-danger-DEFAULT', textColor: 'text-white' },
-    info: { icon: InformationCircleIcon, bgColor: 'bg-info-DEFAULT', textColor: 'text-white' },
-    warning: { icon: ExclamationCircleIcon, bgColor: 'bg-warning-DEFAULT', textColor: 'text-white' },
-  }[type] || { icon: InformationCircleIcon, bgColor: 'bg-secondary-DEFAULT', textColor: 'text-text-primary' };
+    success: { icon: CheckCircleIcon, bgColor: 'bg-success-light', textColor: 'text-success-dark' },
+    error: { icon: ExclamationCircleIcon, bgColor: 'bg-danger-light', textColor: 'text-danger-dark' },
+    info: { icon: InformationCircleIcon, bgColor: 'bg-info-light', textColor: 'text-info-dark' },
+    warning: { icon: ExclamationCircleIcon, bgColor: 'bg-warning-light', textColor: 'text-warning-dark' },
+  }[type] || { icon: InformationCircleIcon, bgColor: 'bg-secondary-light', textColor: 'text-secondary-dark' };
 
   const Icon = config.icon;
 
   return (
-    <div className={`${config.bgColor} ${config.textColor} px-4 py-3 rounded-lg shadow-md flex items-center max-w-md backdrop-filter backdrop-blur-sm bg-opacity-90 transition-all duration-300 transform hover:scale-102`}>
+    <div className={`${config.bgColor} ${config.textColor} px-4 py-3 rounded-lg shadow-md flex items-center max-w-md backdrop-filter backdrop-blur-sm bg-opacity-90 transition-all duration-300 transform hover:scale-102 border border-opacity-20`}>
       <Icon className="h-5 w-5 mr-3" />
       <span className="flex-grow text-sm font-medium">{message}</span>
       <button onClick={onClose} className="ml-3 focus:outline-none hover:opacity-75 transition-opacity duration-200">
