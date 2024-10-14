@@ -4,14 +4,16 @@ import { ConversationListSkeleton } from './ChatSkeletons';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import DeleteConfirmationModal from '../DeleteConfirmationModal';
+import RenameModal from '../RenameModal';
 import axios from 'axios';
+import { useToast } from '../../components/Toast';
 
 function RecentConversations({
   agentId,
   currentConversationId,
   onConversationClick,
-  onRenameConversation,
-  onDeleteConversation,
+  onConversationUpdate,
+  onConversationDelete,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingId, setEditingId] = useState(null);
@@ -19,10 +21,12 @@ function RecentConversations({
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
   const [conversationHistory, setConversationHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
+  const { showToast } = useToast();
 
   const fetchConversationHistory = useCallback(async () => {
     if (!agentId) return;
@@ -67,7 +71,7 @@ function RecentConversations({
 
   const handleRename = (id) => {
     if (editingId === id) {
-      onRenameConversation(id, newName);
+      onConversationUpdate(id, newName);
       setEditingId(null);
     } else {
       setEditingId(id);
@@ -75,12 +79,47 @@ function RecentConversations({
     }
   };
 
-  const handleDelete = async () => {
+  const handleDeleteConversation = async (conversationId) => {
     setIsDeleting(true);
-    await onDeleteConversation(deletingId);
-    setIsDeleting(false);
-    setDeleteModalOpen(false);
-    setDeletingId(null);
+    try {
+      await axios.delete('/console/api/chat/conversations', {
+        data: { conversation_id: conversationId }
+      });
+      showToast('对话删除成功', 'success');
+      setConversationHistory(prevHistory => 
+        prevHistory.filter(conv => conv.id !== conversationId)
+      );
+      onConversationDelete(conversationId);
+    } catch (error) {
+      console.error('Failed to delete conversation:', error);
+      showToast('删除对话失败', 'error');
+    } finally {
+      setIsDeleting(false);
+      setDeleteModalOpen(false);
+    }
+  };
+
+  const handleRenameConversation = async (conversationId, newName) => {
+    setIsRenaming(true);
+    try {
+      const response = await axios.put('/console/api/chat/conversations', {
+        conversation_id: conversationId,
+        new_name: newName
+      });
+      showToast('对话已重命名', 'success');
+      setConversationHistory(prevHistory => 
+        prevHistory.map(conv => 
+          conv.id === conversationId ? { ...conv, name: response.data.name } : conv
+        )
+      );
+      onConversationUpdate(response.data);
+    } catch (error) {
+      console.error('Failed to rename conversation:', error);
+      showToast('重命名对话失败', 'error');
+    } finally {
+      setIsRenaming(false);
+      setEditingId(null);
+    }
   };
 
   return (
@@ -185,10 +224,18 @@ function RecentConversations({
       <DeleteConfirmationModal
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
-        onConfirm={handleDelete}
+        onConfirm={() => handleDeleteConversation(deletingId)}
         itemType="对话"
         itemName={deletingId ? conversationHistory.find(chat => chat.id === deletingId)?.name : ''}
         isLoading={isDeleting}
+      />
+      <RenameModal
+        isOpen={!!editingId}
+        onClose={() => setEditingId(null)}
+        onRename={(newName) => handleRenameConversation(editingId, newName)}
+        currentName={conversationHistory.find(chat => chat.id === editingId)?.name || ''}
+        itemType="对话"
+        isLoading={isRenaming}
       />
     </div>
   );

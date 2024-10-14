@@ -1,22 +1,19 @@
-import { ArrowPathIcon, ArrowUpIcon, BeakerIcon, ChatBubbleLeftRightIcon, ClockIcon, PlusIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon, ArrowUpIcon, BeakerIcon, ClockIcon, PlusIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import axios from 'axios';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../components/Toast';
 import { API_BASE_URL } from '../../config';
 import AgentAvatar from '../AgentAvatar';
-import DeleteConfirmationModal from '../DeleteConfirmationModal';
-import RenameModal from '../RenameModal';
-import SlidingPanel from './ChatSlidingPanel';
+import { useUser } from '../contexts/UserContext';
 import AgentInfo from './ChatAgentInfo';
 import RecentConversations from './ChatRecentConversations';
 import { AgentInfoSkeleton, ChatAreaSkeleton, ConversationListSkeleton } from './ChatSkeletons';
+import SlidingPanel from './ChatSlidingPanel';
 import KnowledgeBaseDetail from './KnowledgeBaseDetail';
 import NewChatPrompt from './NewChatPrompt';
-import { useUser } from '../contexts/UserContext';
 
 function Chat({ selectedAgentId }) {
   const [chatDetails, setChatDetails] = useState(null);
@@ -25,22 +22,14 @@ function Chat({ selectedAgentId }) {
   const [inputMessage, setInputMessage] = useState('');
   const [currentConversationId, setCurrentConversationId] = useState(null);
   const [conversationMessages, setConversationMessages] = useState([]);
-  const [conversationName, setConversationName] = useState('');
   const [isNewConversation, setIsNewConversation] = useState(true);
   const chatContainerRef = useRef(null);
   const { showToast } = useToast();
-  const navigate = useNavigate();
   const [selectedKnowledgeBaseId, setSelectedKnowledgeBaseId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isMessagesLoaded, setIsMessagesLoaded] = useState(false);
-  const [isAgentInfoLoading, setIsAgentInfoLoading] = useState(true);
-  const [isConversationListLoading, setIsConversationListLoading] = useState(true);
   const [isChatMessagesLoading, setIsChatMessagesLoading] = useState(true);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isRenaming, setIsRenaming] = useState(false);
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   const abortControllerRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,7 +41,6 @@ function Chat({ selectedAgentId }) {
   const [isRecentConversationsOpen, setIsRecentConversationsOpen] = useState(false);
 
   const fetchChatDetails = useCallback(async (agentId = null) => {
-    setIsAgentInfoLoading(true);
     setError(null);
     try {
       const url = agentId
@@ -63,7 +51,6 @@ function Chat({ selectedAgentId }) {
       if (response.data.latest_conversation_id) {
         setCurrentConversationId(response.data.latest_conversation_id);
       }
-      setIsAgentInfoLoading(false);
     } catch (error) {
       console.error('Failed to fetch chat details:', error);
       setError('对话内容获取失败');
@@ -96,7 +83,6 @@ function Chat({ selectedAgentId }) {
       });
       if (page === 1) {
         setConversationMessages(response.data.messages);
-        setConversationName(response.data.conversation.name);
         setIsNewConversation(response.data.messages.length === 0);
       } else {
         setConversationMessages(prevMessages => [...response.data.messages, ...prevMessages]);
@@ -322,7 +308,6 @@ function Chat({ selectedAgentId }) {
       return;
     }
 
-    setIsConversationListLoading(true);
     try {
       const response = await axios.post('/console/api/chat/conversations', {
         agent_id: chatDetails.agent_info.id,
@@ -344,79 +329,8 @@ function Chat({ selectedAgentId }) {
     } catch (error) {
       console.error('Failed to create new conversation:', error);
       showToast('新会话创建失败', 'error');
-    } finally {
-      setIsConversationListLoading(false);
     }
   }, [chatDetails, showToast]);
-
-  const handleDeleteConversation = async (conversationId) => {
-    try {
-      await axios.delete('/console/api/chat/conversations', {
-        data: { conversation_id: conversationId }
-      });
-      showToast('对话删除成功', 'success');
-      // If the deleted conversation was the current one, reset the current conversation
-      if (currentConversationId === conversationId) {
-        setCurrentConversationId(null);
-        setConversationMessages([]);
-        setIsMessagesLoaded(false);
-        setConversationName('');
-      }
-      // If this was the last conversation, fetch the latest agent
-      fetchChatDetails();
-    } catch (error) {
-      console.error('Failed to delete conversation:', error);
-      showToast('删除对话失败', 'error');
-    }
-  };
-
-  const handleRenameConversation = async (conversationId, newName) => {
-    try {
-      const response = await axios.put('/console/api/chat/conversations', {
-        conversation_id: conversationId,
-        new_name: newName
-      });
-      showToast('对话已重命名', 'success');
-      // If the renamed conversation is the current one, update the conversation name
-      if (currentConversationId === conversationId) {
-        setConversationName(response.data.name);
-      }
-      // Update the chatDetails to reflect the change
-      setChatDetails(prevDetails => ({
-        ...prevDetails,
-        latest_conversation: prevDetails.latest_conversation && prevDetails.latest_conversation.id === conversationId
-          ? { ...prevDetails.latest_conversation, name: response.data.name }
-          : prevDetails.latest_conversation
-      }));
-    } catch (error) {
-      console.error('Failed to rename conversation:', error);
-      showToast('重命名对话失败', 'error');
-    }
-  };
-
-  const handleDeleteCurrentConversation = useCallback(async () => {
-    if (currentConversationId) {
-      setIsDeleting(true);
-      try {
-        await handleDeleteConversation(currentConversationId);
-      } finally {
-        setIsDeleting(false);
-        setIsDeleteModalOpen(false);
-      }
-    }
-  }, [currentConversationId, handleDeleteConversation]);
-
-  const handleRenameCurrentConversation = useCallback(async (newName) => {
-    if (currentConversationId) {
-      setIsRenaming(true);
-      try {
-        await handleRenameConversation(currentConversationId, newName);
-      } finally {
-        setIsRenaming(false);
-        setIsRenameModalOpen(false);
-      }
-    }
-  }, [currentConversationId, handleRenameConversation]);
 
   const handleConversationClick = useCallback(async (chatId) => {
     setCurrentConversationId(chatId);
@@ -426,7 +340,6 @@ function Chat({ selectedAgentId }) {
         params: { page: 1, per_page: 5 }
       });
       setConversationMessages(response.data.messages);
-      setConversationName(response.data.conversation.name);
       setIsNewConversation(response.data.messages.length === 0);
       setIsMessagesLoaded(true);
     } catch (error) {
@@ -437,6 +350,26 @@ function Chat({ selectedAgentId }) {
       setIsRecentConversationsOpen(false);
     }
   }, [showToast]);
+
+  const handleConversationUpdate = useCallback((updatedConversation) => {
+    if (currentConversationId === updatedConversation.id) {
+    }
+    setChatDetails(prevDetails => ({
+      ...prevDetails,
+      latest_conversation: prevDetails.latest_conversation && prevDetails.latest_conversation.id === updatedConversation.id
+        ? updatedConversation
+        : prevDetails.latest_conversation
+    }));
+  }, [currentConversationId]);
+
+  const handleConversationDelete = useCallback((deletedConversationId) => {
+    if (currentConversationId === deletedConversationId) {
+      setCurrentConversationId(null);
+      setConversationMessages([]);
+      setIsMessagesLoaded(false);
+    }
+    fetchChatDetails();
+  }, [currentConversationId, fetchChatDetails]);
 
   if (selectedKnowledgeBaseId) {
     return (
@@ -630,28 +563,10 @@ function Chat({ selectedAgentId }) {
           agentId={chatDetails?.agent_info?.id}
           currentConversationId={currentConversationId}
           onConversationClick={handleConversationClick}
-          onRenameConversation={handleRenameConversation}
-          onDeleteConversation={handleDeleteConversation}
+          onConversationUpdate={handleConversationUpdate}
+          onConversationDelete={handleConversationDelete}
         />
       </SlidingPanel>
-
-      <DeleteConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={handleDeleteCurrentConversation}
-        itemType="对话"
-        itemName={conversationName || '当前对话'}
-        isLoading={isDeleting}
-      />
-
-      <RenameModal
-        isOpen={isRenameModalOpen}
-        onClose={() => setIsRenameModalOpen(false)}
-        onRename={handleRenameCurrentConversation}
-        currentName={conversationName || ''}
-        itemType="对话"
-        isLoading={isRenaming}
-      />
     </div>
   );
 }
@@ -672,7 +587,7 @@ function NewChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubm
       <h2 className="text-4xl font-bold mb-8 text-center text-primary">
         {`${getGreeting()}，${userProfile?.name || '用户'}！`}
       </h2>
-      
+
       <div className="relative">
         <textarea
           value={inputMessage}
@@ -689,11 +604,10 @@ function NewChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubm
         />
         <button
           onClick={handleSendMessage}
-          className={`absolute right-3 bottom-3 p-2 rounded-full ${
-            isSubmitting || isWaitingForResponse || !inputMessage.trim()
-              ? 'bg-bg-tertiary text-text-muted cursor-not-allowed'
-              : 'bg-primary text-white hover:bg-primary-dark'
-          } transition-colors duration-200 flex items-center justify-center`}
+          className={`absolute right-3 bottom-3 p-2 rounded-full ${isSubmitting || isWaitingForResponse || !inputMessage.trim()
+            ? 'bg-bg-tertiary text-text-muted cursor-not-allowed'
+            : 'bg-primary text-white hover:bg-primary-dark'
+            } transition-colors duration-200 flex items-center justify-center`}
           disabled={isSubmitting || isWaitingForResponse || !inputMessage.trim()}
         >
           <ArrowUpIcon className="w-5 h-5" />
@@ -741,11 +655,10 @@ function ChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubmitt
         />
         <button
           onClick={handleSendMessage}
-          className={`absolute right-4 top-1/2 transform -translate-y-1/2 ${
-            isSubmitting || isWaitingForResponse || !inputMessage.trim()
-              ? 'text-text-muted cursor-not-allowed'
-              : 'text-primary hover:text-primary-dark'
-          } transition-colors duration-200`}
+          className={`absolute right-4 top-1/2 transform -translate-y-1/2 ${isSubmitting || isWaitingForResponse || !inputMessage.trim()
+            ? 'text-text-muted cursor-not-allowed'
+            : 'text-primary hover:text-primary-dark'
+            } transition-colors duration-200`}
           disabled={isSubmitting || isWaitingForResponse || !inputMessage.trim()}
         >
           <ArrowUpIcon className="w-5 h-5" />
