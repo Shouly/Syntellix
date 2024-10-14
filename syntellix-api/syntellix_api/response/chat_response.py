@@ -10,6 +10,13 @@ conversation_fields = {
     "updated_at": fields.DateTime,
 }
 
+simple_conversation_fields = {
+    'id': fields.Integer,
+    'name': fields.String,
+    'created_at': fields.DateTime(dt_format='iso8601'),
+    'updated_at': fields.DateTime(dt_format='iso8601'),
+}
+
 conversation_message_fields = {
     "id": fields.Integer,
     "conversation_id": fields.Integer,
@@ -49,4 +56,5 @@ agent_chat_details_fields = {
     "agent_id": fields.Integer,
     "latest_conversation_id": fields.Integer,
     "agent_info": fields.Nested(agent_base_info_fields),
+    "latest_conversation": fields.Nested(simple_conversation_fields),
 }

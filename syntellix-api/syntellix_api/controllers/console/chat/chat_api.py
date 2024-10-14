@@ -178,6 +178,7 @@ class ChatAgentConversationApi(Resource):
                     "agent_id": None,
                     "latest_conversation_id": None,
                     "agent_info": None,
+                    "latest_conversation": None,  # 添加这行
                 }, 200
 
         agent = AgentService.get_agent_base_info_by_id(
@@ -191,7 +192,6 @@ class ChatAgentConversationApi(Resource):
         )
 
         if latest_conversation is None:
-
             latest_conversation = ChatService.create_conversation(
                 user_id=current_user.id,
                 agent_id=agent_id,
@@ -203,6 +203,12 @@ class ChatAgentConversationApi(Resource):
             "agent_id": agent_id,
             "latest_conversation_id": latest_conversation.id,
             "agent_info": agent,
+            "latest_conversation": {  # 添加这个字典
+                "id": latest_conversation.id,
+                "name": latest_conversation.name,
+                "created_at": latest_conversation.created_at,
+                "updated_at": latest_conversation.updated_at,
+            },
         }, 200
 
 
