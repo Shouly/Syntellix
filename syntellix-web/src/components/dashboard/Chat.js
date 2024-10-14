@@ -348,6 +348,8 @@ function Chat({ selectedAgentId }) {
   const handleConversationClick = useCallback(async (chatId) => {
     setCurrentConversationId(chatId);
     setIsChangingConversation(true);
+    setCurrentPage(1); // Reset to first page
+    setHasMore(true); // Reset hasMore
     try {
       const response = await axios.get(`/console/api/chat/conversation/${chatId}/messages`, {
         params: { page: 1, per_page: 4 }
@@ -355,12 +357,15 @@ function Chat({ selectedAgentId }) {
       setConversationMessages(response.data.messages);
       setIsNewConversation(response.data.messages.length === 0);
       setIsMessagesLoaded(true);
+      setHasMore(response.data.has_more);
       // Update lastMessageId
       if (response.data.messages.length > 0) {
         setLastMessageId(response.data.messages[response.data.messages.length - 1].id);
       } else {
         setLastMessageId(null);
       }
+      // Set flag to scroll to bottom after render
+      setShouldScrollToBottom(true);
     } catch (error) {
       console.error('Failed to fetch conversation messages:', error);
       showToast('消息获取失败', 'error');
@@ -389,6 +394,15 @@ function Chat({ selectedAgentId }) {
     }
     fetchChatDetails();
   }, [currentConversationId, fetchChatDetails]);
+
+  // Make sure to include this useEffect
+  useEffect(() => {
+    const chatContainer = chatContainerRef.current;
+    if (chatContainer) {
+      chatContainer.addEventListener('scroll', handleScroll);
+      return () => chatContainer.removeEventListener('scroll', handleScroll);
+    }
+  }, [handleScroll]);
 
   if (selectedKnowledgeBaseId) {
     return (
