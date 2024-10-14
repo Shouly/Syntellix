@@ -52,6 +52,7 @@ function Chat({ selectedAgentId }) {
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
   const [isAgentInfoOpen, setIsAgentInfoOpen] = useState(false);
   const [isRecentConversationsOpen, setIsRecentConversationsOpen] = useState(false);
+  const [isNewConversation, setIsNewConversation] = useState(true);
 
   const fetchChatDetails = useCallback(async (agentId = null) => {
     setIsAgentInfoLoading(true);
@@ -99,6 +100,7 @@ function Chat({ selectedAgentId }) {
       if (page === 1) {
         setConversationMessages(response.data.messages);
         setConversationName(response.data.conversation.name);
+        setIsNewConversation(response.data.messages.length === 0);
       } else {
         setConversationMessages(prevMessages => [...response.data.messages, ...prevMessages]);
       }
@@ -174,6 +176,7 @@ function Chat({ selectedAgentId }) {
 
   const handleSendMessage = async () => {
     if (inputMessage.trim() !== '' && !isSubmitting) {
+      setIsNewConversation(false);  // Set this to false after sending the first message
       try {
         setIsSubmitting(true);
         setConversationMessages(prevMessages => {
@@ -359,6 +362,7 @@ function Chat({ selectedAgentId }) {
       setConversationMessages([]);
       setIsMessagesLoaded(false);
       setCurrentConversationId(newConversation.id);
+      setIsNewConversation(true);  // Set this to true for new conversations
 
       // Update only the conversation history
       await fetchConversationHistory(chatDetails.agent_info.id);
@@ -457,8 +461,6 @@ function Chat({ selectedAgentId }) {
     }
   }, [currentConversationId, handleRenameConversation]);
 
-  const isNewChat = conversationMessages.length === 0;
-
   if (selectedKnowledgeBaseId) {
     return (
       <KnowledgeBaseDetail
@@ -515,11 +517,11 @@ function Chat({ selectedAgentId }) {
         ) : (
           <>
             <div
-              className={`flex-1 overflow-y-auto py-4 bg-bg-primary ${isNewChat ? 'flex items-center justify-center' : 'pb-24'}`}
+              className={`flex-1 overflow-y-auto py-4 bg-bg-primary ${isNewConversation ? 'flex items-center justify-center' : 'pb-24'}`}
               ref={chatContainerRef}
               onScroll={handleScroll}
             >
-              {isNewChat ? (
+              {isNewConversation ? (
                 <NewChatInput
                   inputMessage={inputMessage}
                   setInputMessage={setInputMessage}
@@ -587,7 +589,7 @@ function Chat({ selectedAgentId }) {
             </div>
 
             {/* Chat input for existing conversations */}
-            {!isNewChat && (
+            {!isNewConversation && (
               <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-full max-w-3xl">
                 <ChatInput
                   inputMessage={inputMessage}
