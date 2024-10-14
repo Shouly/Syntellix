@@ -95,7 +95,6 @@ function Chat({ selectedAgentId }) {
         }
       } else {
         setConversationMessages(prevMessages => [...response.data.messages, ...prevMessages]);
-        // Do not update lastMessageId for pages other than the first one
       }
       setHasMore(response.data.has_more);
       setCurrentPage(page);
@@ -328,13 +327,11 @@ function Chat({ selectedAgentId }) {
       setIsNewConversation(true);
       setLastMessageId(null);
 
-      // Update chat details
       setChatDetails(prevDetails => ({
         ...prevDetails,
         latest_conversation: newConversation
       }));
 
-      // Add the new conversation to the recent conversations list
       setRecentConversations(prevConversations => [newConversation, ...prevConversations]);
 
       showToast('新会话创建成功', 'success');
@@ -349,8 +346,8 @@ function Chat({ selectedAgentId }) {
   const handleConversationClick = useCallback(async (chatId) => {
     setCurrentConversationId(chatId);
     setIsChangingConversation(true);
-    setCurrentPage(1); // Reset to first page
-    setHasMore(true); // Reset hasMore
+    setCurrentPage(1);
+    setHasMore(true);
     try {
       const response = await axios.get(`/console/api/chat/conversation/${chatId}/messages`, {
         params: { page: 1, per_page: 4 }
@@ -365,7 +362,6 @@ function Chat({ selectedAgentId }) {
       } else {
         setLastMessageId(null);
       }
-      // Set flag to scroll to bottom after render
       setShouldScrollToBottom(true);
     } catch (error) {
       console.error('Failed to fetch conversation messages:', error);
@@ -611,7 +607,7 @@ function Chat({ selectedAgentId }) {
   );
 }
 
-// New component for the redesigned input in new chat state
+// NewChatInput component for the input in new chat state
 function NewChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubmitting, isWaitingForResponse, agentName }) {
   const { userProfile } = useUser();
 
@@ -657,7 +653,7 @@ function NewChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubm
   );
 }
 
-// New ChatInput component
+// ChatInput component
 function ChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubmitting, isWaitingForResponse, handleNewChat, isCreatingNewChat }) {
   return (
     <div className="relative">
