@@ -1,5 +1,7 @@
 import { ArrowPathIcon, ArrowUpIcon, BeakerIcon, ClockIcon, PlusIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
+import { BeakerIcon as BeakerIconOutline, ClockIcon as ClockIconOutline } from '@heroicons/react/24/outline';
+import { BeakerIcon as BeakerIconSolid, ClockIcon as ClockIconSolid } from '@heroicons/react/24/solid';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import axios from 'axios';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -543,7 +545,14 @@ function Chat({ selectedAgentId }) {
             onClick={() => setIsAgentInfoOpen(true)}
           >
             <div className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-bg-secondary transition-colors duration-200">
-              <BeakerIcon className={`w-6 h-6 ${isAgentInfoOpen ? 'text-primary' : 'text-text-secondary'} group-hover:text-primary transition-colors duration-200`} />
+              {isAgentInfoOpen ? (
+                <BeakerIconSolid className="w-6 h-6 text-primary" />
+              ) : (
+                <>
+                  <BeakerIconOutline className="w-6 h-6 text-text-secondary group-hover:opacity-0 transition-opacity duration-200" />
+                  <BeakerIconSolid className="w-6 h-6 text-primary absolute opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -555,7 +564,14 @@ function Chat({ selectedAgentId }) {
             onClick={() => setIsRecentConversationsOpen(true)}
           >
             <div className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-bg-secondary transition-colors duration-200">
-              <ClockIcon className={`w-6 h-6 ${isRecentConversationsOpen ? 'text-primary' : 'text-text-secondary'} group-hover:text-primary transition-colors duration-200`} />
+              {isRecentConversationsOpen ? (
+                <ClockIconSolid className="w-6 h-6 text-primary" />
+              ) : (
+                <>
+                  <ClockIconOutline className="w-6 h-6 text-text-secondary group-hover:opacity-0 transition-opacity duration-200" />
+                  <ClockIconSolid className="w-6 h-6 text-primary absolute opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                </>
+              )}
             </div>
           </div>
         </div>
