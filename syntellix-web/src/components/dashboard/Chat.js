@@ -336,7 +336,6 @@ function Chat({ selectedAgentId }) {
 
       setRecentConversations(prevConversations => [newConversation, ...prevConversations]);
 
-      showToast('新会话创建成功', 'success');
     } catch (error) {
       console.error('Failed to create new conversation:', error);
       showToast('新会话创建失败', 'error');
@@ -527,8 +526,6 @@ function Chat({ selectedAgentId }) {
                   handleSendMessage={handleSendMessage}
                   isSubmitting={isSubmitting}
                   isWaitingForResponse={isWaitingForResponse}
-                  handleNewChat={handleNewChat}
-                  isCreatingNewChat={isCreatingNewChat}
                 />
               </div>
             )}
@@ -538,6 +535,25 @@ function Chat({ selectedAgentId }) {
 
       {/* Right sidebar */}
       <div className="w-16 flex flex-col bg-bg-primary overflow-hidden transition-all duration-300 ease-in-out">
+        {/* New chat button */}
+        <div className="flex-shrink-0 p-2">
+          <div
+            className="flex items-center justify-center cursor-pointer group"
+            onClick={handleNewChat}
+          >
+            <div className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-bg-secondary transition-colors duration-200">
+              {isCreatingNewChat ? (
+                <ArrowPathIcon className="w-6 h-6 text-primary animate-spin" />
+              ) : (
+                <PlusIcon className="w-6 h-6 text-text-secondary group-hover:text-primary transition-colors duration-200" />
+              )}
+            </div>
+          </div>
+          <div className="absolute right-full mr-2 px-2 py-1 bg-bg-secondary text-text-primary text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+            {isCreatingNewChat ? '创建中...' : '未命名会话'}
+          </div>
+        </div>
+
         {/* Agent info icon */}
         <div className="flex-shrink-0 p-2">
           <div
@@ -655,7 +671,7 @@ function NewChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubm
 }
 
 // ChatInput component
-function ChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubmitting, isWaitingForResponse, handleNewChat, isCreatingNewChat }) {
+function ChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubmitting, isWaitingForResponse }) {
   return (
     <div className="relative">
       {/* Edge background */}
@@ -663,25 +679,6 @@ function ChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubmitt
 
       {/* Input container */}
       <div className="relative flex items-center">
-        {/* New chat button */}
-        <div className="absolute left-4 group">
-          <button
-            onClick={handleNewChat}
-            disabled={isCreatingNewChat}
-            className={`w-8 h-8 flex items-center justify-center bg-bg-secondary rounded-full text-primary hover:bg-primary hover:text-white transition-colors duration-200 ${isCreatingNewChat ? 'cursor-not-allowed opacity-50' : ''
-              }`}
-          >
-            {isCreatingNewChat ? (
-              <ArrowPathIcon className="w-5 h-5 animate-spin" />
-            ) : (
-              <PlusIcon className="w-5 h-5" />
-            )}
-          </button>
-          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-bg-secondary text-text-primary text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-            {isCreatingNewChat ? '创建中...' : '新会话'}
-          </div>
-        </div>
-
         <input
           type="text"
           value={inputMessage}
@@ -693,15 +690,16 @@ function ChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubmitt
             }
           }}
           placeholder="请输入问题，Enter发送"
-          className="w-full py-4 px-6 pl-16 pr-14 bg-bg-primary rounded-full border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 shadow-md text-sm"
+          className="w-full py-4 px-6 pr-14 bg-bg-primary rounded-full border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 shadow-md text-sm"
           disabled={isSubmitting || isWaitingForResponse}
         />
         <button
           onClick={handleSendMessage}
-          className={`absolute right-4 top-1/2 transform -translate-y-1/2 ${isSubmitting || isWaitingForResponse || !inputMessage.trim()
-            ? 'text-text-muted cursor-not-allowed'
-            : 'text-primary hover:text-primary-dark'
-            } transition-colors duration-200`}
+          className={`absolute right-4 top-1/2 transform -translate-y-1/2 ${
+            isSubmitting || isWaitingForResponse || !inputMessage.trim()
+              ? 'text-text-muted cursor-not-allowed'
+              : 'text-primary hover:text-primary-dark'
+          } transition-colors duration-200`}
           disabled={isSubmitting || isWaitingForResponse || !inputMessage.trim()}
         >
           <ArrowUpIcon className="w-5 h-5" />

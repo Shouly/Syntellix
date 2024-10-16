@@ -30,7 +30,7 @@ class ChatConversationApi(Resource):
 
         name = args["name"]
         if name is None:
-            name = f"新会话"
+            name = f"未命名会话"
 
         agent = AgentService.get_agent_by_id(
             args["agent_id"], current_user.current_tenant_id
@@ -195,7 +195,7 @@ class ChatAgentConversationApi(Resource):
             latest_conversation = ChatService.create_conversation(
                 user_id=current_user.id,
                 agent_id=agent_id,
-                name=f"新会话",
+                name=f"未命名会话",
             )
 
         return {
