@@ -444,7 +444,7 @@ function Chat({ selectedAgentId }) {
         ) : (
           <>
             <div
-              className={`flex-1 overflow-y-auto py-4 bg-bg-primary ${isNewConversation ? 'flex items-center justify-center' : 'pb-24'}`}
+              className={`flex-1 overflow-y-auto py-4 bg-bg-primary ${isNewConversation ? 'flex items-center justify-center' : 'pb-24'} chat-container`}
               ref={chatContainerRef}
               onScroll={handleScroll}
             >
