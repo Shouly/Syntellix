@@ -692,11 +692,11 @@ function ChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubmitt
         />
         <button
           onClick={handleSendMessage}
-          className={`absolute right-4 top-1/2 transform -translate-y-1/2 ${
+          className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-2 rounded-full ${
             isSubmitting || isWaitingForResponse || !inputMessage.trim()
-              ? 'text-text-muted cursor-not-allowed'
-              : 'text-primary hover:text-primary-dark'
-          } transition-colors duration-200`}
+              ? 'bg-bg-tertiary text-text-muted cursor-not-allowed'
+              : 'bg-primary text-white hover:bg-primary-dark'
+          } transition-colors duration-200 flex items-center justify-center`}
           disabled={isSubmitting || isWaitingForResponse || !inputMessage.trim()}
         >
           <ArrowUpIcon className="w-5 h-5" />
