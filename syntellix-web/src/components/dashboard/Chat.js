@@ -549,9 +549,6 @@ function Chat({ selectedAgentId }) {
               )}
             </div>
           </div>
-          <div className="absolute right-full mr-2 px-2 py-1 bg-bg-secondary text-text-primary text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-            {isCreatingNewChat ? '创建中...' : '未命名会话'}
-          </div>
         </div>
 
         {/* Agent info icon */}
