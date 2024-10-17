@@ -260,7 +260,7 @@ function Dashboard({ setIsAuthenticated }) {
         </div>
 
         {/* Menu Items - Vertically centered */}
-        <div className="flex-1 flex flex-col items-center justify-center space-y-4">
+        <div className="flex-1 flex flex-col items-center justify-center space-y-5">
           {menuItems.map((item) => (
             <React.Fragment key={item.name}>
               <button

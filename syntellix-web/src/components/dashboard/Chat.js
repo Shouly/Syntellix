@@ -16,7 +16,6 @@ import { ChatAreaSkeleton, MainChatSkeleton } from './ChatSkeletons';
 import SlidingPanel from './ChatSlidingPanel';
 import KnowledgeBaseDetail from './KnowledgeBaseDetail';
 import NewChatPrompt from './NewChatPrompt';
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
 function Chat({ selectedAgentId }) {
   const [chatDetails, setChatDetails] = useState(null);
@@ -45,7 +44,6 @@ function Chat({ selectedAgentId }) {
   const [recentConversations, setRecentConversations] = useState([]);
   const [isCreatingNewChat, setIsCreatingNewChat] = useState(false);
   const [lastMessageId, setLastMessageId] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchChatDetails = useCallback(async (agentId = null) => {
     setError(null);
@@ -439,10 +437,9 @@ function Chat({ selectedAgentId }) {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Updated Header */}
-      <header className="flex items-center justify-between py-2 px-6 border-b border-bg-tertiary bg-bg-primary">
-        <h2 className="text-lg font-bold text-primary font-noto-sans-sc">对话</h2>
-        <div className="flex items-center space-x-4">
+      {/* Updated Header without border and "对话" text */}
+      <header className="flex items-center justify-end py-2 px-3 bg-bg-primary">
+        <div className="flex items-center space-x-3">
           {/* New chat button */}
           <button
             onClick={handleNewChat}
@@ -459,27 +456,19 @@ function Chat({ selectedAgentId }) {
           {/* Agent info button */}
           <button
             onClick={() => setIsAgentInfoOpen(true)}
-            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-bg-secondary transition-colors duration-200"
+            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-bg-secondary transition-colors duration-200 group"
             title="智能体信息"
           >
-            {isAgentInfoOpen ? (
-              <BeakerIconSolid className="w-5 h-5 text-primary" />
-            ) : (
-              <BeakerIconOutline className="w-5 h-5 text-text-secondary hover:text-primary transition-colors duration-200" />
-            )}
+            <BeakerIconOutline className="w-5 h-5 text-text-secondary group-hover:text-primary transition-colors duration-200" />
           </button>
 
           {/* Recent conversations button */}
           <button
             onClick={() => setIsRecentConversationsOpen(true)}
-            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-bg-secondary transition-colors duration-200"
+            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-bg-secondary transition-colors duration-200 group"
             title="最近会话"
           >
-            {isRecentConversationsOpen ? (
-              <ClockIconSolid className="w-5 h-5 text-primary" />
-            ) : (
-              <ClockIconOutline className="w-5 h-5 text-text-secondary hover:text-primary transition-colors duration-200" />
-            )}
+            <ClockIconOutline className="w-5 h-5 text-text-secondary group-hover:text-primary transition-colors duration-200" />
           </button>
         </div>
       </header>
