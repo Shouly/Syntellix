@@ -207,18 +207,18 @@ function Dashboard({ setIsAuthenticated }) {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setShowMenu(!showMenu)}
-        className="w-8 h-8 rounded-full bg-bg-tertiary flex items-center justify-center overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary"
+        className="w-12 h-12 rounded-full bg-bg-tertiary flex items-center justify-center overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200 hover:bg-bg-primary hover:shadow-md"
       >
         {userProfile?.name ? (
-          <span className="text-xs font-semibold text-primary">
+          <span className="text-sm font-semibold text-primary">
             {userProfile.name.charAt(0).toUpperCase()}
           </span>
         ) : (
-          <UserCircleIcon className="w-5 h-5 text-primary" />
+          <UserCircleIcon className="w-6 h-6 text-primary" />
         )}
       </button>
       {showMenu && (
-        <div className="absolute right-0 mt-2 w-48 bg-bg-primary rounded-lg shadow-lg overflow-hidden z-20 border border-bg-tertiary">
+        <div className="absolute left-full ml-2 bottom-0 w-48 bg-bg-primary rounded-lg shadow-lg overflow-hidden z-20 border border-bg-tertiary">
           <button
             onClick={handleAccountSettings}
             className="w-full text-left py-2 px-4 text-sm text-text-body hover:bg-bg-secondary transition-colors duration-200 flex items-center"
@@ -263,7 +263,7 @@ function Dashboard({ setIsAuthenticated }) {
 
         {/* Menu Items - Vertically centered */}
         <div className="flex-1 flex flex-col items-center justify-center space-y-4">
-          {menuItems.map((item, index) => (
+          {menuItems.map((item) => (
             <React.Fragment key={item.name}>
               <button
                 className={`flex flex-col items-center justify-center w-12 h-12 rounded-lg text-[11px] font-medium transition-all duration-200 relative
@@ -290,15 +290,20 @@ function Dashboard({ setIsAuthenticated }) {
           ))}
         </div>
 
-        {/* Bottom placeholder to match the size of the logo */}
-        <div className="w-12 h-12"></div>
+        {/* User Menu - Moved to bottom */}
+        <UserMenu
+          userProfile={userProfile}
+          isLoadingProfile={isLoadingProfile}
+          handleAccountSettings={handleAccountSettings}
+          handleLogout={handleLogout}
+          isLoggingOut={isLoggingOut}
+        />
       </nav>
 
       <div className="flex-1 overflow-hidden p-1 bg-bg-secondary">
         <main className="h-full flex flex-col bg-bg-primary rounded-lg shadow-md border border-[#e0e0e0]">
           {/* Search bar */}
-          <div className="p-2 border-b border-bg-tertiary flex items-center justify-between">
-            <div className="w-16"></div> {/* Spacer */}
+          <div className="p-2 border-b border-bg-tertiary flex items-center justify-center">
             <div className="relative w-1/2 max-w-md">
               <input
                 type="text"
@@ -309,13 +314,6 @@ function Dashboard({ setIsAuthenticated }) {
               />
               <MagnifyingGlassIcon className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-muted" />
             </div>
-            <UserMenu
-              userProfile={userProfile}
-              isLoadingProfile={isLoadingProfile}
-              handleAccountSettings={handleAccountSettings}
-              handleLogout={handleLogout}
-              isLoggingOut={isLoggingOut}
-            />
           </div>
 
           {/* Content */}
