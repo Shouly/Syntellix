@@ -1,9 +1,9 @@
-import { ArrowPathIcon, ArrowUpIcon, BeakerIcon, ClockIcon, PlusIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon, ArrowUpIcon, BeakerIcon as BeakerIconOutline, ClockIcon, ClockIcon as ClockIconOutline, PlusIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
-import { BeakerIcon as BeakerIconOutline, ClockIcon as ClockIconOutline } from '@heroicons/react/24/outline';
-import { BeakerIcon as BeakerIconSolid, ClockIcon as ClockIconSolid } from '@heroicons/react/24/solid';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import axios from 'axios';
+import { format, formatDistanceToNow } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useToast } from '../../components/Toast';
@@ -44,6 +44,8 @@ function Chat({ selectedAgentId }) {
   const [recentConversations, setRecentConversations] = useState([]);
   const [isCreatingNewChat, setIsCreatingNewChat] = useState(false);
   const [lastMessageId, setLastMessageId] = useState(null);
+  const [conversationName, setConversationName] = useState('');
+  const [conversationTime, setConversationTime] = useState('');
 
   const fetchChatDetails = useCallback(async (agentId = null) => {
     setError(null);
@@ -89,6 +91,9 @@ function Chat({ selectedAgentId }) {
       if (page === 1) {
         setConversationMessages(response.data.messages);
         setIsNewConversation(response.data.messages.length === 0);
+        // Update conversation name and time
+        setConversationName(response.data.conversation.name);
+        setConversationTime(format(new Date(response.data.conversation.created_at), 'yyyy-MM-dd HH:mm'));
         // Update lastMessageId if there are messages
         if (response.data.messages.length > 0) {
           setLastMessageId(response.data.messages[response.data.messages.length - 1].id);
@@ -357,12 +362,15 @@ function Chat({ selectedAgentId }) {
       setIsNewConversation(response.data.messages.length === 0);
       setIsMessagesLoaded(true);
       setHasMore(response.data.has_more);
-      // Update lastMessageId
+      // 更新 lastMessageId
       if (response.data.messages.length > 0) {
         setLastMessageId(response.data.messages[response.data.messages.length - 1].id);
       } else {
         setLastMessageId(null);
       }
+      // 更新会话名称和时间
+      setConversationName(response.data.conversation.name);
+      setConversationTime(format(new Date(response.data.conversation.created_at), 'yyyy-MM-dd HH:mm'));
       setShouldScrollToBottom(true);
     } catch (error) {
       console.error('Failed to fetch conversation messages:', error);
@@ -402,6 +410,16 @@ function Chat({ selectedAgentId }) {
     }
   }, [handleScroll]);
 
+  const formatRelativeTime = (dateString) => {
+    const date = new Date(dateString);
+    const distance = formatDistanceToNow(date, { locale: zhCN });
+    return distance.replace(/大约 /, '')
+      .replace(/ 天/, '天')
+      .replace(/ 个?小时/, '小时')
+      .replace(/ 分钟/, '分钟')
+      .replace(/不到 /, '');
+  };
+
   if (selectedKnowledgeBaseId) {
     return (
       <KnowledgeBaseDetail
@@ -437,9 +455,24 @@ function Chat({ selectedAgentId }) {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Updated Header without border and "对话" text */}
-      <header className="flex items-center justify-end py-2 px-3 bg-bg-primary">
-        <div className="flex items-center space-x-3">
+      {/* Updated Header */}
+      <header className="flex items-center justify-between py-2 px-3 bg-bg-primary border-b border-border-primary">
+        <div className="flex-1 flex items-center">
+          {!isNewConversation && (
+            <div className="flex items-center text-xs text-text-primary font-sans-sc">
+              <ClockIcon className="w-4 h-4 mr-1 flex-shrink-0" />
+              <span className="flex-shrink-0">{formatRelativeTime(conversationTime)}前</span>
+            </div>
+          )}
+        </div>
+        <div className="flex-1 text-center">
+          {!isNewConversation && (
+            <div className="text-sm font-medium text-text-primary truncate px-2">
+              {conversationName}
+            </div>
+          )}
+        </div>
+        <div className="flex-1 flex items-center justify-end space-x-3">
           {/* New chat button */}
           <button
             onClick={handleNewChat}
@@ -675,11 +708,10 @@ function ChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubmitt
         />
         <button
           onClick={handleSendMessage}
-          className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-2 rounded-full ${
-            isSubmitting || isWaitingForResponse || !inputMessage.trim()
-              ? 'bg-bg-tertiary text-text-muted cursor-not-allowed'
-              : 'bg-primary text-white hover:bg-primary-dark'
-          } transition-colors duration-200 flex items-center justify-center`}
+          className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-2 rounded-full ${isSubmitting || isWaitingForResponse || !inputMessage.trim()
+            ? 'bg-bg-tertiary text-text-muted cursor-not-allowed'
+            : 'bg-primary text-white hover:bg-primary-dark'
+            } transition-colors duration-200 flex items-center justify-center`}
           disabled={isSubmitting || isWaitingForResponse || !inputMessage.trim()}
         >
           <ArrowUpIcon className="w-5 h-5" />
