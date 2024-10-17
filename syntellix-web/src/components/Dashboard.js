@@ -205,38 +205,38 @@ function Dashboard({ setIsAuthenticated }) {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setShowMenu(!showMenu)}
-        className="w-12 h-12 rounded-full bg-bg-tertiary flex items-center justify-center overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200 hover:bg-bg-primary hover:shadow-md"
+        className="w-10 h-10 rounded-full bg-bg-tertiary flex items-center justify-center overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 transition-all duration-200 hover:bg-bg-primary hover:shadow-md"
       >
         {userProfile?.name ? (
-          <span className="text-sm font-semibold text-primary">
+          <span className="text-xs font-semibold text-primary">
             {userProfile.name.charAt(0).toUpperCase()}
           </span>
         ) : (
-          <UserCircleIcon className="w-6 h-6 text-primary" />
+          <UserCircleIcon className="w-5 h-5 text-primary" />
         )}
       </button>
       {showMenu && (
         <div className="absolute left-full ml-2 bottom-0 w-48 bg-bg-primary rounded-lg shadow-lg overflow-hidden z-20 border border-bg-tertiary">
           <button
             onClick={handleAccountSettings}
-            className="w-full text-left py-2 px-4 text-sm text-text-body hover:bg-bg-secondary transition-colors duration-200 flex items-center"
+            className="w-full text-left py-2.5 px-4 text-sm text-text-body hover:bg-bg-secondary transition-colors duration-200 flex items-center"
           >
-            <Cog6ToothIconOutline className="w-4 h-4 mr-2 text-primary" />
+            <Cog6ToothIconOutline className="w-4 h-4 mr-3 text-primary" />
             设置
           </button>
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="w-full text-left py-2 px-4 text-sm text-text-body hover:bg-bg-secondary transition-colors duration-200 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full text-left py-2.5 px-4 text-sm text-text-body hover:bg-bg-secondary transition-colors duration-200 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoggingOut ? (
               <>
-                <ArrowPathIcon className="animate-spin w-4 h-4 mr-2 text-primary" />
+                <ArrowPathIcon className="animate-spin w-4 h-4 mr-3 text-primary" />
                 登出中...
               </>
             ) : (
               <>
-                <ArrowRightOnRectangleIcon className="w-4 h-4 mr-2 text-primary" />
+                <ArrowRightOnRectangleIcon className="w-4 h-4 mr-3 text-primary" />
                 登出
               </>
             )}
@@ -251,11 +251,11 @@ function Dashboard({ setIsAuthenticated }) {
       {/* Left Sidebar Navigation */}
       <nav className="w-16 z-10 flex flex-col items-center py-4 bg-bg-secondary">
         {/* Logo */}
-        <div className="w-12 h-12 flex items-center justify-center group">
+        <div className="w-12 h-12 flex items-center justify-center group mb-6">
           <img
             src={SystemLogo}
             alt="System Logo"
-            className="w-10 h-10 transition-all duration-300 group-hover:w-12 group-hover:h-12 group-hover:rotate-90"
+            className="w-9 h-9 transition-all duration-300 group-hover:w-12 group-hover:h-12 group-hover:rotate-90"
           />
         </div>
 
@@ -288,14 +288,16 @@ function Dashboard({ setIsAuthenticated }) {
           ))}
         </div>
 
-        {/* User Menu - Moved to bottom */}
-        <UserMenu
-          userProfile={userProfile}
-          isLoadingProfile={isLoadingProfile}
-          handleAccountSettings={handleAccountSettings}
-          handleLogout={handleLogout}
-          isLoggingOut={isLoggingOut}
-        />
+        {/* User Menu - Moved to bottom with padding */}
+        <div className="mt-auto pt-6 pb-2">
+          <UserMenu
+            userProfile={userProfile}
+            isLoadingProfile={isLoadingProfile}
+            handleAccountSettings={handleAccountSettings}
+            handleLogout={handleLogout}
+            isLoggingOut={isLoggingOut}
+          />
+        </div>
       </nav>
 
       <div className="flex-1 overflow-hidden p-1 bg-bg-secondary">
