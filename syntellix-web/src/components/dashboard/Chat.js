@@ -460,7 +460,7 @@ function Chat({ selectedAgentId }) {
         <div className="flex-1 flex items-center">
           {!isNewConversation && (
             <div className="flex items-center text-xs text-text-primary font-sans-sc">
-              <ClockIcon className="w-4 h-4 mr-1 flex-shrink-0" />
+              <ClockIcon className="w-4 h-4 ml-1 mr-1 flex-shrink-0" />
               <span className="flex-shrink-0">{formatRelativeTime(conversationTime)}前</span>
             </div>
           )}
