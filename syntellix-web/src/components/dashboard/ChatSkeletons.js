@@ -95,26 +95,3 @@ export function NewChatInputSkeleton() {
     </div>
   );
 }
-
-export function MainChatSkeleton() {
-  return (
-    <div className="h-full flex flex-col">
-      <HeaderSkeleton />
-      <div className="flex-1 flex overflow-hidden">
-        <ChatAreaSkeleton />
-      </div>
-      <ChatInputSkeleton />
-    </div>
-  );
-}
-
-export function NewChatSkeleton() {
-  return (
-    <div className="h-full flex flex-col">
-      <HeaderSkeleton />
-      <div className="flex-1 flex items-center justify-center overflow-hidden">
-        <NewChatInputSkeleton />
-      </div>
-    </div>
-  );
-}
