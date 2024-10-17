@@ -395,14 +395,28 @@ function Chat({ selectedAgentId }) {
     }));
   }, [currentConversationId]);
 
-  const handleConversationDelete = useCallback((deletedConversationId) => {
+  const handleConversationDelete = useCallback(async (deletedConversationId) => {
     if (currentConversationId === deletedConversationId) {
       setCurrentConversationId(null);
       setConversationMessages([]);
       setIsMessagesLoaded(false);
     }
-    fetchChatDetails();
-  }, [currentConversationId, fetchChatDetails]);
+    
+    // 保存当前的 agentId
+    const currentAgentId = chatDetails?.agent_info?.id;
+    
+    // 使用当前的 agentId 重新获取聊天详情
+    if (currentAgentId) {
+      await fetchChatDetails(currentAgentId);
+    } else {
+      await fetchChatDetails();
+    }
+    
+    // 如果删除后没有对话，可能需要显示新建对话提示
+    if (!chatDetails?.has_recent_conversation) {
+      return <NewChatPrompt onSelectAgent={handleSelectAgent} setLoading={setLoading} />;
+    }
+  }, [currentConversationId, fetchChatDetails, chatDetails]);
 
   // Make sure to include this useEffect
   useEffect(() => {
