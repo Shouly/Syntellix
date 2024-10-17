@@ -16,6 +16,7 @@ import { ChatAreaSkeleton, MainChatSkeleton } from './ChatSkeletons';
 import SlidingPanel from './ChatSlidingPanel';
 import KnowledgeBaseDetail from './KnowledgeBaseDetail';
 import NewChatPrompt from './NewChatPrompt';
+import { PencilSquareIcon } from '@heroicons/react/24/outline';
 
 function Chat({ selectedAgentId }) {
   const [chatDetails, setChatDetails] = useState(null);
@@ -46,6 +47,8 @@ function Chat({ selectedAgentId }) {
   const [lastMessageId, setLastMessageId] = useState(null);
   const [conversationName, setConversationName] = useState('');
   const [conversationTime, setConversationTime] = useState('');
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState('');
 
   const fetchChatDetails = useCallback(async (agentId = null) => {
     setError(null);
@@ -420,6 +423,27 @@ function Chat({ selectedAgentId }) {
       .replace(/不到 /, '');
   };
 
+  const handleNameEdit = useCallback(() => {
+    setIsEditingName(true);
+    setEditedName(conversationName);
+  }, [conversationName]);
+
+  const handleNameSave = useCallback(async () => {
+    if (editedName.trim() !== conversationName) {
+      try {
+        await axios.put('/console/api/chat/conversations', {
+          conversation_id: currentConversationId,
+          new_name: editedName.trim()
+        });
+        setConversationName(editedName.trim());
+      } catch (error) {
+        console.error('Failed to update conversation name:', error);
+        showToast('更新会话名称失败', 'error');
+      }
+    }
+    setIsEditingName(false);
+  }, [editedName, conversationName, currentConversationId, showToast]);
+
   if (selectedKnowledgeBaseId) {
     return (
       <KnowledgeBaseDetail
@@ -467,9 +491,27 @@ function Chat({ selectedAgentId }) {
         </div>
         <div className="flex-1 text-center">
           {!isNewConversation && (
-            <div className="text-base font-medium text-text-primary truncate px-2">
-              {conversationName}
-            </div>
+            isEditingName ? (
+              <input
+                type="text"
+                value={editedName}
+                onChange={(e) => setEditedName(e.target.value)}
+                onBlur={handleNameSave}
+                onKeyPress={(e) => e.key === 'Enter' && handleNameSave()}
+                className="text-base font-medium text-text-primary bg-bg-secondary rounded px-2 py-1 w-full max-w-xs"
+                autoFocus
+              />
+            ) : (
+              <div 
+                className="text-base font-medium text-text-primary truncate px-2 cursor-pointer group flex items-center justify-center"
+                onClick={handleNameEdit}
+              >
+                <span className="group-hover:text-primary transition-colors duration-200">
+                  {conversationName}
+                </span>
+                <PencilSquareIcon className="w-4 h-4 ml-2 text-text-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+              </div>
+            )
           )}
         </div>
         <div className="flex-1 flex items-center justify-end space-x-3">
