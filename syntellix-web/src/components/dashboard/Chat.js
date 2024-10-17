@@ -1,4 +1,4 @@
-import { ArrowPathIcon, ArrowUpIcon, BeakerIcon as BeakerIconOutline, ClockIcon, ClockIcon as ClockIconOutline, PlusIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon, ArrowUpIcon, BeakerIcon as BeakerIconOutline, ClockIcon, ClockIcon as ClockIconOutline, PencilSquareIcon, PlusIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import axios from 'axios';
@@ -12,11 +12,10 @@ import AgentAvatar from '../AgentAvatar';
 import { useUser } from '../contexts/UserContext';
 import AgentInfo from './ChatAgentInfo';
 import RecentConversations from './ChatRecentConversations';
-import { ChatAreaSkeleton, MainChatSkeleton } from './ChatSkeletons';
+import { ChatAreaSkeleton, ChatInputSkeleton, HeaderSkeleton } from './ChatSkeletons';
 import SlidingPanel from './ChatSlidingPanel';
 import KnowledgeBaseDetail from './KnowledgeBaseDetail';
 import NewChatPrompt from './NewChatPrompt';
-import { PencilSquareIcon } from '@heroicons/react/24/outline';
 
 function Chat({ selectedAgentId }) {
   const [chatDetails, setChatDetails] = useState(null);
@@ -52,6 +51,7 @@ function Chat({ selectedAgentId }) {
 
   const fetchChatDetails = useCallback(async (agentId = null) => {
     setError(null);
+    setLoading(true);
     try {
       const url = agentId
         ? `/console/api/chat/agent/${agentId}`
@@ -402,17 +402,17 @@ function Chat({ selectedAgentId }) {
       setConversationMessages([]);
       setIsMessagesLoaded(false);
     }
-    
+
     // 保存当前的 agentId
     const currentAgentId = chatDetails?.agent_info?.id;
-    
+
     // 使用当前的 agentId 重新获取聊天详情
     if (currentAgentId) {
       await fetchChatDetails(currentAgentId);
     } else {
       await fetchChatDetails();
     }
-    
+
     // 如果删除后没有对话，可能需要显示新建对话提示
     if (!chatDetails?.has_recent_conversation) {
       return <NewChatPrompt onSelectAgent={handleSelectAgent} setLoading={setLoading} />;
@@ -451,12 +451,12 @@ function Chat({ selectedAgentId }) {
           new_name: editedName.trim()
         });
         setConversationName(editedName.trim());
-        
+
         // Update recent conversations
-        setRecentConversations(prevConversations => 
-          prevConversations.map(conv => 
-            conv.id === currentConversationId 
-              ? { ...conv, name: editedName.trim() } 
+        setRecentConversations(prevConversations =>
+          prevConversations.map(conv =>
+            conv.id === currentConversationId
+              ? { ...conv, name: editedName.trim() }
               : conv
           )
         );
@@ -505,87 +505,87 @@ function Chat({ selectedAgentId }) {
     return <NewChatPrompt onSelectAgent={handleSelectAgent} setLoading={setLoading} />;
   }
 
-  if (loading) {
-    return <MainChatSkeleton />;
-  }
+  const isContentLoading = loading || isChatMessagesLoading || isChangingConversation;
 
   return (
     <div className="h-full flex flex-col">
-      {/* Updated Header */}
-      <header className={`flex items-center justify-between py-2 px-3 bg-bg-primary ${isNewConversation ? '' : 'border-b border-border-primary'}`}>
-        <div className="flex-1 flex items-center">
-          {!isNewConversation && (
-            <div className="flex items-center text-xs text-text-primary font-sans-sc">
-              <ClockIcon className="w-4 h-4 ml-1 mr-1 flex-shrink-0" />
-              <span className="flex-shrink-0">{formatRelativeTime(conversationTime)}前</span>
-            </div>
-          )}
-        </div>
-        <div className="flex-1 text-center">
-          {!isNewConversation && (
-            isEditingName ? (
-              <input
-                type="text"
-                value={editedName}
-                onChange={(e) => setEditedName(e.target.value)}
-                onBlur={handleNameSave}
-                onKeyPress={(e) => e.key === 'Enter' && handleNameSave()}
-                className="text-base font-medium text-text-primary bg-bg-secondary rounded px-2 py-1 w-full max-w-xs"
-                autoFocus
-              />
-            ) : (
-              <div 
-                className="text-base font-medium text-text-primary truncate px-2 cursor-pointer group flex items-center justify-center"
-                onClick={handleNameEdit}
-              >
-                <span className="group-hover:text-primary transition-colors duration-200">
-                  {conversationName}
-                </span>
-                <PencilSquareIcon className="w-4 h-4 ml-2 text-text-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+      {isContentLoading && !isLoadingMore ? (
+        <HeaderSkeleton />
+      ) : (
+        <header className={`flex items-center justify-between py-2 px-3 bg-bg-primary ${isNewConversation ? '' : 'border-b border-border-primary'}`}>
+          <div className="flex-1 flex items-center">
+            {!isNewConversation && (
+              <div className="flex items-center text-xs text-text-primary font-sans-sc">
+                <ClockIcon className="w-4 h-4 ml-1 mr-1 flex-shrink-0" />
+                <span className="flex-shrink-0">{formatRelativeTime(conversationTime)}前</span>
               </div>
-            )
-          )}
-        </div>
-        <div className="flex-1 flex items-center justify-end space-x-3">
-          {/* New chat button */}
-          <button
-            onClick={handleNewChat}
-            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-bg-secondary transition-colors duration-200"
-            title="新建对话"
-          >
-            {isCreatingNewChat ? (
-              <ArrowPathIcon className="w-5 h-5 text-primary animate-spin" />
-            ) : (
-              <PlusIcon className="w-5 h-5 text-text-secondary hover:text-primary transition-colors duration-200" />
             )}
-          </button>
+          </div>
+          <div className="flex-1 text-center">
+            {!isNewConversation && (
+              isEditingName ? (
+                <input
+                  type="text"
+                  value={editedName}
+                  onChange={(e) => setEditedName(e.target.value)}
+                  onBlur={handleNameSave}
+                  onKeyPress={(e) => e.key === 'Enter' && handleNameSave()}
+                  className="text-base font-medium text-text-primary bg-bg-secondary rounded px-2 py-1 w-full max-w-xs"
+                  autoFocus
+                />
+              ) : (
+                <div
+                  className="text-base font-medium text-text-primary truncate px-2 cursor-pointer group flex items-center justify-center"
+                  onClick={handleNameEdit}
+                >
+                  <span className="group-hover:text-primary transition-colors duration-200">
+                    {conversationName}
+                  </span>
+                  <PencilSquareIcon className="w-4 h-4 ml-2 text-text-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                </div>
+              )
+            )}
+          </div>
+          <div className="flex-1 flex items-center justify-end space-x-3">
+            {/* New chat button */}
+            <button
+              onClick={handleNewChat}
+              className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-bg-secondary transition-colors duration-200"
+              title="新建对话"
+            >
+              {isCreatingNewChat ? (
+                <ArrowPathIcon className="w-5 h-5 text-primary animate-spin" />
+              ) : (
+                <PlusIcon className="w-5 h-5 text-text-secondary hover:text-primary transition-colors duration-200" />
+              )}
+            </button>
 
-          {/* Agent info button */}
-          <button
-            onClick={() => setIsAgentInfoOpen(true)}
-            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-bg-secondary transition-colors duration-200 group"
-            title="智能体信息"
-          >
-            <BeakerIconOutline className="w-5 h-5 text-text-secondary group-hover:text-primary transition-colors duration-200" />
-          </button>
+            {/* Agent info button */}
+            <button
+              onClick={() => setIsAgentInfoOpen(true)}
+              className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-bg-secondary transition-colors duration-200 group"
+              title="智能体信息"
+            >
+              <BeakerIconOutline className="w-5 h-5 text-text-secondary group-hover:text-primary transition-colors duration-200" />
+            </button>
 
-          {/* Recent conversations button */}
-          <button
-            onClick={() => setIsRecentConversationsOpen(true)}
-            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-bg-secondary transition-colors duration-200 group"
-            title="最近会话"
-          >
-            <ClockIconOutline className="w-5 h-5 text-text-secondary group-hover:text-primary transition-colors duration-200" />
-          </button>
-        </div>
-      </header>
+            {/* Recent conversations button */}
+            <button
+              onClick={() => setIsRecentConversationsOpen(true)}
+              className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-bg-secondary transition-colors duration-200 group"
+              title="最近会话"
+            >
+              <ClockIconOutline className="w-5 h-5 text-text-secondary group-hover:text-primary transition-colors duration-200" />
+            </button>
+          </div>
+        </header>
+      )}
 
       {/* Main content area */}
       <div className="flex-1 flex overflow-hidden">
         {/* Chat area */}
         <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden px-6 relative">
-          {/* Chat content */}
-          {(isChatMessagesLoading || isChangingConversation) && !isLoadingMore ? (
+          {isContentLoading && !isLoadingMore ? (
             <ChatAreaSkeleton />
           ) : (
             <>
@@ -663,17 +663,21 @@ function Chat({ selectedAgentId }) {
                 </div>
               </div>
 
-              {/* Chat input for existing conversations */}
-              {!isNewConversation && (
-                <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-full max-w-3xl px-6">
-                  <ChatInput
-                    inputMessage={inputMessage}
-                    setInputMessage={setInputMessage}
-                    handleSendMessage={handleSendMessage}
-                    isSubmitting={isSubmitting}
-                    isWaitingForResponse={isWaitingForResponse}
-                  />
-                </div>
+              {/* Chat input */}
+              {isContentLoading ? (
+                <ChatInputSkeleton />
+              ) : (
+                !isNewConversation && (
+                  <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-full max-w-3xl px-6">
+                    <ChatInput
+                      inputMessage={inputMessage}
+                      setInputMessage={setInputMessage}
+                      handleSendMessage={handleSendMessage}
+                      isSubmitting={isSubmitting}
+                      isWaitingForResponse={isWaitingForResponse}
+                    />
+                  </div>
+                )
               )}
             </>
           )}

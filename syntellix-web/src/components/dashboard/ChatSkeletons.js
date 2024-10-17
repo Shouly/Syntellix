@@ -25,6 +25,25 @@ export function ConversationListSkeleton() {
   );
 }
 
+export function HeaderSkeleton() {
+  return (
+    <header className="flex items-center justify-between py-2 px-3 bg-bg-primary border-b border-border-primary animate-pulse">
+      <div className="flex-1 flex items-center">
+        <div className="w-4 h-4 bg-bg-tertiary rounded-full mr-1"></div>
+        <div className="w-20 h-4 bg-bg-tertiary rounded"></div>
+      </div>
+      <div className="flex-1 flex justify-center">
+        <div className="w-32 h-5 bg-bg-tertiary rounded"></div>
+      </div>
+      <div className="flex-1 flex items-center justify-end space-x-3">
+        <div className="w-8 h-8 bg-bg-tertiary rounded-full"></div>
+        <div className="w-8 h-8 bg-bg-tertiary rounded-full"></div>
+        <div className="w-8 h-8 bg-bg-tertiary rounded-full"></div>
+      </div>
+    </header>
+  );
+}
+
 export function ChatAreaSkeleton() {
   return (
     <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden px-6 relative animate-pulse">
@@ -47,17 +66,31 @@ export function ChatAreaSkeleton() {
           ))}
         </div>
       </div>
-      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-full max-w-3xl px-6">
-        <div className="relative">
-          <div className="absolute inset-0 bg-primary bg-opacity-10 rounded-full blur-md"></div>
-          <div className="relative flex items-center">
-            <div className="absolute left-4">
-              <div className="w-8 h-8 bg-bg-secondary rounded-full"></div>
-            </div>
-            <div className="w-full h-12 bg-bg-primary rounded-full border border-primary"></div>
-            <div className="absolute right-4 w-5 h-5 bg-bg-tertiary rounded-full"></div>
-          </div>
+    </div>
+  );
+}
+
+export function ChatInputSkeleton() {
+  return (
+    <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-full max-w-3xl px-6 animate-pulse">
+      <div className="relative">
+        <div className="absolute inset-0 bg-primary bg-opacity-10 rounded-full blur-md"></div>
+        <div className="relative flex items-center">
+          <div className="w-full h-12 bg-bg-primary rounded-full border border-primary"></div>
+          <div className="absolute right-3 w-8 h-8 bg-bg-tertiary rounded-full"></div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+export function NewChatInputSkeleton() {
+  return (
+    <div className="w-full max-w-3xl mt-[-200px] mx-auto animate-pulse">
+      <div className="h-10 bg-bg-tertiary rounded-full w-3/4 mx-auto mb-8"></div>
+      <div className="relative">
+        <div className="w-full h-32 bg-bg-primary rounded-xl border border-primary"></div>
+        <div className="absolute right-3 bottom-3 w-10 h-10 bg-bg-tertiary rounded-full"></div>
       </div>
     </div>
   );
@@ -65,17 +98,22 @@ export function ChatAreaSkeleton() {
 
 export function MainChatSkeleton() {
   return (
-    <div className="h-full flex overflow-hidden">
-      <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden px-6 relative">
+    <div className="h-full flex flex-col">
+      <HeaderSkeleton />
+      <div className="flex-1 flex overflow-hidden">
         <ChatAreaSkeleton />
       </div>
-      <div className="w-16 flex flex-col bg-bg-primary overflow-hidden">
-        <div className="flex-shrink-0 p-2">
-          <div className="w-10 h-10 bg-bg-tertiary rounded-full mx-auto"></div>
-        </div>
-        <div className="flex-shrink-0 p-2">
-          <div className="w-10 h-10 bg-bg-tertiary rounded-full mx-auto"></div>
-        </div>
+      <ChatInputSkeleton />
+    </div>
+  );
+}
+
+export function NewChatSkeleton() {
+  return (
+    <div className="h-full flex flex-col">
+      <HeaderSkeleton />
+      <div className="flex-1 flex items-center justify-center overflow-hidden">
+        <NewChatInputSkeleton />
       </div>
     </div>
   );
