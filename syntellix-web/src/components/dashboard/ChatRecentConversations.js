@@ -91,7 +91,6 @@ function RecentConversations({
       await axios.delete('/console/api/chat/conversations', {
         data: { conversation_id: conversationId }
       });
-      showToast('对话删除成功', 'success');
       setRecentConversations(prevHistory => 
         prevHistory.filter(conv => conv.id !== conversationId)
       );
@@ -112,7 +111,6 @@ function RecentConversations({
         conversation_id: conversationId,
         new_name: newName
       });
-      showToast('对话已重命名', 'success');
       setRecentConversations(prevHistory => 
         prevHistory.map(conv => 
           conv.id === conversationId ? { ...conv, name: response.data.name } : conv
