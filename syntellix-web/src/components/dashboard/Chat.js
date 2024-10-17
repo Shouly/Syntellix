@@ -386,6 +386,7 @@ function Chat({ selectedAgentId }) {
 
   const handleConversationUpdate = useCallback((updatedConversation) => {
     if (currentConversationId === updatedConversation.id) {
+      setConversationName(updatedConversation.name);
     }
     setChatDetails(prevDetails => ({
       ...prevDetails,
@@ -445,18 +446,35 @@ function Chat({ selectedAgentId }) {
   const handleNameSave = useCallback(async () => {
     if (editedName.trim() !== conversationName) {
       try {
-        await axios.put('/console/api/chat/conversations', {
+        const response = await axios.put('/console/api/chat/conversations', {
           conversation_id: currentConversationId,
           new_name: editedName.trim()
         });
         setConversationName(editedName.trim());
+        
+        // Update recent conversations
+        setRecentConversations(prevConversations => 
+          prevConversations.map(conv => 
+            conv.id === currentConversationId 
+              ? { ...conv, name: editedName.trim() } 
+              : conv
+          )
+        );
+
+        // Update chatDetails if necessary
+        setChatDetails(prevDetails => ({
+          ...prevDetails,
+          latest_conversation: prevDetails.latest_conversation && prevDetails.latest_conversation.id === currentConversationId
+            ? { ...prevDetails.latest_conversation, name: editedName.trim() }
+            : prevDetails.latest_conversation
+        }));
       } catch (error) {
         console.error('Failed to update conversation name:', error);
         showToast('更新会话名称失败', 'error');
       }
     }
     setIsEditingName(false);
-  }, [editedName, conversationName, currentConversationId, showToast]);
+  }, [editedName, conversationName, currentConversationId, showToast, setRecentConversations, setChatDetails]);
 
   if (selectedKnowledgeBaseId) {
     return (

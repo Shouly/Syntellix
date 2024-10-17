@@ -28,6 +28,11 @@ function RecentConversations({
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
   const { showToast } = useToast();
+  const [localConversations, setLocalConversations] = useState(recentConversations);
+
+  useEffect(() => {
+    setLocalConversations(recentConversations);
+  }, [recentConversations]);
 
   const fetchConversationHistory = useCallback(async () => {
     if (!agentId) return;
@@ -55,10 +60,10 @@ function RecentConversations({
   }, [agentId, setRecentConversations]);
 
   const filteredConversations = useMemo(() => {
-    return recentConversations.filter(chat =>
+    return localConversations.filter(chat =>
       chat.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [recentConversations, searchTerm]);
+  }, [localConversations, searchTerm]);
 
   const formatRelativeTime = (dateString) => {
     const date = new Date(dateString);
@@ -76,7 +81,7 @@ function RecentConversations({
       setEditingId(null);
     } else {
       setEditingId(id);
-      setNewName(recentConversations.find(chat => chat.id === id).name);
+      setNewName(localConversations.find(chat => chat.id === id).name);
     }
   };
 
@@ -233,14 +238,14 @@ function RecentConversations({
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={() => handleDeleteConversation(deletingId)}
         itemType="对话"
-        itemName={deletingId ? recentConversations.find(chat => chat.id === deletingId)?.name : ''}
+        itemName={deletingId ? localConversations.find(chat => chat.id === deletingId)?.name : ''}
         isLoading={isDeleting}
       />
       <RenameModal
         isOpen={!!editingId}
         onClose={() => setEditingId(null)}
         onRename={(newName) => handleRenameConversation(editingId, newName)}
-        currentName={recentConversations.find(chat => chat.id === editingId)?.name || ''}
+        currentName={localConversations.find(chat => chat.id === editingId)?.name || ''}
         itemType="对话"
         isLoading={isRenaming}
       />
