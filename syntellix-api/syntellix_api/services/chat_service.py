@@ -65,7 +65,7 @@ class ChatService:
     def get_latest_conversation(user_id: int, agent_id: int):
         latest_conversation = (
             Conversation.query.filter_by(user_id=user_id, agent_id=agent_id)
-            .order_by(Conversation.created_at.desc())
+            .order_by(Conversation.updated_at.desc())
             .first()
         )
 

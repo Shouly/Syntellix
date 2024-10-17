@@ -12,7 +12,7 @@ import AgentAvatar from '../AgentAvatar';
 import { useUser } from '../contexts/UserContext';
 import AgentInfo from './ChatAgentInfo';
 import RecentConversations from './ChatRecentConversations';
-import { ChatAreaSkeleton, ChatInputSkeleton, HeaderSkeleton } from './ChatSkeletons';
+import { ChatAreaSkeleton, ChatInputSkeleton, HeaderSkeleton, LoadingMoreSkeleton } from './ChatSkeletons';
 import SlidingPanel from './ChatSlidingPanel';
 import KnowledgeBaseDetail from './KnowledgeBaseDetail';
 import NewChatPrompt from './NewChatPrompt';
@@ -606,14 +606,7 @@ function Chat({ selectedAgentId }) {
                     />
                   ) : (
                     <>
-                      {isLoadingMore && (
-                        <div className="flex justify-center items-center py-3">
-                          <div className="bg-bg-secondary rounded-full px-4 py-2 flex items-center shadow-sm">
-                            <ArrowPathIcon className="w-4 h-4 text-primary animate-spin mr-2" />
-                            <span className="text-xs text-text-secondary font-medium">加载更多历史消息...</span>
-                          </div>
-                        </div>
-                      )}
+                      {isLoadingMore && <LoadingMoreSkeleton />}
                       {conversationMessages.map((message, index) => (
                         <div key={index} className={`mb-4 flex ${message.message_type === 'user' ? 'justify-end' : 'justify-start'}`}>
                           {(message.message_type === 'agent' || message.message_type === 'status') && (

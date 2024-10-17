@@ -84,13 +84,40 @@ export function ChatInputSkeleton() {
   );
 }
 
-export function NewChatInputSkeleton() {
+export function NewChatSkeleton() {
   return (
-    <div className="w-full max-w-3xl mt-[-200px] mx-auto animate-pulse">
-      <div className="h-10 bg-bg-tertiary rounded-full w-3/4 mx-auto mb-8"></div>
-      <div className="relative">
-        <div className="w-full h-32 bg-bg-primary rounded-xl border border-primary"></div>
-        <div className="absolute right-3 bottom-3 w-10 h-10 bg-bg-tertiary rounded-full"></div>
+    <div className="flex-1 flex items-center justify-center bg-bg-primary animate-pulse">
+      <div className="w-full max-w-3xl px-6">
+        <div className="h-10 bg-bg-tertiary rounded-full w-3/4 mx-auto mb-8"></div>
+        <div className="relative">
+          <div className="w-full h-32 bg-bg-primary rounded-xl border border-primary"></div>
+          <div className="absolute right-3 bottom-3 w-10 h-10 bg-bg-tertiary rounded-full"></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function LoadingMoreSkeleton() {
+  return (
+    <div className="flex justify-center items-center py-3 animate-pulse">
+      <div className="bg-bg-secondary rounded-full px-4 py-2 flex items-center shadow-sm">
+        <div className="w-4 h-4 bg-bg-tertiary rounded-full mr-2"></div>
+        <div className="w-32 h-4 bg-bg-tertiary rounded"></div>
+      </div>
+    </div>
+  );
+}
+
+export function ChatSkeleton() {
+  return (
+    <div className="h-full flex flex-col">
+      <HeaderSkeleton />
+      <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden px-6 relative">
+          <ChatAreaSkeleton />
+          <ChatInputSkeleton />
+        </div>
       </div>
     </div>
   );
