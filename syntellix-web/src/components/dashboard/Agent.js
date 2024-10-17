@@ -1,4 +1,4 @@
-import { ChevronDownIcon, Cog6ToothIcon, ExclamationCircleIcon, FunnelIcon } from '@heroicons/react/24/outline';
+import { ChevronDownIcon, Cog6ToothIcon, ExclamationCircleIcon, FunnelIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { ChevronLeftIcon, ChevronRightIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
 import axios from 'axios';
 import { formatDistanceToNow } from 'date-fns';
@@ -55,6 +55,8 @@ function Agent({ onCreateNew, onAgentClick }) {
     const [totalPages, setTotalPages] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const inputRef = useRef(null);
+
+    const [searchTerm, setSearchTerm] = useState('');
 
     const fetchAgents = useCallback(async (pageNumber = 1, searchTerm = '') => {
         setIsLoading(true);
@@ -279,22 +281,37 @@ function Agent({ onCreateNew, onAgentClick }) {
         onCreateNew();
     };
 
+    const handleSearch = (e) => {
+        setSearchTerm(e.target.value);
+        fetchAgents(1, e.target.value);
+    };
+
     return (
-        <div className="h-full flex flex-col px-6">
-            {/* Header */}
-            <header className="flex items-center justify-between pt-4">
-                <div className="flex items-end space-x-4">
-                    <h2 className="text-lg font-bold text-primary font-noto-sans-sc">智能体</h2>
-                </div>
+        <div className="h-full flex flex-col">
+            {/* Header - 移到内容区域外 */}
+            <header className="flex items-center justify-between py-2 px-6 border-b border-bg-tertiary bg-bg-primary">
+                <h2 className="text-lg font-bold text-primary font-noto-sans-sc">智能体</h2>
                 <div className="flex items-center space-x-4">
+                    <div className="relative">
+                        <input
+                            type="text"
+                            placeholder="搜索智能体..."
+                            value={searchTerm}
+                            onChange={handleSearch}
+                            className="pl-10 pr-4 py-2 w-64 text-sm rounded-md bg-bg-secondary border border-bg-tertiary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+                        />
+                        <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-text-secondary" />
+                    </div>
                     <TagSelector tags={tags} selectedTag={selectedTag} setSelectedTag={setSelectedTag} />
                 </div>
             </header>
 
-            {/* Content */}
-            <div className="flex-1 overflow-auto py-4">
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                    {renderContent()}
+            {/* 主要内容区域 */}
+            <div className="flex-1 overflow-hidden px-6">
+                <div className="h-full overflow-auto py-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                        {renderContent()}
+                    </div>
                 </div>
             </div>
 
@@ -302,7 +319,7 @@ function Agent({ onCreateNew, onAgentClick }) {
                 isOpen={isDeleteModalOpen}
                 onClose={() => setIsDeleteModalOpen(false)}
                 onConfirm={handleDeleteConfirm}
-                itemType="能体"
+                itemType="智能体"
                 itemName={agentToDelete?.name}
                 isLoading={isDeleting}
             />

@@ -17,7 +17,6 @@ import {
   Cog6ToothIcon as Cog6ToothIconSolid
 } from '@heroicons/react/24/solid';
 
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -48,7 +47,6 @@ function Dashboard({ setIsAuthenticated }) {
   const [isCreatingAgent, setIsCreatingAgent] = useState(false);
   const [selectedAgentId, setSelectedAgentId] = useState(null);
   const [selectedAgentForChat, setSelectedAgentForChat] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -302,20 +300,6 @@ function Dashboard({ setIsAuthenticated }) {
 
       <div className="flex-1 overflow-hidden p-1 bg-bg-secondary">
         <main className="h-full flex flex-col bg-bg-primary rounded-lg shadow-md border border-[#e0e0e0]">
-          {/* Search bar */}
-          <div className="p-2 border-b border-bg-tertiary flex items-center justify-center">
-            <div className="relative w-1/2 max-w-md">
-              <input
-                type="text"
-                placeholder="搜索"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full py-1.5 pl-8 pr-3 text-sm bg-bg-primary rounded-md border border-bg-tertiary focus:outline-none focus:ring-1 focus:ring-primary focus:border-transparent"
-              />
-              <MagnifyingGlassIcon className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-muted" />
-            </div>
-          </div>
-
           {/* Content */}
           <div className="flex-1 overflow-hidden rounded-lg">
             {renderContent()}

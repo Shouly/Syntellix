@@ -16,6 +16,7 @@ import { ChatAreaSkeleton, MainChatSkeleton } from './ChatSkeletons';
 import SlidingPanel from './ChatSlidingPanel';
 import KnowledgeBaseDetail from './KnowledgeBaseDetail';
 import NewChatPrompt from './NewChatPrompt';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
 function Chat({ selectedAgentId }) {
   const [chatDetails, setChatDetails] = useState(null);
@@ -44,6 +45,7 @@ function Chat({ selectedAgentId }) {
   const [recentConversations, setRecentConversations] = useState([]);
   const [isCreatingNewChat, setIsCreatingNewChat] = useState(false);
   const [lastMessageId, setLastMessageId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchChatDetails = useCallback(async (agentId = null) => {
     setError(null);
@@ -436,157 +438,149 @@ function Chat({ selectedAgentId }) {
   }
 
   return (
-    <div className="h-full flex overflow-hidden">
-      {/* Main chat area (left side) */}
-      <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden px-6 relative">
-        {(isChatMessagesLoading || isChangingConversation) && !isLoadingMore ? (
-          <ChatAreaSkeleton />
-        ) : (
-          <>
-            <div
-              className={`flex-1 overflow-y-auto py-4 bg-bg-primary ${isNewConversation ? 'flex items-center justify-center' : 'pb-24'} chat-container`}
-              ref={chatContainerRef}
-              onScroll={handleScroll}
-            >
-              <div className="max-w-4xl mx-auto w-full">
-                {isNewConversation ? (
-                  <NewChatInput
+    <div className="h-full flex flex-col">
+      {/* Updated Header */}
+      <header className="flex items-center justify-between py-2 px-6 border-b border-bg-tertiary bg-bg-primary">
+        <h2 className="text-lg font-bold text-primary font-noto-sans-sc">对话</h2>
+        <div className="flex items-center space-x-4">
+          {/* New chat button */}
+          <button
+            onClick={handleNewChat}
+            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-bg-secondary transition-colors duration-200"
+            title="新建对话"
+          >
+            {isCreatingNewChat ? (
+              <ArrowPathIcon className="w-5 h-5 text-primary animate-spin" />
+            ) : (
+              <PlusIcon className="w-5 h-5 text-text-secondary hover:text-primary transition-colors duration-200" />
+            )}
+          </button>
+
+          {/* Agent info button */}
+          <button
+            onClick={() => setIsAgentInfoOpen(true)}
+            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-bg-secondary transition-colors duration-200"
+            title="智能体信息"
+          >
+            {isAgentInfoOpen ? (
+              <BeakerIconSolid className="w-5 h-5 text-primary" />
+            ) : (
+              <BeakerIconOutline className="w-5 h-5 text-text-secondary hover:text-primary transition-colors duration-200" />
+            )}
+          </button>
+
+          {/* Recent conversations button */}
+          <button
+            onClick={() => setIsRecentConversationsOpen(true)}
+            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-bg-secondary transition-colors duration-200"
+            title="最近会话"
+          >
+            {isRecentConversationsOpen ? (
+              <ClockIconSolid className="w-5 h-5 text-primary" />
+            ) : (
+              <ClockIconOutline className="w-5 h-5 text-text-secondary hover:text-primary transition-colors duration-200" />
+            )}
+          </button>
+        </div>
+      </header>
+
+      {/* Main content area */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Chat area */}
+        <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden px-6 relative">
+          {/* Chat content */}
+          {(isChatMessagesLoading || isChangingConversation) && !isLoadingMore ? (
+            <ChatAreaSkeleton />
+          ) : (
+            <>
+              <div
+                className={`flex-1 overflow-y-auto py-4 bg-bg-primary ${isNewConversation ? 'flex items-center justify-center' : 'pb-24'} chat-container`}
+                ref={chatContainerRef}
+                onScroll={handleScroll}
+              >
+                <div className="max-w-4xl mx-auto w-full">
+                  {isNewConversation ? (
+                    <NewChatInput
+                      inputMessage={inputMessage}
+                      setInputMessage={setInputMessage}
+                      handleSendMessage={handleSendMessage}
+                      isSubmitting={isSubmitting}
+                      isWaitingForResponse={isWaitingForResponse}
+                      agentName={chatDetails?.agent_info?.name || '智能助手'}
+                    />
+                  ) : (
+                    <>
+                      {isLoadingMore && (
+                        <div className="flex justify-center items-center py-3">
+                          <div className="bg-bg-secondary rounded-full px-4 py-2 flex items-center shadow-sm">
+                            <ArrowPathIcon className="w-4 h-4 text-primary animate-spin mr-2" />
+                            <span className="text-xs text-text-secondary font-medium">加载更多历史消息...</span>
+                          </div>
+                        </div>
+                      )}
+                      {conversationMessages.map((message, index) => (
+                        <div key={index} className={`mb-4 flex ${message.message_type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                          {(message.message_type === 'agent' || message.message_type === 'status') && (
+                            <div className="mr-2 flex-shrink-0">
+                              <AgentAvatar
+                                avatarData={chatDetails?.agent_info?.avatar}
+                                agentName={chatDetails?.agent_info?.name || '智能助手'}
+                                size="xs"
+                              />
+                            </div>
+                          )}
+                          <div className={`inline-block p-3 rounded-xl ${message.message_type === 'user'
+                            ? 'bg-primary text-white'
+                            : message.message_type === 'status'
+                              ? 'bg-bg-secondary text-text-secondary'
+                              : 'bg-bg-secondary text-text-primary'
+                            } max-w-[80%]`}
+                          >
+                            {message.message_type === 'user' ? (
+                              <p className="text-sm leading-relaxed font-sans-sc font-medium">
+                                {message.message}
+                              </p>
+                            ) : message.message_type === 'status' ? (
+                              <p className="text-xs leading-relaxed font-sans-sc font-medium italic flex items-center">
+                                <span className="mr-1">{message.message}</span>
+                                <span className="inline-flex">
+                                  <span className="animate-ellipsis">.</span>
+                                  <span className="animate-ellipsis" style={{ animationDelay: '0.2s' }}>.</span>
+                                  <span className="animate-ellipsis" style={{ animationDelay: '0.4s' }}>.</span>
+                                </span>
+                              </p>
+                            ) : (
+                              <ReactMarkdown className="markdown-content">
+                                {message.message}
+                              </ReactMarkdown>
+                            )}
+                          </div>
+                          {message.message_type === 'user' && (
+                            <div className="w-8 h-8 ml-2 flex-shrink-0">
+                              <UserCircleIcon className="w-full h-full text-primary" />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Chat input for existing conversations */}
+              {!isNewConversation && (
+                <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-full max-w-3xl px-6">
+                  <ChatInput
                     inputMessage={inputMessage}
                     setInputMessage={setInputMessage}
                     handleSendMessage={handleSendMessage}
                     isSubmitting={isSubmitting}
                     isWaitingForResponse={isWaitingForResponse}
-                    agentName={chatDetails?.agent_info?.name || '智能助手'}
                   />
-                ) : (
-                  <>
-                    {isLoadingMore && (
-                      <div className="flex justify-center items-center py-3">
-                        <div className="bg-bg-secondary rounded-full px-4 py-2 flex items-center shadow-sm">
-                          <ArrowPathIcon className="w-4 h-4 text-primary animate-spin mr-2" />
-                          <span className="text-xs text-text-secondary font-medium">加载更多历史消息...</span>
-                        </div>
-                      </div>
-                    )}
-                    {conversationMessages.map((message, index) => (
-                      <div key={index} className={`mb-4 flex ${message.message_type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        {(message.message_type === 'agent' || message.message_type === 'status') && (
-                          <div className="mr-2 flex-shrink-0">
-                            <AgentAvatar
-                              avatarData={chatDetails?.agent_info?.avatar}
-                              agentName={chatDetails?.agent_info?.name || '智能助手'}
-                              size="xs"
-                            />
-                          </div>
-                        )}
-                        <div className={`inline-block p-3 rounded-xl ${message.message_type === 'user'
-                          ? 'bg-primary text-white'
-                          : message.message_type === 'status'
-                            ? 'bg-bg-secondary text-text-secondary'
-                            : 'bg-bg-secondary text-text-primary'
-                          } max-w-[80%]`}
-                        >
-                          {message.message_type === 'user' ? (
-                            <p className="text-sm leading-relaxed font-sans-sc font-medium">
-                              {message.message}
-                            </p>
-                          ) : message.message_type === 'status' ? (
-                            <p className="text-xs leading-relaxed font-sans-sc font-medium italic flex items-center">
-                              <span className="mr-1">{message.message}</span>
-                              <span className="inline-flex">
-                                <span className="animate-ellipsis">.</span>
-                                <span className="animate-ellipsis" style={{ animationDelay: '0.2s' }}>.</span>
-                                <span className="animate-ellipsis" style={{ animationDelay: '0.4s' }}>.</span>
-                              </span>
-                            </p>
-                          ) : (
-                            <ReactMarkdown className="markdown-content">
-                              {message.message}
-                            </ReactMarkdown>
-                          )}
-                        </div>
-                        {message.message_type === 'user' && (
-                          <div className="w-8 h-8 ml-2 flex-shrink-0">
-                            <UserCircleIcon className="w-full h-full text-primary" />
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Chat input for existing conversations */}
-            {!isNewConversation && (
-              <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-full max-w-3xl px-6">
-                <ChatInput
-                  inputMessage={inputMessage}
-                  setInputMessage={setInputMessage}
-                  handleSendMessage={handleSendMessage}
-                  isSubmitting={isSubmitting}
-                  isWaitingForResponse={isWaitingForResponse}
-                />
-              </div>
-            )}
-          </>
-        )}
-      </div>
-
-      {/* Right sidebar */}
-      <div className="w-16 flex flex-col bg-bg-primary overflow-hidden transition-all duration-300 ease-in-out">
-        {/* New chat button */}
-        <div className="flex-shrink-0 p-2">
-          <div
-            className="flex items-center justify-center cursor-pointer group"
-            onClick={handleNewChat}
-          >
-            <div className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-bg-secondary transition-colors duration-200">
-              {isCreatingNewChat ? (
-                <ArrowPathIcon className="w-6 h-6 text-primary animate-spin" />
-              ) : (
-                <PlusIcon className="w-6 h-6 text-text-secondary group-hover:text-primary transition-colors duration-200" />
+                </div>
               )}
-            </div>
-          </div>
-        </div>
-
-        {/* Agent info icon */}
-        <div className="flex-shrink-0 p-2">
-          <div
-            className="flex items-center justify-center cursor-pointer group"
-            onClick={() => setIsAgentInfoOpen(true)}
-          >
-            <div className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-bg-secondary transition-colors duration-200">
-              {isAgentInfoOpen ? (
-                <BeakerIconSolid className="w-6 h-6 text-primary" />
-              ) : (
-                <>
-                  <BeakerIconOutline className="w-6 h-6 text-text-secondary group-hover:opacity-0 transition-opacity duration-200" />
-                  <BeakerIconSolid className="w-6 h-6 text-primary absolute opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Recent conversations icon */}
-        <div className="flex-shrink-0 p-2">
-          <div
-            className="flex items-center justify-center cursor-pointer group"
-            onClick={() => setIsRecentConversationsOpen(true)}
-          >
-            <div className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-bg-secondary transition-colors duration-200">
-              {isRecentConversationsOpen ? (
-                <ClockIconSolid className="w-6 h-6 text-primary" />
-              ) : (
-                <>
-                  <ClockIconOutline className="w-6 h-6 text-text-secondary group-hover:opacity-0 transition-opacity duration-200" />
-                  <ClockIconSolid className="w-6 h-6 text-primary absolute opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                </>
-              )}
-            </div>
-          </div>
+            </>
+          )}
         </div>
       </div>
 
