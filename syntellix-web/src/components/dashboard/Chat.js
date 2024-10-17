@@ -456,7 +456,7 @@ function Chat({ selectedAgentId }) {
   return (
     <div className="h-full flex flex-col">
       {/* Updated Header */}
-      <header className="flex items-center justify-between py-2 px-3 bg-bg-primary border-b border-border-primary">
+      <header className={`flex items-center justify-between py-2 px-3 bg-bg-primary ${isNewConversation ? '' : 'border-b border-border-primary'}`}>
         <div className="flex-1 flex items-center">
           {!isNewConversation && (
             <div className="flex items-center text-xs text-text-primary font-sans-sc">
