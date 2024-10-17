@@ -52,7 +52,7 @@ class ChatService:
     def get_latest_agent(user_id: int):
         latest_conversation = (
             Conversation.query.filter_by(user_id=user_id)
-            .order_by(Conversation.created_at.desc())
+            .order_by(Conversation.updated_at.desc())
             .first()
         )
 
@@ -215,6 +215,9 @@ class ChatService:
         if not agent or not conversation:
             yield json.dumps({"error": "Agent or Conversation not found"})
             return
+
+        # Update conversation metadata
+        ChatService._update_conversation(conversation, user_message, pre_message_id)
 
         # 保存用户消息并获取消息ID
         user_message_id = ChatService._save_user_message(
@@ -424,3 +427,13 @@ class ChatService:
 
         # 设置缓存过期时间，例如1小时
         redis_client.expire(cache_key, 3600 * 24 * 7)
+
+    @staticmethod
+    def _update_conversation(conversation: Conversation, user_message: str, pre_message_id: Optional[int] = None):
+        # Update conversation name if it's the first message
+        if pre_message_id is None:
+            conversation.name = user_message[:50]  # Use first 50 characters of user message as conversation name
+
+        # Update the conversation's updated_at timestamp
+        conversation.updated_at = db.func.now()
+        db.session.commit()
