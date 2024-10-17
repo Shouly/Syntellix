@@ -467,7 +467,7 @@ function Chat({ selectedAgentId }) {
         </div>
         <div className="flex-1 text-center">
           {!isNewConversation && (
-            <div className="text-sm font-medium text-text-primary truncate px-2">
+            <div className="text-base font-medium text-text-primary truncate px-2">
               {conversationName}
             </div>
           )}
