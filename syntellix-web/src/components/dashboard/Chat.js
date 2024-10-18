@@ -530,7 +530,7 @@ function Chat({ selectedAgentId }) {
                   onChange={(e) => setEditedName(e.target.value)}
                   onBlur={handleNameSave}
                   onKeyPress={(e) => e.key === 'Enter' && handleNameSave()}
-                  className="text-base font-medium text-text-primary bg-bg-secondary rounded px-2 py-1 w-full max-w-xs"
+                  className="text-base font-medium text-text-primary bg-bg-secondary rounded px-2 py-1 w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200 selection:bg-primary selection:text-white"
                   autoFocus
                 />
               ) : (
@@ -538,7 +538,7 @@ function Chat({ selectedAgentId }) {
                   className="text-base font-medium text-text-primary truncate px-2 cursor-pointer group flex items-center justify-center"
                   onClick={handleNameEdit}
                 >
-                  <span className="group-hover:text-primary transition-colors duration-200">
+                  <span className="group-hover:text-primary transition-colors duration-200 py-1 px-2 rounded hover:bg-bg-secondary">
                     {conversationName}
                   </span>
                   <PencilSquareIcon className="w-4 h-4 ml-2 text-text-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
