@@ -36,8 +36,8 @@ conversation_with_messages_fields = {
         "name": fields.String,
         "user_id": fields.Integer,
         "agent_id": fields.Integer,
-        "created_at": fields.DateTime,
-        "updated_at": fields.DateTime,
+        "created_at": fields.DateTime(dt_format='rfc822'),
+        "updated_at": fields.DateTime(dt_format='rfc822'),
     }),
     "messages": fields.List(fields.Nested({
         "id": fields.Integer,
@@ -45,16 +45,13 @@ conversation_with_messages_fields = {
         "message_type": fields.String,
         "citation": fields.Raw,
         "pre_message_id": fields.Integer,
-        "created_at": fields.DateTime,
-        "updated_at": fields.DateTime,
+        "created_at": fields.DateTime(dt_format='rfc822'),
+        "updated_at": fields.DateTime(dt_format='rfc822'),
     })),
     "has_more": fields.Boolean,
 }
 
 agent_chat_details_fields = {
     "has_recent_conversation": fields.Boolean,
-    "agent_id": fields.Integer,
-    "latest_conversation_id": fields.Integer,
     "agent_info": fields.Nested(agent_base_info_fields),
-    "latest_conversation": fields.Nested(simple_conversation_fields),
 }

@@ -6,7 +6,7 @@ import { zhCN } from 'date-fns/locale';
 import DeleteConfirmationModal from '../DeleteConfirmationModal';
 import RenameModal from '../RenameModal';
 import axios from 'axios';
-import { useToast } from '../../components/Toast';
+import { useToast } from '../Toast';
 
 function RecentConversations({
   agentId,
@@ -16,6 +16,7 @@ function RecentConversations({
   onConversationDelete,
   recentConversations,
   setRecentConversations,
+  shouldLoadConversations,
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingId, setEditingId] = useState(null);
@@ -52,12 +53,12 @@ function RecentConversations({
   }, [agentId, page, setRecentConversations]);
 
   useEffect(() => {
-    if (agentId) {
+    if (shouldLoadConversations && agentId) {
       setRecentConversations([]);
       setPage(1);
       fetchConversationHistory();
     }
-  }, [agentId, setRecentConversations]);
+  }, [agentId, shouldLoadConversations, setRecentConversations]);
 
   const filteredConversations = useMemo(() => {
     return localConversations.filter(chat =>

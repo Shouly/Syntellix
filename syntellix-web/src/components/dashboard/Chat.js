@@ -9,22 +9,15 @@ import ReactMarkdown from 'react-markdown';
 import { useToast } from '../../components/Toast';
 import { API_BASE_URL } from '../../config';
 import AgentAvatar from '../AgentAvatar';
-import { useUser } from '../contexts/UserContext';
 import AgentInfo from './ChatAgentInfo';
 import RecentConversations from './ChatRecentConversations';
-import { ChatAreaSkeleton, ChatInputSkeleton, HeaderSkeleton, LoadingMoreSkeleton } from './ChatSkeletons';
+import { LoadingMoreSkeleton } from './ChatSkeletons';
 import SlidingPanel from './ChatSlidingPanel';
 import KnowledgeBaseDetail from './KnowledgeBaseDetail';
-import NewChatPrompt from './NewChatPrompt';
 
-function Chat({ selectedAgentId }) {
-  const [chatDetails, setChatDetails] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [inputMessage, setInputMessage] = useState('');
-  const [currentConversationId, setCurrentConversationId] = useState(null);
+function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, setIsNewChat, onNewChat }) {
+  const [currentConversationId, setCurrentConversationId] = useState(initialConversation?.id || null);
   const [conversationMessages, setConversationMessages] = useState([]);
-  const [isNewConversation, setIsNewConversation] = useState(true);
   const chatContainerRef = useRef(null);
   const { showToast } = useToast();
   const [selectedKnowledgeBaseId, setSelectedKnowledgeBaseId] = useState(null);
@@ -44,39 +37,12 @@ function Chat({ selectedAgentId }) {
   const [recentConversations, setRecentConversations] = useState([]);
   const [isCreatingNewChat, setIsCreatingNewChat] = useState(false);
   const [lastMessageId, setLastMessageId] = useState(null);
-  const [conversationName, setConversationName] = useState('');
-  const [conversationTime, setConversationTime] = useState('');
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState('');
-
-  const fetchChatDetails = useCallback(async (agentId = null) => {
-    setError(null);
-    setLoading(true);
-    try {
-      const url = agentId
-        ? `/console/api/chat/agent/${agentId}`
-        : '/console/api/chat/agent';
-      const response = await axios.get(url);
-      setChatDetails(response.data);
-      if (response.data.latest_conversation_id) {
-        setCurrentConversationId(response.data.latest_conversation_id);
-      }
-    } catch (error) {
-      console.error('Failed to fetch chat details:', error);
-      setError('对话内容获取失败');
-      showToast('对话内容获取失败', 'error');
-    } finally {
-      setLoading(false);
-    }
-  }, [showToast]);
-
-  useEffect(() => {
-    if (selectedAgentId) {
-      fetchChatDetails(selectedAgentId);
-    } else {
-      fetchChatDetails();
-    }
-  }, [selectedAgentId, fetchChatDetails]);
+  const [inputMessage, setInputMessage] = useState(initialMessage || '');
+  const [error, setError] = useState(null);
+  const [shouldLoadConversations, setShouldLoadConversations] = useState(false);
+  const [currentConversation, setCurrentConversation] = useState(initialConversation || null);
 
   const fetchConversationMessages = useCallback(async (conversationId, page = 1, perPage = 4) => {
     if (isLoadingMore && page !== 1) return;
@@ -93,10 +59,7 @@ function Chat({ selectedAgentId }) {
       });
       if (page === 1) {
         setConversationMessages(response.data.messages);
-        setIsNewConversation(response.data.messages.length === 0);
-        // Update conversation name and time
-        setConversationName(response.data.conversation.name);
-        setConversationTime(format(new Date(response.data.conversation.created_at), 'yyyy-MM-dd HH:mm'));
+        setCurrentConversation(response.data.conversation);
         // Update lastMessageId if there are messages
         if (response.data.messages.length > 0) {
           setLastMessageId(response.data.messages[response.data.messages.length - 1].id);
@@ -117,77 +80,20 @@ function Chat({ selectedAgentId }) {
       setIsChatMessagesLoading(false);
       setIsChangingConversation(false);
     }
-  }, [showToast, isLoadingMore]);
+  }, [isLoadingMore, showToast]);
 
-  useEffect(() => {
-    let isMounted = true;
-    if (currentConversationId && !isMessagesLoaded) {
-      setIsChatMessagesLoading(true);
-      fetchConversationMessages(currentConversationId).finally(() => {
-        if (isMounted) {
-          setIsChatMessagesLoading(false);
-        }
-      });
-    }
-    return () => {
-      isMounted = false;
-    };
-  }, [currentConversationId, isMessagesLoaded, fetchConversationMessages]);
-
-  const loadMoreMessages = useCallback(() => {
-    if (hasMore && currentConversationId && !isLoadingMore) {
-      setIsLoadingMore(true);
-      const currentScrollHeight = chatContainerRef.current.scrollHeight;
-      fetchConversationMessages(currentConversationId, currentPage + 1)
-        .then(() => {
-          // After loading more messages, adjust scroll position
-          setTimeout(() => {
-            const newScrollHeight = chatContainerRef.current.scrollHeight;
-            const heightDifference = newScrollHeight - currentScrollHeight;
-            chatContainerRef.current.scrollTop = heightDifference;
-          }, 0);
-        })
-        .finally(() => setIsLoadingMore(false));
-    }
-  }, [hasMore, currentConversationId, currentPage, fetchConversationMessages, isLoadingMore]);
-
-  const handleScroll = useCallback(() => {
-    if (chatContainerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
-      setScrollPosition(scrollTop);
-      if (scrollTop === 0 && hasMore) {
-        loadMoreMessages();
-      }
-    }
-  }, [loadMoreMessages, hasMore]);
-
-  // Modify the scrollToBottom function
-  const scrollToBottom = useCallback(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-    }
-  }, []);
-
-  // Update the useEffect for scrolling
-  useEffect(() => {
-    if (shouldScrollToBottom && !isChatMessagesLoading) {
-      scrollToBottom();
-      setShouldScrollToBottom(false);
-    }
-  }, [shouldScrollToBottom, isChatMessagesLoading, scrollToBottom]);
-
-  const handleSendMessage = async () => {
-    if (inputMessage.trim() !== '' && !isSubmitting) {
-      setIsNewConversation(false);
+  const handleSendMessage = useCallback(async (messageToSend = inputMessage) => {
+    // 确保 messageToSend 是字符串
+    const message = typeof messageToSend === 'string' ? messageToSend : String(messageToSend);
+    
+    if (message.trim() !== '' && !isSubmitting && selectedAgent) {
       try {
         setIsSubmitting(true);
-        setConversationMessages(prevMessages => {
-          const messages = Array.isArray(prevMessages) ? prevMessages : [];
-          return [
-            ...messages,
-            { message: inputMessage, message_type: 'user' }
-          ];
-        });
+        setConversationMessages(prevMessages => [
+          ...prevMessages,
+          { message: message.trim(), message_type: 'user' }
+        ]);
+
         setInputMessage('');
         setIsWaitingForResponse(true);
         setShouldScrollToBottom(true);
@@ -197,11 +103,13 @@ function Chat({ selectedAgentId }) {
         const token = localStorage.getItem('token');
 
         const params = new URLSearchParams({
-          agent_id: chatDetails.agent_info.id.toString(),
-          message: inputMessage,
+          agent_id: selectedAgent.id.toString(),
+          message: message.trim(),
           ...(lastMessageId && { pre_message_id: lastMessageId.toString() })
         });
-        const url = `${API_BASE_URL}/console/api/chat/conversation/${currentConversationId}/stream?${params}`;
+        const url = `${API_BASE_URL}/console/api/chat/conversation${currentConversationId ? `/${currentConversationId}` : ''}/stream?${params}`;
+
+        let newConversationId = null;
 
         await fetchEventSource(url, {
           method: 'GET',
@@ -210,6 +118,14 @@ function Chat({ selectedAgentId }) {
             'Authorization': `Bearer ${token}`
           },
           signal: abortControllerRef.current.signal,
+          async onopen(response) {
+            // 检查响应头中是否有新的会话 ID
+            newConversationId = response.headers.get('X-Conversation-Id');
+            if (newConversationId) {
+              setCurrentConversationId(newConversationId);
+              setIsNewChat(false);
+            }
+          },
           onmessage(event) {
             const data = JSON.parse(event.data);
             if (data.status === "retrieving_documents") {
@@ -294,20 +210,91 @@ function Chat({ selectedAgentId }) {
         setIsSubmitting(false);
       }
     }
-  };
+  }, [inputMessage, isSubmitting, selectedAgent, currentConversationId, lastMessageId, setConversationMessages, showToast]);
 
   useEffect(() => {
-    return () => {
-      // 组件卸载时取消请求
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
+    let isMounted = true;
+    if (selectedAgent && !isMessagesLoaded) {
+      if (isNewChat) {
+        if (initialMessage) {
+          handleSendMessage(initialMessage);
+        }
+        setIsMessagesLoaded(true);
+      } else if (currentConversationId) {
+        setIsChatMessagesLoading(true);
+        fetchConversationMessages(currentConversationId).finally(() => {
+          if (isMounted) {
+            setIsChatMessagesLoading(false);
+            setIsMessagesLoaded(true);
+          }
+        });
       }
+    }
+    return () => {
+      isMounted = false;
     };
+  }, [selectedAgent, initialConversation, currentConversationId, isMessagesLoaded, isNewChat, initialMessage, handleSendMessage, fetchConversationMessages]);
+
+  const createNewConversation = async () => {
+    setError(null);
+    try {
+      const response = await axios.post('/console/api/chat/conversations', {
+        agent_id: selectedAgent.id,
+      });
+      const newConversation = response.data;
+      setCurrentConversationId(newConversation.id);
+
+      if (initialMessage) {
+        handleSendMessage(initialMessage);
+      }
+    } catch (error) {
+      console.error('Failed to create new conversation:', error);
+      setError('创建新对话失败');
+      showToast('创建新对话失败', 'error');
+    }
+  };
+
+  const loadMoreMessages = useCallback(() => {
+    if (hasMore && currentConversationId && !isLoadingMore) {
+      setIsLoadingMore(true);
+      const currentScrollHeight = chatContainerRef.current.scrollHeight;
+      fetchConversationMessages(currentConversationId, currentPage + 1)
+        .then(() => {
+          // After loading more messages, adjust scroll position
+          setTimeout(() => {
+            const newScrollHeight = chatContainerRef.current.scrollHeight;
+            const heightDifference = newScrollHeight - currentScrollHeight;
+            chatContainerRef.current.scrollTop = heightDifference;
+          }, 0);
+        })
+        .finally(() => setIsLoadingMore(false));
+    }
+  }, [hasMore, currentConversationId, currentPage, fetchConversationMessages, isLoadingMore]);
+
+  const handleScroll = useCallback(() => {
+    if (chatContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+      setScrollPosition(scrollTop);
+      if (scrollTop === 0 && hasMore) {
+        loadMoreMessages();
+      }
+    }
+  }, [loadMoreMessages, hasMore]);
+
+  // Modify the scrollToBottom function
+  const scrollToBottom = useCallback(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
   }, []);
 
-  const handleSelectAgent = async (agentId) => {
-    await fetchChatDetails(agentId);
-  };
+  // Update the useEffect for scrolling
+  useEffect(() => {
+    if (shouldScrollToBottom && !isChatMessagesLoading) {
+      scrollToBottom();
+      setShouldScrollToBottom(false);
+    }
+  }, [shouldScrollToBottom, isChatMessagesLoading, scrollToBottom]);
 
   const handleKnowledgeBaseClick = (knowledgeBaseId) => {
     setSelectedKnowledgeBaseId(knowledgeBaseId);
@@ -317,64 +304,31 @@ function Chat({ selectedAgentId }) {
     setSelectedKnowledgeBaseId(null);
   };
 
-  const handleNewChat = useCallback(async () => {
-    if (!chatDetails?.agent_info?.id) {
-      showToast('无法创建新会话，请先选择一个智能助手', 'error');
-      return;
-    }
-
-    setIsCreatingNewChat(true);
-
-    try {
-      const response = await axios.post('/console/api/chat/conversations', {
-        agent_id: chatDetails.agent_info.id,
-      });
-
-      const newConversation = response.data;
-      setConversationMessages([]);
-      setIsMessagesLoaded(false);
-      setCurrentConversationId(newConversation.id);
-      setIsNewConversation(true);
-      setLastMessageId(null);
-
-      setChatDetails(prevDetails => ({
-        ...prevDetails,
-        latest_conversation: newConversation
-      }));
-
-      setRecentConversations(prevConversations => [newConversation, ...prevConversations]);
-
-    } catch (error) {
-      console.error('Failed to create new conversation:', error);
-      showToast('新会话创建失败', 'error');
-    } finally {
-      setIsCreatingNewChat(false);
-    }
-  }, [chatDetails, showToast]);
+  const handleNewChat = useCallback(() => {
+    onNewChat();
+  }, [onNewChat]);
 
   const handleConversationClick = useCallback(async (chatId) => {
     setCurrentConversationId(chatId);
     setIsChangingConversation(true);
     setCurrentPage(1);
     setHasMore(true);
+    setIsNewChat(false);
     try {
       const response = await axios.get(`/console/api/chat/conversation/${chatId}/messages`, {
         params: { page: 1, per_page: 4 }
       });
       setConversationMessages(response.data.messages);
-      setIsNewConversation(response.data.messages.length === 0);
+      setCurrentConversation(response.data.conversation);
       setIsMessagesLoaded(true);
       setHasMore(response.data.has_more);
-      // 更新 lastMessageId
       if (response.data.messages.length > 0) {
         setLastMessageId(response.data.messages[response.data.messages.length - 1].id);
       } else {
         setLastMessageId(null);
       }
-      // 更新会话名称和时间
-      setConversationName(response.data.conversation.name);
-      setConversationTime(format(new Date(response.data.conversation.created_at), 'yyyy-MM-dd HH:mm'));
       setShouldScrollToBottom(true);
+      setInputMessage('');
     } catch (error) {
       console.error('Failed to fetch conversation messages:', error);
       showToast('消息获取失败', 'error');
@@ -382,19 +336,17 @@ function Chat({ selectedAgentId }) {
       setIsChangingConversation(false);
       setIsRecentConversationsOpen(false);
     }
-  }, [showToast]);
+  }, [showToast, setIsNewChat]);
 
   const handleConversationUpdate = useCallback((updatedConversation) => {
-    if (currentConversationId === updatedConversation.id) {
-      setConversationName(updatedConversation.name);
-    }
-    setChatDetails(prevDetails => ({
-      ...prevDetails,
-      latest_conversation: prevDetails.latest_conversation && prevDetails.latest_conversation.id === updatedConversation.id
-        ? updatedConversation
-        : prevDetails.latest_conversation
-    }));
-  }, [currentConversationId]);
+    setRecentConversations(prevConversations =>
+      prevConversations.map(conv =>
+        conv.id === updatedConversation.id
+          ? updatedConversation
+          : conv
+      )
+    );
+  }, []);
 
   const handleConversationDelete = useCallback(async (deletedConversationId) => {
     if (currentConversationId === deletedConversationId) {
@@ -403,21 +355,14 @@ function Chat({ selectedAgentId }) {
       setIsMessagesLoaded(false);
     }
 
-    // 保存当前的 agentId
-    const currentAgentId = chatDetails?.agent_info?.id;
+    // Save the current agentId
+    const currentAgentId = selectedAgent?.id;
 
-    // 使用当前的 agentId 重新获取聊天详情
+    // Fetch chat details again using the current agentId
     if (currentAgentId) {
-      await fetchChatDetails(currentAgentId);
-    } else {
-      await fetchChatDetails();
+      await createNewConversation(currentAgentId);
     }
-
-    // 如果删除后没有对话，可能需要显示新建对话提示
-    if (!chatDetails?.has_recent_conversation) {
-      return <NewChatPrompt onSelectAgent={handleSelectAgent} setLoading={setLoading} />;
-    }
-  }, [currentConversationId, fetchChatDetails, chatDetails]);
+  }, [currentConversationId, selectedAgent]);
 
   // Make sure to include this useEffect
   useEffect(() => {
@@ -440,17 +385,16 @@ function Chat({ selectedAgentId }) {
 
   const handleNameEdit = useCallback(() => {
     setIsEditingName(true);
-    setEditedName(conversationName);
-  }, [conversationName]);
+    setEditedName(currentConversation?.name || '新对话');
+  }, [currentConversation]);
 
   const handleNameSave = useCallback(async () => {
-    if (editedName.trim() !== conversationName) {
+    if (editedName.trim() !== (currentConversation?.name || '新对话')) {
       try {
-        const response = await axios.put('/console/api/chat/conversations', {
+        await axios.put('/console/api/chat/conversations', {
           conversation_id: currentConversationId,
           new_name: editedName.trim()
         });
-        setConversationName(editedName.trim());
 
         // Update recent conversations
         setRecentConversations(prevConversations =>
@@ -460,21 +404,27 @@ function Chat({ selectedAgentId }) {
               : conv
           )
         );
-
-        // Update chatDetails if necessary
-        setChatDetails(prevDetails => ({
-          ...prevDetails,
-          latest_conversation: prevDetails.latest_conversation && prevDetails.latest_conversation.id === currentConversationId
-            ? { ...prevDetails.latest_conversation, name: editedName.trim() }
-            : prevDetails.latest_conversation
-        }));
       } catch (error) {
         console.error('Failed to update conversation name:', error);
         showToast('更新会话名称失败', 'error');
       }
     }
     setIsEditingName(false);
-  }, [editedName, conversationName, currentConversationId, showToast, setRecentConversations, setChatDetails]);
+  }, [editedName, currentConversation, currentConversationId, showToast, setRecentConversations]);
+
+  useEffect(() => {
+    return () => {
+      // Cancel the request when the component unmounts
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
+  const handleRecentConversationsClick = () => {
+    setIsRecentConversationsOpen(true);
+    setShouldLoadConversations(true);
+  };
 
   if (selectedKnowledgeBaseId) {
     return (
@@ -492,7 +442,7 @@ function Chat({ selectedAgentId }) {
         <div className="text-danger font-semibold text-lg mb-2">对话内容获取失败</div>
         <div className="text-danger-dark text-sm mb-4">{error}</div>
         <button
-          onClick={() => fetchChatDetails()}
+          onClick={createNewConversation}  // 直接调用 createNewConversation，不传递参数
           className="px-4 py-2 bg-danger text-bg-primary rounded-md hover:bg-danger-dark transition-colors duration-200"
         >
           重试
@@ -501,177 +451,155 @@ function Chat({ selectedAgentId }) {
     );
   }
 
-  if (!chatDetails?.has_recent_conversation && !loading) {
-    return <NewChatPrompt onSelectAgent={handleSelectAgent} setLoading={setLoading} />;
-  }
-
-  const isContentLoading = loading || isChatMessagesLoading || isChangingConversation;
-
   return (
     <div className="h-full flex flex-col">
-      {isContentLoading && !isLoadingMore ? (
-        <HeaderSkeleton />
-      ) : (
-        <header className={`flex items-center justify-between py-2 px-3 bg-bg-primary ${isNewConversation ? '' : 'border-b border-border-primary'}`}>
-          <div className="flex-1 flex items-center">
-            {!isNewConversation && (
-              <div className="flex items-center text-xs text-text-primary font-sans-sc">
-                <ClockIcon className="w-4 h-4 ml-1 mr-1 flex-shrink-0" />
-                <span className="flex-shrink-0">{formatRelativeTime(conversationTime)}前</span>
-              </div>
+      <header className="flex items-center justify-between py-2 px-3 bg-bg-primary border-b border-border-primary">
+        <div className="flex-1 flex items-center">
+          <div className="flex items-center text-xs text-text-primary font-sans-sc">
+            <ClockIcon className="w-4 h-4 ml-1 mr-1 flex-shrink-0" />
+            <span className="flex-shrink-0">
+              {isNewChat ? '现在' : currentConversation?.created_at}
+            </span>
+          </div>
+        </div>
+        <div className="flex-1 text-center">
+          {isEditingName ? (
+            <input
+              type="text"
+              value={editedName}
+              onChange={(e) => setEditedName(e.target.value)}
+              onBlur={handleNameSave}
+              onKeyPress={(e) => e.key === 'Enter' && handleNameSave()}
+              className="text-base font-medium text-text-primary bg-bg-secondary rounded px-2 py-1 w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200 selection:bg-primary selection:text-white"
+              autoFocus
+            />
+          ) : (
+            <div
+              className="text-base font-medium text-text-primary truncate px-2 cursor-pointer group flex items-center justify-center"
+              onClick={handleNameEdit}
+            >
+              <span className="group-hover:text-primary transition-colors duration-200 py-1 px-2 rounded hover:bg-bg-secondary">
+                {currentConversation?.name || '新对话'}
+              </span>
+              <PencilSquareIcon className="w-4 h-4 ml-2 text-text-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+            </div>
+          )}
+        </div>
+        <div className="flex-1 flex items-center justify-end space-x-3">
+          {/* New chat button */}
+          <button
+            onClick={handleNewChat}
+            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-bg-secondary transition-colors duration-200"
+            title="新建对话"
+          >
+            {isCreatingNewChat ? (
+              <ArrowPathIcon className="w-5 h-5 text-primary animate-spin" />
+            ) : (
+              <PlusIcon className="w-5 h-5 text-text-secondary hover:text-primary transition-colors duration-200" />
             )}
-          </div>
-          <div className="flex-1 text-center">
-            {!isNewConversation && (
-              isEditingName ? (
-                <input
-                  type="text"
-                  value={editedName}
-                  onChange={(e) => setEditedName(e.target.value)}
-                  onBlur={handleNameSave}
-                  onKeyPress={(e) => e.key === 'Enter' && handleNameSave()}
-                  className="text-base font-medium text-text-primary bg-bg-secondary rounded px-2 py-1 w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200 selection:bg-primary selection:text-white"
-                  autoFocus
-                />
-              ) : (
-                <div
-                  className="text-base font-medium text-text-primary truncate px-2 cursor-pointer group flex items-center justify-center"
-                  onClick={handleNameEdit}
-                >
-                  <span className="group-hover:text-primary transition-colors duration-200 py-1 px-2 rounded hover:bg-bg-secondary">
-                    {conversationName}
-                  </span>
-                  <PencilSquareIcon className="w-4 h-4 ml-2 text-text-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                </div>
-              )
-            )}
-          </div>
-          <div className="flex-1 flex items-center justify-end space-x-3">
-            {/* New chat button */}
-            <button
-              onClick={handleNewChat}
-              className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-bg-secondary transition-colors duration-200"
-              title="新建对话"
-            >
-              {isCreatingNewChat ? (
-                <ArrowPathIcon className="w-5 h-5 text-primary animate-spin" />
-              ) : (
-                <PlusIcon className="w-5 h-5 text-text-secondary hover:text-primary transition-colors duration-200" />
-              )}
-            </button>
+          </button>
 
-            {/* Agent info button */}
-            <button
-              onClick={() => setIsAgentInfoOpen(true)}
-              className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-bg-secondary transition-colors duration-200 group"
-              title="智能体信息"
-            >
-              <BeakerIconOutline className="w-5 h-5 text-text-secondary group-hover:text-primary transition-colors duration-200" />
-            </button>
+          {/* Agent info button */}
+          <button
+            onClick={() => setIsAgentInfoOpen(true)}
+            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-bg-secondary transition-colors duration-200 group"
+            title="智能体信息"
+          >
+            <BeakerIconOutline className="w-5 h-5 text-text-secondary group-hover:text-primary transition-colors duration-200" />
+          </button>
 
-            {/* Recent conversations button */}
-            <button
-              onClick={() => setIsRecentConversationsOpen(true)}
-              className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-bg-secondary transition-colors duration-200 group"
-              title="最近会话"
-            >
-              <ClockIconOutline className="w-5 h-5 text-text-secondary group-hover:text-primary transition-colors duration-200" />
-            </button>
-          </div>
-        </header>
-      )}
+          {/* Recent conversations button */}
+          <button
+            onClick={handleRecentConversationsClick}
+            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-bg-secondary transition-colors duration-200 group"
+            title="最近会话"
+          >
+            <ClockIconOutline className="w-5 h-5 text-text-secondary group-hover:text-primary transition-colors duration-200" />
+          </button>
+        </div>
+      </header>
 
       {/* Main content area */}
       <div className="flex-1 flex overflow-hidden">
         {/* Chat area */}
         <div className="flex-1 flex flex-col bg-bg-primary overflow-hidden px-6 relative">
-          {isContentLoading && !isLoadingMore ? (
-            <ChatAreaSkeleton />
+          {error ? (
+            <div className="flex flex-col items-center justify-center h-full">
+              <ExclamationCircleIcon className="w-12 h-12 text-danger mb-4" />
+              <div className="text-danger font-semibold text-lg mb-2">{error}</div>
+              <button
+                onClick={createNewConversation}
+                className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors duration-200"
+              >
+                重试
+              </button>
+            </div>
           ) : (
             <>
               <div
-                className={`flex-1 overflow-y-auto py-4 bg-bg-primary ${isNewConversation ? 'flex items-center justify-center' : 'pb-24'} chat-container`}
+                className="flex-1 overflow-y-auto py-4 bg-bg-primary pb-24 chat-container"
                 ref={chatContainerRef}
                 onScroll={handleScroll}
               >
                 <div className="max-w-4xl mx-auto w-full">
-                  {isNewConversation ? (
-                    <NewChatInput
-                      inputMessage={inputMessage}
-                      setInputMessage={setInputMessage}
-                      handleSendMessage={handleSendMessage}
-                      isSubmitting={isSubmitting}
-                      isWaitingForResponse={isWaitingForResponse}
-                      agentName={chatDetails?.agent_info?.name || '智能助手'}
-                    />
-                  ) : (
-                    <>
-                      {isLoadingMore && <LoadingMoreSkeleton />}
-                      {conversationMessages.map((message, index) => (
-                        <div key={index} className={`mb-4 flex ${message.message_type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                          {(message.message_type === 'agent' || message.message_type === 'status') && (
-                            <div className="mr-2 flex-shrink-0">
-                              <AgentAvatar
-                                avatarData={chatDetails?.agent_info?.avatar}
-                                agentName={chatDetails?.agent_info?.name || '智能助手'}
-                                size="xs"
-                              />
-                            </div>
-                          )}
-                          <div className={`inline-block p-3 rounded-xl ${message.message_type === 'user'
-                            ? 'bg-primary text-white'
-                            : message.message_type === 'status'
-                              ? 'bg-bg-secondary text-text-secondary'
-                              : 'bg-bg-secondary text-text-primary'
-                            } max-w-[80%]`}
-                          >
-                            {message.message_type === 'user' ? (
-                              <p className="text-sm leading-relaxed font-sans-sc font-medium">
-                                {message.message}
-                              </p>
-                            ) : message.message_type === 'status' ? (
-                              <p className="text-xs leading-relaxed font-sans-sc font-medium italic flex items-center">
-                                <span className="mr-1">{message.message}</span>
-                                <span className="inline-flex">
-                                  <span className="animate-ellipsis">.</span>
-                                  <span className="animate-ellipsis" style={{ animationDelay: '0.2s' }}>.</span>
-                                  <span className="animate-ellipsis" style={{ animationDelay: '0.4s' }}>.</span>
-                                </span>
-                              </p>
-                            ) : (
-                              <ReactMarkdown className="markdown-content">
-                                {message.message}
-                              </ReactMarkdown>
-                            )}
-                          </div>
-                          {message.message_type === 'user' && (
-                            <div className="w-8 h-8 ml-2 flex-shrink-0">
-                              <UserCircleIcon className="w-full h-full text-primary" />
-                            </div>
-                          )}
+                  {isLoadingMore && <LoadingMoreSkeleton />}
+                  {conversationMessages.map((message, index) => (
+                    <div key={index} className={`mb-4 flex ${message.message_type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      {(message.message_type === 'agent' || message.message_type === 'status') && (
+                        <div className="mr-2 flex-shrink-0">
+                          <AgentAvatar
+                            avatarData={selectedAgent?.avatar}
+                            agentName={selectedAgent?.name || '智能助手'}
+                            size="xs"
+                          />
                         </div>
-                      ))}
-                    </>
-                  )}
+                      )}
+                      <div className={`inline-block p-3 rounded-xl ${message.message_type === 'user'
+                        ? 'bg-primary text-white'
+                        : message.message_type === 'status'
+                          ? 'bg-bg-secondary text-text-secondary'
+                          : 'bg-bg-secondary text-text-primary'
+                        } max-w-[80%]`}
+                      >
+                        {message.message_type === 'user' ? (
+                          <p className="text-sm leading-relaxed font-sans-sc font-medium">
+                            {message.message}
+                          </p>
+                        ) : message.message_type === 'status' ? (
+                          <p className="text-xs leading-relaxed font-sans-sc font-medium italic flex items-center">
+                            <span className="mr-1">{message.message}</span>
+                            <span className="inline-flex">
+                              <span className="animate-ellipsis">.</span>
+                              <span className="animate-ellipsis" style={{ animationDelay: '0.2s' }}>.</span>
+                              <span className="animate-ellipsis" style={{ animationDelay: '0.4s' }}>.</span>
+                            </span>
+                          </p>
+                        ) : (
+                          <ReactMarkdown className="markdown-content">
+                            {message.message}
+                          </ReactMarkdown>
+                        )}
+                      </div>
+                      {message.message_type === 'user' && (
+                        <div className="w-8 h-8 ml-2 flex-shrink-0">
+                          <UserCircleIcon className="w-full h-full text-primary" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
 
               {/* Chat input */}
-              {isContentLoading ? (
-                <ChatInputSkeleton />
-              ) : (
-                !isNewConversation && (
-                  <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-full max-w-3xl px-6">
-                    <ChatInput
-                      inputMessage={inputMessage}
-                      setInputMessage={setInputMessage}
-                      handleSendMessage={handleSendMessage}
-                      isSubmitting={isSubmitting}
-                      isWaitingForResponse={isWaitingForResponse}
-                    />
-                  </div>
-                )
-              )}
+              <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-full max-w-3xl px-6">
+                <ChatInput
+                  inputMessage={inputMessage}
+                  setInputMessage={setInputMessage}
+                  handleSendMessage={handleSendMessage}
+                  isSubmitting={isSubmitting}
+                  isWaitingForResponse={isWaitingForResponse}
+                />
+              </div>
             </>
           )}
         </div>
@@ -684,7 +612,7 @@ function Chat({ selectedAgentId }) {
         title="智能体信息"
       >
         <AgentInfo
-          agentInfo={chatDetails?.agent_info}
+          agentInfo={selectedAgent}
           onKnowledgeBaseClick={handleKnowledgeBaseClick}
         />
       </SlidingPanel>
@@ -695,61 +623,16 @@ function Chat({ selectedAgentId }) {
         title="最近会话"
       >
         <RecentConversations
-          agentId={chatDetails?.agent_info?.id}
+          agentId={selectedAgent?.id}
           currentConversationId={currentConversationId}
           onConversationClick={handleConversationClick}
           onConversationUpdate={handleConversationUpdate}
           onConversationDelete={handleConversationDelete}
           recentConversations={recentConversations}
           setRecentConversations={setRecentConversations}
+          shouldLoadConversations={shouldLoadConversations}
         />
       </SlidingPanel>
-    </div>
-  );
-}
-
-// NewChatInput component for the input in new chat state
-function NewChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubmitting, isWaitingForResponse, agentName }) {
-  const { userProfile } = useUser();
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return '上午好';
-    if (hour < 18) return '下午好';
-    return '晚上好';
-  };
-
-  return (
-    <div className="w-full max-w-3xl mt-[-200px] mx-auto">
-      <h2 className="text-4xl font-bold mb-8 text-center text-primary">
-        {`${getGreeting()}，${userProfile?.name || '用户'}！`}
-      </h2>
-
-      <div className="relative">
-        <textarea
-          value={inputMessage}
-          onChange={(e) => setInputMessage(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey && !isSubmitting && !isWaitingForResponse) {
-              e.preventDefault();
-              handleSendMessage();
-            }
-          }}
-          placeholder={`请输入您想问 ${agentName} 的问题...`}
-          className="w-full h-32 p-4 bg-bg-primary rounded-xl border border-primary focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200 text-sm resize-none pr-12"
-          disabled={isSubmitting || isWaitingForResponse}
-        />
-        <button
-          onClick={handleSendMessage}
-          className={`absolute right-3 bottom-3 p-2 rounded-full ${isSubmitting || isWaitingForResponse || !inputMessage.trim()
-            ? 'bg-bg-tertiary text-text-muted cursor-not-allowed'
-            : 'bg-primary text-white hover:bg-primary-dark'
-            } transition-colors duration-200 flex items-center justify-center`}
-          disabled={isSubmitting || isWaitingForResponse || !inputMessage.trim()}
-        >
-          <ArrowUpIcon className="w-5 h-5" />
-        </button>
-      </div>
     </div>
   );
 }
@@ -773,7 +656,7 @@ function ChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubmitt
               handleSendMessage();
             }
           }}
-          placeholder="请输入问题，Enter发送"
+          placeholder="请输入题，Enter发送"
           className="w-full py-4 px-6 pr-14 bg-bg-primary rounded-full border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 shadow-md text-sm"
           disabled={isSubmitting || isWaitingForResponse}
         />

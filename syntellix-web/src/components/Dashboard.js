@@ -22,8 +22,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SystemLogo from '../assets/logo.svg';
 import AccountSettings from './AccountSettings';
+import { useUser } from './contexts/UserContext';
 import Agent from './dashboard/Agent';
 import Chat from './dashboard/Chat';
+import ChatHomePage from './dashboard/ChatHomePage';
 import CreateAgent from './dashboard/CreateAgent';
 import CreateKnowledgeBase from './dashboard/CreateKnowledgeBase';
 import Database from './dashboard/Database';
@@ -31,7 +33,6 @@ import KnowledgeBase from './dashboard/KnowledgeBase';
 import KnowledgeBaseDetail from './dashboard/KnowledgeBaseDetail';
 import Settings from './dashboard/Settings';
 import UploadFiles from './dashboard/UploadFiles';
-import { useUser } from './contexts/UserContext';
 
 function Dashboard({ setIsAuthenticated }) {
   const navigate = useNavigate();
@@ -47,6 +48,10 @@ function Dashboard({ setIsAuthenticated }) {
   const [isCreatingAgent, setIsCreatingAgent] = useState(false);
   const [selectedAgentId, setSelectedAgentId] = useState(null);
   const [selectedAgentForChat, setSelectedAgentForChat] = useState(null);
+  const [showChatHomePage, setShowChatHomePage] = useState(true);
+  const [initialMessage, setInitialMessage] = useState('');
+  const [initialConversation, setInitialConversation] = useState(null);
+  const [isNewChat, setIsNewChat] = useState(false);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -87,6 +92,11 @@ function Dashboard({ setIsAuthenticated }) {
 
   const handleMenuChange = (menuName) => {
     setActiveMenu(menuName);
+    if (menuName === 'Chat') {
+      setShowChatHomePage(true);
+    } else {
+      setShowChatHomePage(false);
+    }
     // 当切换到知识库菜单时，确保回到知识库主页面
     if (menuName === 'KnowledgeBase') {
       setIsCreatingKnowledgeBase(false);
@@ -119,9 +129,21 @@ function Dashboard({ setIsAuthenticated }) {
 
   const handleUploadComplete = (uploadedFiles) => {
     setIsUploadingFiles(false);
-    // Here you can add logic to refresh the document list or update the knowledge base
-    // For now, we'll just go back to the KnowledgeBaseDetail view
     setSelectedKnowledgeBaseId(selectedKnowledgeBaseId);
+  };
+
+  const handleNewChat = () => {
+    setShowChatHomePage(true);
+    setActiveMenu('Chat');
+  };
+
+  const handleChatStart = (agentInfo, message) => {
+    setShowChatHomePage(false);
+    setSelectedAgentForChat(agentInfo);
+    setInitialMessage(message);
+    setInitialConversation(null);
+    setIsNewChat(true);
+    setActiveMenu('Chat');
   };
 
   const menuItems = [
@@ -135,7 +157,21 @@ function Dashboard({ setIsAuthenticated }) {
   const renderContent = () => {
     switch (activeMenu) {
       case 'Chat':
-        return <Chat selectedAgentId={selectedAgentForChat} />;
+        return showChatHomePage ? (
+          <ChatHomePage
+            onChatStart={handleChatStart}
+            selectedAgentId={selectedAgentForChat?.id}
+          />
+        ) : (
+          <Chat
+            selectedAgent={selectedAgentForChat}
+            initialMessage={initialMessage}
+            initialConversation={null}
+            isNewChat={isNewChat}
+            setIsNewChat={setIsNewChat}
+            onNewChat={handleNewChat}
+          />
+        );
       case 'Agent':
         if (isCreatingAgent) {
           return (

@@ -73,7 +73,7 @@ class ChatConversationApi(Resource):
 class ChatConversationStreamApi(Resource):
 
     @login_required
-    def get(self, conversation_id):
+    def get(self, conversation_id=None):
         parser = reqparse.RequestParser()
         parser.add_argument("agent_id", type=int, required=True, location="args")
         parser.add_argument("message", type=str, required=True, location="args")
@@ -84,6 +84,15 @@ class ChatConversationStreamApi(Resource):
         user_id = current_user.id
 
         pre_message_id = args.get("pre_message_id")
+
+        # 如果 conversation_id 为 None，创建新的 conversation
+        if conversation_id is None:
+            conversation = ChatService.create_conversation(
+                user_id=user_id,
+                agent_id=args["agent_id"],
+                name="未命名新会话"
+            )
+            conversation_id = conversation.id
 
         def generate():
             try:
@@ -107,7 +116,7 @@ class ChatConversationStreamApi(Resource):
             finally:
                 yield 'data: {"done": true}\n\n'
 
-        return Response(
+        response = Response(
             stream_with_context(generate()),
             mimetype="text/event-stream",
             headers={
@@ -115,8 +124,11 @@ class ChatConversationStreamApi(Resource):
                 "Cache-Control": "no-cache",
                 "X-Accel-Buffering": "no",
                 "Connection": "keep-alive",
+                "X-Conversation-Id": str(conversation_id)
             },
         )
+
+        return response
 
 
 class ChatConversationMessageApi(Resource):
@@ -175,10 +187,7 @@ class ChatAgentConversationApi(Resource):
             if agent_id is None:
                 return {
                     "has_recent_conversation": False,
-                    "agent_id": None,
-                    "latest_conversation_id": None,
                     "agent_info": None,
-                    "latest_conversation": None,  # 添加这行
                 }, 200
 
         agent = AgentService.get_agent_base_info_by_id(
@@ -186,29 +195,9 @@ class ChatAgentConversationApi(Resource):
             tenant_id=current_user.current_tenant_id,
         )
 
-        latest_conversation = ChatService.get_latest_conversation(
-            user_id=current_user.id,
-            agent_id=agent_id,
-        )
-
-        if latest_conversation is None:
-            latest_conversation = ChatService.create_conversation(
-                user_id=current_user.id,
-                agent_id=agent_id,
-                name=f"未命名会话",
-            )
-
         return {
             "has_recent_conversation": True,
-            "agent_id": agent_id,
-            "latest_conversation_id": latest_conversation.id,
             "agent_info": agent,
-            "latest_conversation": {  # 添加这个字典
-                "id": latest_conversation.id,
-                "name": latest_conversation.name,
-                "created_at": latest_conversation.created_at,
-                "updated_at": latest_conversation.updated_at,
-            },
         }, 200
 
 
@@ -247,7 +236,9 @@ api.add_resource(
     ChatConversationMessageApi, "/chat/conversation/<int:conversation_id>/messages"
 )
 api.add_resource(
-    ChatConversationStreamApi, "/chat/conversation/<int:conversation_id>/stream"
+    ChatConversationStreamApi,
+    "/chat/conversation/stream",
+    "/chat/conversation/<int:conversation_id>/stream"
 )
 api.add_resource(ChatConversationApi, "/chat/conversations")
 api.add_resource(
