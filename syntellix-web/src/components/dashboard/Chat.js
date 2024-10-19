@@ -220,9 +220,10 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
           handleSendMessage(initialMessage);
         }
         setIsMessagesLoaded(true);
-      } else if (currentConversationId) {
+      } else if (initialConversation) {
+        setCurrentConversationId(initialConversation.id);
         setIsChatMessagesLoading(true);
-        fetchConversationMessages(currentConversationId).finally(() => {
+        fetchConversationMessages(initialConversation.id).finally(() => {
           if (isMounted) {
             setIsChatMessagesLoading(false);
             setIsMessagesLoaded(true);
@@ -233,7 +234,7 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
     return () => {
       isMounted = false;
     };
-  }, [selectedAgent, initialConversation, currentConversationId, isMessagesLoaded, isNewChat, initialMessage, handleSendMessage, fetchConversationMessages]);
+  }, [selectedAgent, initialConversation, isMessagesLoaded, isNewChat, initialMessage, handleSendMessage, fetchConversationMessages]);
 
   const createNewConversation = async () => {
     setError(null);
@@ -308,14 +309,14 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
     onNewChat();
   }, [onNewChat]);
 
-  const handleConversationClick = useCallback(async (chatId) => {
-    setCurrentConversationId(chatId);
+  const handleConversationClick = useCallback(async (conversation) => {
+    setCurrentConversationId(conversation.id);
     setIsChangingConversation(true);
     setCurrentPage(1);
     setHasMore(true);
     setIsNewChat(false);
     try {
-      const response = await axios.get(`/console/api/chat/conversation/${chatId}/messages`, {
+      const response = await axios.get(`/console/api/chat/conversation/${conversation.id}/messages`, {
         params: { page: 1, per_page: 4 }
       });
       setConversationMessages(response.data.messages);

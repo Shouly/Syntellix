@@ -127,9 +127,9 @@ function RecentConversations({
     }
   };
 
-  const handleConversationClick = (chatId) => {
-    if (editingId !== chatId) {
-      onConversationClick(chatId);
+  const handleConversationClick = (chat) => {
+    if (editingId !== chat.id) {
+      onConversationClick(chat);
     }
   };
 
@@ -162,7 +162,7 @@ function RecentConversations({
             >
               <div 
                 className="py-2.5 px-3 flex items-center justify-between group cursor-pointer"
-                onClick={() => handleConversationClick(chat.id)}
+                onClick={() => handleConversationClick(chat)}
               >
                 <div className="flex-grow mr-2 min-w-0 flex items-center">
                   {editingId === chat.id ? (

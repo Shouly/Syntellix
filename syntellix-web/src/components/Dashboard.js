@@ -137,12 +137,12 @@ function Dashboard({ setIsAuthenticated }) {
     setActiveMenu('Chat');
   };
 
-  const handleChatStart = (agentInfo, message) => {
+  const handleChatStart = (agentInfo, message, conversation = null) => {
     setShowChatHomePage(false);
     setSelectedAgentForChat(agentInfo);
     setInitialMessage(message);
-    setInitialConversation(null);
-    setIsNewChat(true);
+    setInitialConversation(conversation);
+    setIsNewChat(!conversation);
     setActiveMenu('Chat');
   };
 
@@ -166,7 +166,7 @@ function Dashboard({ setIsAuthenticated }) {
           <Chat
             selectedAgent={selectedAgentForChat}
             initialMessage={initialMessage}
-            initialConversation={null}
+            initialConversation={initialConversation}
             isNewChat={isNewChat}
             setIsNewChat={setIsNewChat}
             onNewChat={handleNewChat}

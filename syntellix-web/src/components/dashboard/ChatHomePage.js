@@ -76,9 +76,10 @@ function ChatHomePage({ onChatStart, selectedAgentId }) {
         setSelectedKnowledgeBaseId(null);
     };
 
-    const handleConversationClick = useCallback(async (chatId) => {
-        console.log('Conversation clicked:', chatId);
-    }, []);
+    const handleConversationClick = useCallback(async (conversation) => {
+        console.log('Conversation clicked:', conversation);
+        onChatStart(chatDetails.agent_info, null, conversation);
+    }, [onChatStart, chatDetails]);
 
     const handleConversationUpdate = useCallback((updatedConversation) => {
         setRecentConversations(prevConversations =>
