@@ -159,7 +159,7 @@ function ChatHomePage({ onChatStart, selectedAgentId }) {
             {/* Main content */}
             <div className="flex-1 flex flex-col items-center justify-start px-6 pt-16 pb-32">
                 <div className="w-full max-w-3xl">
-                    <h2 className="text-4xl mb-12 text-center text-primary">
+                    <h2 className="text-4xl mb-10 text-center text-primary">
                         {`${getGreeting()}，${userProfile?.name || '用户'}！`}
                     </h2>
 
@@ -179,7 +179,7 @@ function ChatHomePage({ onChatStart, selectedAgentId }) {
                         />
                         <button
                             onClick={handleSendMessage}
-                            className={`absolute right-3 bottom-3 p-2 rounded-full ${isSubmitting || isWaitingForResponse || !inputMessage.trim()
+                            className={`absolute right-2 bottom-3 p-2 rounded-full ${isSubmitting || isWaitingForResponse || !inputMessage.trim()
                                 ? 'bg-bg-tertiary text-text-muted cursor-not-allowed'
                                 : 'bg-primary text-white hover:bg-primary-dark'
                                 } transition-colors duration-200 flex items-center justify-center`}
