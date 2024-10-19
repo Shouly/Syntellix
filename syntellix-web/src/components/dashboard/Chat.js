@@ -12,7 +12,7 @@ import { API_BASE_URL } from '../../config';
 import AgentAvatar from '../AgentAvatar';
 import AgentInfo from './ChatAgentInfo';
 import RecentConversations from './ChatRecentConversations';
-import { LoadingMoreSkeleton } from './ChatSkeletons';
+import { ChatAreaSkeleton, LoadingMoreSkeleton } from './ChatSkeletons';
 import SlidingPanel from './ChatSlidingPanel';
 import KnowledgeBaseDetail from './KnowledgeBaseDetail';
 
@@ -42,6 +42,7 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
   const [error, setError] = useState(null);
   const [shouldLoadConversations, setShouldLoadConversations] = useState(false);
   const [currentConversation, setCurrentConversation] = useState(initialConversation || null);
+  const [isSwitchingConversation, setIsSwitchingConversation] = useState(false);
 
   const fetchConversationMessages = useCallback(async (conversationId, page = 1, perPage = 4) => {
     if (page === 1) {
@@ -315,15 +316,16 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
 
   const handleConversationClick = useCallback(async (conversation) => {
     setCurrentConversationId(conversation.id);
+    setCurrentConversation(conversation);
     setCurrentPage(1);
     setHasMore(false);
     setIsNewChat(false);
+    setIsSwitchingConversation(true);
     try {
       const response = await axios.get(`/console/api/chat/conversation/${conversation.id}/messages`, {
         params: { page: 1, per_page: 4 }
       });
       setConversationMessages(response.data.messages);
-      setCurrentConversation(response.data.conversation);
       setIsMessagesLoaded(true);
       setHasMore(response.data.has_more);
       if (response.data.messages.length > 0) {
@@ -338,6 +340,7 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
       showToast('消息获取失败', 'error');
     } finally {
       setIsRecentConversationsOpen(false);
+      setIsSwitchingConversation(false);
     }
   }, [showToast, setIsNewChat]);
 
@@ -535,6 +538,8 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
                 重试
               </button>
             </div>
+          ) : isChatMessagesLoading || isSwitchingConversation ? (
+            <ChatAreaSkeleton />
           ) : (
             <>
               <div
