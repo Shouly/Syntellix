@@ -456,8 +456,8 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
     <div className="h-full flex flex-col">
       <header className="flex items-center justify-between py-2 px-3 bg-bg-primary border-b border-border-primary">
         <div className="flex-1 flex items-center">
-          <div className="flex items-center text-xs text-text-primary font-sans-sc">
-            <ClockIcon className="w-4 h-4 ml-1 mr-1 flex-shrink-0" />
+          <div className="flex items-center text-xs text-text-secondary font-sans-sc">
+            <ClockIcon className="w-4 h-4 mr-1 flex-shrink-0" />
             <span className="flex-shrink-0">
               {isNewChat ? '现在' : formatRelativeTime(currentConversation?.created_at)}
             </span>
@@ -471,18 +471,18 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
               onChange={(e) => setEditedName(e.target.value)}
               onBlur={handleNameSave}
               onKeyPress={(e) => e.key === 'Enter' && handleNameSave()}
-              className="text-base font-medium text-text-primary bg-bg-secondary rounded px-2 py-1 w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200 selection:bg-primary selection:text-white"
+              className="text-sm font-medium text-text-primary bg-bg-secondary rounded-md px-3 py-1.5 w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-primary focus:bg-bg-primary transition-all duration-200 selection:bg-primary selection:text-white"
               autoFocus
             />
           ) : (
             <div
-              className="text-base font-medium text-text-primary truncate px-2 cursor-pointer group flex items-center justify-center"
+              className="text-sm font-medium text-text-primary truncate px-2 cursor-pointer group flex items-center justify-center"
               onClick={handleNameEdit}
             >
-              <span className="group-hover:text-primary transition-colors duration-200 py-1 px-2 rounded hover:bg-bg-secondary">
+              <span className="group-hover:text-primary transition-colors duration-200 py-1.5 px-3 rounded-md hover:bg-bg-secondary">
                 {currentConversation?.name || '新对话'}
               </span>
-              <PencilSquareIcon className="w-4 h-4 ml-2 text-text-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+              <PencilSquareIcon className="w-4 h-4 ml-1 text-text-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
             </div>
           )}
         </div>
