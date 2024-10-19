@@ -448,7 +448,7 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
         <div className="text-danger font-semibold text-lg mb-2">对话内容获取失败</div>
         <div className="text-danger-dark text-sm mb-4">{error}</div>
         <button
-          onClick={createNewConversation}  // 直接调用 createNewConversation，不传递参数
+          onClick={createNewConversation}
           className="px-4 py-2 bg-danger text-bg-primary rounded-md hover:bg-danger-dark transition-colors duration-200"
         >
           重试
