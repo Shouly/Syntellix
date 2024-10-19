@@ -34,7 +34,6 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
   const [isAgentInfoOpen, setIsAgentInfoOpen] = useState(false);
   const [isRecentConversationsOpen, setIsRecentConversationsOpen] = useState(false);
   const [recentConversations, setRecentConversations] = useState([]);
-  const [isCreatingNewChat, setIsCreatingNewChat] = useState(false);
   const [lastMessageId, setLastMessageId] = useState(null);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState('');
@@ -498,11 +497,7 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
             className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-bg-secondary transition-colors duration-200"
             title="新建对话"
           >
-            {isCreatingNewChat ? (
-              <ArrowPathIcon className="w-5 h-5 text-primary animate-spin" />
-            ) : (
-              <PlusIcon className="w-5 h-5 text-text-secondary hover:text-primary transition-colors duration-200" />
-            )}
+            <PlusIcon className="w-5 h-5 text-text-secondary hover:text-primary transition-colors duration-200" />
           </button>
 
           {/* Agent info button */}

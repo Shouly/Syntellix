@@ -27,9 +27,9 @@ function RecentConversations({
   const [isRenaming, setIsRenaming] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
-  const [page, setPage] = useState(1);
   const { showToast } = useToast();
   const [localConversations, setLocalConversations] = useState(recentConversations);
+  const [lastId, setLastId] = useState(null);
 
   useEffect(() => {
     setLocalConversations(recentConversations);
@@ -40,22 +40,28 @@ function RecentConversations({
     setIsLoading(true);
     try {
       const response = await axios.get(`/console/api/chat/agent/${agentId}/conversation-history`, {
-        params: { limit: 10, page }
+        params: { 
+          last_id: lastId,
+          limit: 10
+        }
       });
-      setRecentConversations(prev => [...prev, ...response.data]);
-      setHasMore(response.data.length === 10);
-      setPage(prev => prev + 1);
+      const newConversations = response.data;
+      setRecentConversations(prev => [...prev, ...newConversations]);
+      setHasMore(newConversations.length === 10);
+      if (newConversations.length > 0) {
+        setLastId(newConversations[newConversations.length - 1].id);
+      }
     } catch (error) {
       console.error('Failed to fetch conversation history:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [agentId, page, setRecentConversations]);
+  }, [agentId, lastId]);
 
   useEffect(() => {
     if (shouldLoadConversations && agentId) {
       setRecentConversations([]);
-      setPage(1);
+      setLastId(null);
       fetchConversationHistory();
     }
   }, [agentId, shouldLoadConversations, setRecentConversations]);
@@ -92,9 +98,17 @@ function RecentConversations({
       await axios.delete('/console/api/chat/conversations', {
         data: { conversation_id: conversationId }
       });
-      setRecentConversations(prevHistory => 
-        prevHistory.filter(conv => conv.id !== conversationId)
-      );
+      setRecentConversations(prevHistory => {
+        const updatedHistory = prevHistory.filter(conv => conv.id !== conversationId);
+        // 如果删除的是最后一个对话，更新 lastId
+        if (updatedHistory.length > 0 && conversationId === lastId) {
+          setLastId(updatedHistory[updatedHistory.length - 1].id);
+        } else if (updatedHistory.length === 0) {
+          // 如果删除后没有对话了，重置 lastId
+          setLastId(null);
+        }
+        return updatedHistory;
+      });
       onConversationDelete(conversationId);
     } catch (error) {
       console.error('Failed to delete conversation:', error);
@@ -148,7 +162,7 @@ function RecentConversations({
         </div>
       </div>
       <div className="h-px bg-border-primary mx-4"></div>
-      {isLoading && page === 1 ? (
+      {isLoading ? (
         <ConversationListSkeleton />
       ) : (
         <ul className="flex-1 overflow-y-auto py-2 space-y-1">
