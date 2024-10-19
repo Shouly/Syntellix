@@ -2,7 +2,7 @@ import { ArrowPathIcon, ArrowUpIcon, BeakerIcon as BeakerIconOutline, ClockIcon,
 import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import axios from 'axios';
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -45,12 +45,9 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
   const [currentConversation, setCurrentConversation] = useState(initialConversation || null);
 
   const fetchConversationMessages = useCallback(async (conversationId, page = 1, perPage = 4) => {
-    if (isLoadingMore && page !== 1) return;
     if (page === 1) {
       setIsChangingConversation(true);
       setShouldScrollToBottom(true);
-    } else {
-      setIsLoadingMore(true);
     }
     setIsChatMessagesLoading(true);
     try {
@@ -60,7 +57,6 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
       if (page === 1) {
         setConversationMessages(response.data.messages);
         setCurrentConversation(response.data.conversation);
-        // Update lastMessageId if there are messages
         if (response.data.messages.length > 0) {
           setLastMessageId(response.data.messages[response.data.messages.length - 1].id);
         } else {
@@ -76,16 +72,15 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
       console.error('Failed to fetch conversation messages:', error);
       showToast('消息获取失败', 'error');
     } finally {
-      setIsLoadingMore(false);
       setIsChatMessagesLoading(false);
       setIsChangingConversation(false);
     }
-  }, [isLoadingMore, showToast]);
+  }, [showToast]);
 
   const handleSendMessage = useCallback(async (messageToSend = inputMessage) => {
     // 确保 messageToSend 是字符串
     const message = typeof messageToSend === 'string' ? messageToSend : String(messageToSend);
-    
+
     if (message.trim() !== '' && !isSubmitting && selectedAgent) {
       try {
         setIsSubmitting(true);
@@ -261,7 +256,6 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
       const currentScrollHeight = chatContainerRef.current.scrollHeight;
       fetchConversationMessages(currentConversationId, currentPage + 1)
         .then(() => {
-          // After loading more messages, adjust scroll position
           setTimeout(() => {
             const newScrollHeight = chatContainerRef.current.scrollHeight;
             const heightDifference = newScrollHeight - currentScrollHeight;
@@ -274,13 +268,13 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
 
   const handleScroll = useCallback(() => {
     if (chatContainerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+      const { scrollTop } = chatContainerRef.current;
       setScrollPosition(scrollTop);
-      if (scrollTop === 0 && hasMore) {
+      if (scrollTop === 0 && hasMore && !isLoadingMore) {
         loadMoreMessages();
       }
     }
-  }, [loadMoreMessages, hasMore]);
+  }, [loadMoreMessages, hasMore, isLoadingMore]);
 
   // Modify the scrollToBottom function
   const scrollToBottom = useCallback(() => {
@@ -354,7 +348,7 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
       onDeleteCurrentConversation();
     }
 
-    setRecentConversations(prevConversations => 
+    setRecentConversations(prevConversations =>
       prevConversations.filter(conv => conv.id !== deletedConversationId)
     );
   }, [currentConversationId, setRecentConversations, onDeleteCurrentConversation]);

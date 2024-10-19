@@ -53,6 +53,13 @@ function Dashboard({ setIsAuthenticated }) {
   const [initialConversation, setInitialConversation] = useState(null);
   const [isNewChat, setIsNewChat] = useState(false);
 
+  const handleDeleteCurrentConversation = () => {
+    setShowChatHomePage(true);
+    setInitialMessage('');
+    setInitialConversation(null);
+    setIsNewChat(true);
+  };
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -170,6 +177,7 @@ function Dashboard({ setIsAuthenticated }) {
             isNewChat={isNewChat}
             setIsNewChat={setIsNewChat}
             onNewChat={handleNewChat}
+            onDeleteCurrentConversation={handleDeleteCurrentConversation}
           />
         );
       case 'Agent':
