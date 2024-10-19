@@ -21,7 +21,7 @@ function SlidingPanel({ isOpen, onClose, children, title }) {
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-bg-tertiary bg-bg-secondary">
-          <h2 className="text-lg font-semibold text-text-primary font-sans-sc">{title}</h2>
+          <h2 className="text-base font-semibold text-text-primary font-sans-sc">{title}</h2>
           <button
             onClick={onClose}
             className="text-text-secondary hover:text-text-primary transition-colors duration-200 p-1 rounded-full hover:bg-bg-tertiary"

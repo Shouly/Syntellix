@@ -142,9 +142,9 @@ function RecentConversations({
             placeholder="搜索对话"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-sm bg-bg-secondary text-text-primary placeholder-text-secondary rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition duration-150 ease-in-out"
+            className="w-full pl-10 pr-4 py-2.5 text-sm bg-bg-secondary text-text-primary placeholder-text-secondary rounded-full focus:outline-none focus:ring-2 focus:ring-primary transition duration-200 ease-in-out"
           />
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-text-secondary" />
+          <MagnifyingGlassIcon className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-secondary" />
         </div>
       </div>
       {isLoading && page === 1 ? (
@@ -154,7 +154,7 @@ function RecentConversations({
           {filteredConversations.map(chat => (
             <li
               key={chat.id}
-              className={`mx-2 rounded-md transition-all duration-200 ${
+              className={`mx-2 rounded-lg transition-all duration-200 ${
                 chat.id === currentConversationId
                   ? 'bg-primary bg-opacity-10 text-primary'
                   : 'text-text-body hover:bg-bg-secondary'
@@ -220,7 +220,7 @@ function RecentConversations({
         <div className="px-4 py-3 border-t border-border-primary">
           <button
             onClick={fetchConversationHistory}
-            className="w-full py-2 px-4 bg-bg-secondary hover:bg-bg-tertiary text-primary font-medium text-sm rounded-md transition-colors duration-200 flex items-center justify-center"
+            className="w-full py-2.5 px-4 bg-bg-secondary hover:bg-bg-tertiary text-primary font-medium text-sm rounded-full transition-all duration-200 flex items-center justify-center hover:shadow focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50"
             disabled={isLoading}
           >
             {isLoading ? (

@@ -12,12 +12,12 @@ function AgentInfo({ agentInfo, onKnowledgeBaseClick }) {
           agentName={agentInfo.name || '智能助手'}
           size="small"
         />
-        <h1 className="text-lg font-semibold text-text-primary font-sans-sc truncate ml-3">
+        <h1 className="text-base font-semibold text-text-primary font-sans-sc truncate ml-3">
           {agentInfo.name || '智能助手'}
         </h1>
       </div>
       {agentInfo.description && (
-        <p className="text-sm text-text-secondary mb-4 leading-relaxed">
+        <p className="text-xs text-text-secondary mb-4 leading-relaxed">
           {agentInfo.description}
         </p>
       )}
