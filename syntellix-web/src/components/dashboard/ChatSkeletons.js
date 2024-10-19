@@ -138,7 +138,7 @@ export function ChatHomePageSkeleton() {
       <div className="flex-1 flex flex-col items-center justify-start px-6 pt-16 pb-32">
         <div className="w-full max-w-3xl">
           {/* Greeting */}
-          <div className="h-12 bg-bg-tertiary rounded w-3/4 mx-auto mb-10"></div>
+          <div className="h-12 bg-bg-tertiary rounded w-3/4 mx-auto mb-12"></div>
 
           {/* Input area */}
           <div className="relative mb-8">
