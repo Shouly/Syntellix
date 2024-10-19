@@ -138,23 +138,22 @@ export function ChatHomePageSkeleton() {
       <div className="flex-1 flex flex-col items-center justify-start px-6 pt-16 pb-32">
         <div className="w-full max-w-3xl">
           {/* Greeting */}
-          <div className="h-12 bg-bg-tertiary rounded w-3/4 mx-auto mb-12"></div>
+          <div className="h-10 bg-bg-tertiary rounded w-3/4 mx-auto mb-10"></div>
 
           {/* Input area */}
           <div className="relative mb-8">
             <div className="w-full h-32 bg-bg-primary rounded-xl border border-primary"></div>
-            <div className="absolute right-3 bottom-3 w-10 h-10 bg-bg-tertiary rounded-full"></div>
+            <div className="absolute right-2 bottom-3 w-10 h-10 bg-bg-tertiary rounded-full"></div>
           </div>
 
           {/* Recommended questions */}
           <div className="w-full max-w-3xl">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {[...Array(4)].map((_, index) => (
-                <div key={index} className="flex items-center p-3 bg-bg-secondary border border-border-primary rounded-lg">
+                <div key={index} className="flex items-center p-3 bg-bg-primary border border-border-primary rounded-lg">
                   <div className="w-5 h-5 mr-3 bg-bg-tertiary rounded-full flex-shrink-0"></div>
                   <div className="flex-1">
-                    <div className="h-4 bg-bg-tertiary rounded w-3/4 mb-1"></div>
-                    <div className="h-4 bg-bg-tertiary rounded w-1/2"></div>
+                    <div className="h-4 bg-bg-tertiary rounded w-full"></div>
                   </div>
                 </div>
               ))}
