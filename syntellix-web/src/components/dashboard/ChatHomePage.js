@@ -77,7 +77,6 @@ function ChatHomePage({ onChatStart, selectedAgentId }) {
     };
 
     const handleConversationClick = useCallback(async (conversation) => {
-        console.log('Conversation clicked:', conversation);
         onChatStart(chatDetails.agent_info, null, conversation);
     }, [onChatStart, chatDetails]);
 
