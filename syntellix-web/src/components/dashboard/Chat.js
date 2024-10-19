@@ -4,6 +4,7 @@ import { fetchEventSource } from '@microsoft/fetch-event-source';
 import axios from 'axios';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import { debounce } from 'lodash';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useToast } from '../../components/Toast';
@@ -262,14 +263,28 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
     }
   }, [hasMore, currentConversationId, currentPage, fetchConversationMessages, isLoadingMore]);
 
-  const handleScroll = useCallback(() => {
-    if (chatContainerRef.current) {
-      const { scrollTop } = chatContainerRef.current;
-      if (scrollTop === 0 && hasMore && !isLoadingMore) {
-        loadMoreMessages();
+  const debouncedHandleScroll = useCallback(
+    debounce(() => {
+      if (chatContainerRef.current) {
+        const { scrollTop } = chatContainerRef.current;
+        if (scrollTop === 0 && hasMore && !isLoadingMore) {
+          loadMoreMessages();
+        }
       }
+    }, 10),  // 10ms 延迟
+    [loadMoreMessages, hasMore, isLoadingMore]
+  );
+
+  useEffect(() => {
+    const chatContainer = chatContainerRef.current;
+    if (chatContainer) {
+      chatContainer.addEventListener('scroll', debouncedHandleScroll);
+      return () => {
+        chatContainer.removeEventListener('scroll', debouncedHandleScroll);
+        debouncedHandleScroll.cancel();
+      };
     }
-  }, [loadMoreMessages, hasMore, isLoadingMore]);
+  }, [debouncedHandleScroll]);
 
   // Modify the scrollToBottom function
   const scrollToBottom = useCallback(() => {
@@ -345,15 +360,6 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
       prevConversations.filter(conv => conv.id !== deletedConversationId)
     );
   }, [currentConversationId, setRecentConversations, onDeleteCurrentConversation]);
-
-  // Make sure to include this useEffect
-  useEffect(() => {
-    const chatContainer = chatContainerRef.current;
-    if (chatContainer) {
-      chatContainer.addEventListener('scroll', handleScroll);
-      return () => chatContainer.removeEventListener('scroll', handleScroll);
-    }
-  }, [handleScroll]);
 
   const formatRelativeTime = (dateString) => {
     const date = new Date(dateString);
@@ -521,7 +527,6 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
               <div
                 className="flex-1 overflow-y-auto py-4 bg-bg-primary pb-24 chat-container"
                 ref={chatContainerRef}
-                onScroll={handleScroll}
               >
                 <div className="max-w-4xl mx-auto w-full">
                   {isLoadingMore && <LoadingMoreSkeleton />}
