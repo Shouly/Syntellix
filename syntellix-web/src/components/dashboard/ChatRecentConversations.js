@@ -237,7 +237,7 @@ function RecentConversations({
             <li className="mx-2 mt-2">
               <button
                 onClick={fetchConversationHistory}
-                className="w-full py-2.5 px-4 bg-bg-secondary hover:bg-bg-tertiary text-primary font-medium text-sm rounded-lg transition-all duration-200 flex items-center justify-center hover:shadow focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50"
+                className="w-full py-2.5 px-4 text-primary hover:text-primary-dark font-medium text-sm rounded-lg transition-all duration-200 flex items-center justify-center focus:outline-none"
                 disabled={isLoadingMore}
               >
                 {isLoadingMore ? (
