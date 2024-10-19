@@ -368,7 +368,7 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
       .replace(/ 天/, '天')
       .replace(/ 个?小时/, '小时')
       .replace(/ 分钟/, '分钟')
-      .replace(/不到 /, '');
+      .replace(/不到 /, '') + '前';
   };
 
   const handleNameEdit = useCallback(() => {
@@ -446,7 +446,7 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
           <div className="flex items-center text-xs text-text-primary font-sans-sc">
             <ClockIcon className="w-4 h-4 ml-1 mr-1 flex-shrink-0" />
             <span className="flex-shrink-0">
-              {isNewChat ? '现在' : currentConversation?.created_at}
+              {isNewChat ? '现在' : formatRelativeTime(currentConversation?.created_at)}
             </span>
           </div>
         </div>
