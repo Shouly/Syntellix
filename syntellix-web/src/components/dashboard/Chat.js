@@ -15,7 +15,7 @@ import { LoadingMoreSkeleton } from './ChatSkeletons';
 import SlidingPanel from './ChatSlidingPanel';
 import KnowledgeBaseDetail from './KnowledgeBaseDetail';
 
-function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, setIsNewChat, onNewChat }) {
+function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, setIsNewChat, onNewChat, onDeleteCurrentConversation }) {
   const [currentConversationId, setCurrentConversationId] = useState(initialConversation?.id || null);
   const [conversationMessages, setConversationMessages] = useState([]);
   const chatContainerRef = useRef(null);
@@ -350,19 +350,13 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
 
   const handleConversationDelete = useCallback(async (deletedConversationId) => {
     if (currentConversationId === deletedConversationId) {
-      setCurrentConversationId(null);
-      setConversationMessages([]);
-      setIsMessagesLoaded(false);
+      onDeleteCurrentConversation();
     }
 
-    // Save the current agentId
-    const currentAgentId = selectedAgent?.id;
-
-    // Fetch chat details again using the current agentId
-    if (currentAgentId) {
-      await createNewConversation(currentAgentId);
-    }
-  }, [currentConversationId, selectedAgent]);
+    setRecentConversations(prevConversations => 
+      prevConversations.filter(conv => conv.id !== deletedConversationId)
+    );
+  }, [currentConversationId, setRecentConversations, onDeleteCurrentConversation]);
 
   // Make sure to include this useEffect
   useEffect(() => {
