@@ -29,8 +29,6 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
   const abortControllerRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [isChangingConversation, setIsChangingConversation] = useState(false);
-  const [scrollPosition, setScrollPosition] = useState(0);
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
   const [isAgentInfoOpen, setIsAgentInfoOpen] = useState(false);
   const [isRecentConversationsOpen, setIsRecentConversationsOpen] = useState(false);
@@ -46,7 +44,6 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
 
   const fetchConversationMessages = useCallback(async (conversationId, page = 1, perPage = 4) => {
     if (page === 1) {
-      setIsChangingConversation(true);
       setShouldScrollToBottom(true);
     }
     setIsChatMessagesLoading(true);
@@ -73,7 +70,6 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
       showToast('消息获取失败', 'error');
     } finally {
       setIsChatMessagesLoading(false);
-      setIsChangingConversation(false);
     }
   }, [showToast]);
 
@@ -269,7 +265,6 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
   const handleScroll = useCallback(() => {
     if (chatContainerRef.current) {
       const { scrollTop } = chatContainerRef.current;
-      setScrollPosition(scrollTop);
       if (scrollTop === 0 && hasMore && !isLoadingMore) {
         loadMoreMessages();
       }
@@ -305,7 +300,6 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
 
   const handleConversationClick = useCallback(async (conversation) => {
     setCurrentConversationId(conversation.id);
-    setIsChangingConversation(true);
     setCurrentPage(1);
     setHasMore(true);
     setIsNewChat(false);
@@ -328,7 +322,6 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
       console.error('Failed to fetch conversation messages:', error);
       showToast('消息获取失败', 'error');
     } finally {
-      setIsChangingConversation(false);
       setIsRecentConversationsOpen(false);
     }
   }, [showToast, setIsNewChat]);
