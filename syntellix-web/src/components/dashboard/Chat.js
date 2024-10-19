@@ -378,13 +378,10 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
 
   const handleNameSave = useCallback(async () => {
     if (editedName.trim() !== (currentConversation?.name || '新对话')) {
+      const originalName = currentConversation?.name || '新对话';
       try {
-        await axios.put('/console/api/chat/conversations', {
-          conversation_id: currentConversationId,
-          new_name: editedName.trim()
-        });
-
-        // Update recent conversations
+        // Optimistically update UI
+        setCurrentConversation(prev => ({ ...prev, name: editedName.trim() }));
         setRecentConversations(prevConversations =>
           prevConversations.map(conv =>
             conv.id === currentConversationId
@@ -392,9 +389,25 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
               : conv
           )
         );
+
+        // Send request to server
+        await axios.put('/console/api/chat/conversations', {
+          conversation_id: currentConversationId,
+          new_name: editedName.trim()
+        });
+
       } catch (error) {
-        console.error('Failed to update conversation name:', error);
         showToast('更新会话名称失败', 'error');
+        
+        // Revert changes on error
+        setCurrentConversation(prev => ({ ...prev, name: originalName }));
+        setRecentConversations(prevConversations =>
+          prevConversations.map(conv =>
+            conv.id === currentConversationId
+              ? { ...conv, name: originalName }
+              : conv
+          )
+        );
       }
     }
     setIsEditingName(false);
