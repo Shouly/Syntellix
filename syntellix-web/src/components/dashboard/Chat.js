@@ -656,7 +656,7 @@ function ChatInput({ inputMessage, setInputMessage, handleSendMessage, isSubmitt
               handleSendMessage();
             }
           }}
-          placeholder="请输入题，Enter发送"
+          placeholder="请输入问题，Enter发送"
           className="w-full py-4 px-6 pr-14 bg-bg-primary rounded-full border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 shadow-md text-sm"
           disabled={isSubmitting || isWaitingForResponse}
         />
