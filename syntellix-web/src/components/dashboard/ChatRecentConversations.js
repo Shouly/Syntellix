@@ -30,6 +30,8 @@ function RecentConversations({
   const { showToast } = useToast();
   const [localConversations, setLocalConversations] = useState(recentConversations);
   const [lastId, setLastId] = useState(null);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   useEffect(() => {
     setLocalConversations(recentConversations);
@@ -37,7 +39,7 @@ function RecentConversations({
 
   const fetchConversationHistory = useCallback(async () => {
     if (!agentId) return;
-    setIsLoading(true);
+    setIsLoadingMore(true);
     try {
       const response = await axios.get(`/console/api/chat/agent/${agentId}/conversation-history`, {
         params: { 
@@ -54,7 +56,8 @@ function RecentConversations({
     } catch (error) {
       console.error('Failed to fetch conversation history:', error);
     } finally {
-      setIsLoading(false);
+      setIsLoadingMore(false);
+      setIsInitialLoading(false);
     }
   }, [agentId, lastId]);
 
@@ -62,6 +65,7 @@ function RecentConversations({
     if (shouldLoadConversations && agentId) {
       setRecentConversations([]);
       setLastId(null);
+      setIsInitialLoading(true);
       fetchConversationHistory();
     }
   }, [agentId, shouldLoadConversations, setRecentConversations]);
@@ -162,7 +166,7 @@ function RecentConversations({
         </div>
       </div>
       <div className="h-px bg-border-primary mx-4"></div>
-      {isLoading ? (
+      {isInitialLoading ? (
         <ConversationListSkeleton />
       ) : (
         <ul className="flex-1 overflow-y-auto py-2 space-y-1">
@@ -179,7 +183,7 @@ function RecentConversations({
                 className="py-2.5 px-3 flex items-center justify-between group cursor-pointer"
                 onClick={() => handleConversationClick(chat)}
               >
-                <div className="flex-grow mr-2 min-w-0 flex items-center">
+                <div className="flex-grow min-w-0 flex items-center mr-2">
                   {editingId === chat.id ? (
                     <input
                       type="text"
@@ -195,12 +199,12 @@ function RecentConversations({
                       onClick={(e) => e.stopPropagation()}
                     />
                   ) : (
-                    <span className={`font-sans-sc text-sm ${chat.id === currentConversationId ? 'font-medium' : ''} truncate flex-shrink min-w-0`}>
+                    <span className={`font-sans-sc text-sm ${chat.id === currentConversationId ? 'font-medium' : ''} truncate`}>
                       {chat.name}
                     </span>
                   )}
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 flex-shrink-0">
                   <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1">
                     <button
                       onClick={(e) => {
@@ -222,7 +226,7 @@ function RecentConversations({
                       <TrashIcon className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                  <span className="text-xs text-text-muted flex-shrink-0">
+                  <span className="text-xs text-text-muted whitespace-nowrap">
                     {formatRelativeTime(chat.updated_at || chat.created_at)}前
                   </span>
                 </div>
@@ -234,14 +238,14 @@ function RecentConversations({
               <button
                 onClick={fetchConversationHistory}
                 className="w-full py-2.5 px-4 bg-bg-secondary hover:bg-bg-tertiary text-primary font-medium text-sm rounded-lg transition-all duration-200 flex items-center justify-center hover:shadow focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50"
-                disabled={isLoading}
+                disabled={isLoadingMore}
               >
-                {isLoading ? (
+                {isLoadingMore ? (
                   <ArrowPathIcon className="w-4 h-4 mr-2 animate-spin" />
                 ) : (
                   <ArrowPathIcon className="w-4 h-4 mr-2" />
                 )}
-                {isLoading ? '加载中...' : '加载更多'}
+                {isLoadingMore ? '加载中...' : '加载更多'}
               </button>
             </li>
           )}
