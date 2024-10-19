@@ -301,7 +301,7 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
   const handleConversationClick = useCallback(async (conversation) => {
     setCurrentConversationId(conversation.id);
     setCurrentPage(1);
-    setHasMore(true);
+    setHasMore(false);
     setIsNewChat(false);
     try {
       const response = await axios.get(`/console/api/chat/conversation/${conversation.id}/messages`, {
