@@ -135,7 +135,7 @@ function RecentConversations({
 
   return (
     <div className="flex flex-col h-full bg-bg-primary">
-      <div className="px-4 py-3 border-b border-border-primary">
+      <div className="px-4 py-3">
         <div className="relative">
           <input
             type="text"
@@ -147,6 +147,7 @@ function RecentConversations({
           <MagnifyingGlassIcon className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-secondary" />
         </div>
       </div>
+      <div className="h-px bg-border-primary mx-4"></div>
       {isLoading && page === 1 ? (
         <ConversationListSkeleton />
       ) : (
@@ -214,23 +215,23 @@ function RecentConversations({
               </div>
             </li>
           ))}
+          {hasMore && (
+            <li className="mx-2 mt-2">
+              <button
+                onClick={fetchConversationHistory}
+                className="w-full py-2.5 px-4 bg-bg-secondary hover:bg-bg-tertiary text-primary font-medium text-sm rounded-lg transition-all duration-200 flex items-center justify-center hover:shadow focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ArrowPathIcon className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <ArrowPathIcon className="w-4 h-4 mr-2" />
+                )}
+                {isLoading ? '加载中...' : '加载更多'}
+              </button>
+            </li>
+          )}
         </ul>
-      )}
-      {hasMore && (
-        <div className="px-4 py-3 border-t border-border-primary">
-          <button
-            onClick={fetchConversationHistory}
-            className="w-full py-2.5 px-4 bg-bg-secondary hover:bg-bg-tertiary text-primary font-medium text-sm rounded-full transition-all duration-200 flex items-center justify-center hover:shadow focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <ArrowPathIcon className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <ArrowPathIcon className="w-4 h-4 mr-2" />
-            )}
-            {isLoading ? '加载中...' : '加载更多'}
-          </button>
-        </div>
       )}
       <DeleteConfirmationModal
         isOpen={deleteModalOpen}

@@ -213,6 +213,8 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
           handleSendMessage(initialMessage);
         }
         setIsMessagesLoaded(true);
+        setIsChatMessagesLoading(false);
+        setIsSwitchingConversation(false);
       } else if (initialConversation) {
         setCurrentConversationId(initialConversation.id);
         setIsChatMessagesLoading(true);
