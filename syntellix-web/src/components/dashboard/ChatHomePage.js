@@ -42,8 +42,8 @@ function ChatHomePage({ onChatStart, selectedAgentId }) {
             setHasRecentConversation(response.data.has_recent_conversation);
         } catch (error) {
             console.error('Failed to fetch chat details:', error);
-            setError('对话内容获取失败');
-            showToast('对话内容获取失败', 'error');
+            setError('对话信息获取失败');
+            showToast('对话信息获取失败', 'error');
         } finally {
             setLoading(false);
         }
