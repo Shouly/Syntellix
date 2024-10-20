@@ -344,7 +344,7 @@ function Dashboard({ setIsAuthenticated }) {
         </div>
       </nav>
 
-      <div className="flex-1 overflow-hidden p-1 bg-bg-secondary">
+      <div className="flex-1 overflow-hidden pt-1 pb-1 pr-1 bg-bg-secondary">
         <main className="h-full flex flex-col bg-bg-primary rounded-lg shadow-md border border-[#e0e0e0]">
           {/* Content */}
           <div className="flex-1 overflow-hidden rounded-lg">

@@ -268,12 +268,12 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
   const debouncedHandleScroll = useCallback(
     debounce(() => {
       if (chatContainerRef.current) {
-        const { scrollTop } = chatContainerRef.current;
+        const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
         if (scrollTop === 0 && hasMore && !isLoadingMore) {
           loadMoreMessages();
         }
       }
-    }, 10),  // 10ms 延迟
+    }, 100),  // 增加延迟到 100ms
     [loadMoreMessages, hasMore, isLoadingMore]
   );
 
