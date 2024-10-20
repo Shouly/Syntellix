@@ -71,7 +71,7 @@ def process_document(
 
         # 更新状态为处理中
         document.parse_status = DocumentParseStatusEnum.PROCESSING
-        document.begin_time = datetime.now()
+        document.process_begin_at = datetime.now()
         db.session.commit()
 
         chunks = parser.chunk(
@@ -128,7 +128,7 @@ def process_document(
         update_progress(1.0, "处理完成")
         document.parse_status = DocumentParseStatusEnum.COMPLETED
         document.chunk_num = total_chunks
-        document.process_duration = (datetime.now() - document.begin_time).total_seconds()
+        document.process_duration = (datetime.now() - document.process_begin_at).total_seconds()
         db.session.commit()
 
     except Exception as e:
