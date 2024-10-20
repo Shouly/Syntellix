@@ -43,7 +43,7 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
   const [currentConversation, setCurrentConversation] = useState(initialConversation || null);
   const [isSwitchingConversation, setIsSwitchingConversation] = useState(false);
 
-  const fetchConversationMessages = useCallback(async (conversationId, page = 1, perPage = 4) => {
+  const fetchConversationMessages = useCallback(async (conversationId, page = 1, perPage = 8) => {
     if (page === 1) {
       setShouldScrollToBottom(true);
     }
@@ -319,12 +319,12 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
     setCurrentConversationId(conversation.id);
     setCurrentConversation(conversation);
     setCurrentPage(1);
-    setHasMore(false);
+    // 移除 setHasMore(false)
     setIsNewChat(false);
     setIsSwitchingConversation(true);
     try {
       const response = await axios.get(`/console/api/chat/conversation/${conversation.id}/messages`, {
-        params: { page: 1, per_page: 4 }
+        params: { page: 1, per_page: 8 }
       });
       setConversationMessages(response.data.messages);
       setIsMessagesLoaded(true);
@@ -535,7 +535,7 @@ function Chat({ selectedAgent, initialMessage, initialConversation, isNewChat, s
                 重试
               </button>
             </div>
-          ) : isChatMessagesLoading || isSwitchingConversation ? (
+          ) : (isChatMessagesLoading || isSwitchingConversation) && !isLoadingMore ? (
             <ChatAreaSkeleton />
           ) : (
             <>
