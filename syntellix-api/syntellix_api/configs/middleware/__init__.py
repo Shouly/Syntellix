@@ -5,6 +5,7 @@ from pydantic import Field, NonNegativeInt, PositiveFloat, PositiveInt, computed
 from pydantic_settings import BaseSettings
 from syntellix_api.configs.middleware.cache.redis_config import RedisConfig
 from syntellix_api.configs.middleware.storage.aliyun_oss_config import AliyunOSSConfig
+from syntellix_api.configs.middleware.storage.minio_config import MinioConfig
 from syntellix_api.configs.middleware.vector_db.elasticsearch_config import (
     ElasticsearchConfig,
 )
@@ -15,8 +16,8 @@ class StorageConfig(BaseSettings):
     STORAGE_TYPE: str = Field(
         description="storage type,"
         " default to `local`,"
-        " available values are `local`, `s3`, `azure-blob`, `aliyun-oss`, `google-storage`.",
-        default="local",
+        " available values are `local`, `minio`, `aliyun-oss`.",
+        default="minio",
     )
 
     STORAGE_LOCAL_PATH: str = Field(
@@ -186,6 +187,7 @@ class MiddlewareConfig(
     KeywordStoreConfig,
     RedisConfig,
     StorageConfig,
+    MinioConfig,
     AliyunOSSConfig,
     VectorStoreConfig,
     QdrantConfig,

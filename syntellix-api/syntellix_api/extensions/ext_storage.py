@@ -3,6 +3,7 @@ from typing import Union
 
 from syntellix_api.extensions.storage.aliyun_storage import AliyunStorage
 from syntellix_api.extensions.storage.local_storage import LocalStorage
+from syntellix_api.extensions.storage.minio_storage import MinioStorage
 from flask import Flask
 
 
@@ -14,6 +15,8 @@ class Storage:
         storage_type = app.config.get("STORAGE_TYPE")
         if storage_type == "aliyun-oss":
             self.storage_runner = AliyunStorage(app=app)
+        elif storage_type == "minio":
+            self.storage_runner = MinioStorage(app=app)
         else:
             self.storage_runner = LocalStorage(app=app)
 
