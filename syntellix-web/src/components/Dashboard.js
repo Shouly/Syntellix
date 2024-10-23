@@ -104,7 +104,6 @@ function Dashboard({ setIsAuthenticated }) {
     } else {
       setShowChatHomePage(false);
     }
-    // 当切换到知识库菜单时，确保回到知识库主页面
     if (menuName === 'KnowledgeBase') {
       setIsCreatingKnowledgeBase(false);
       setSelectedKnowledgeBaseId(null);
@@ -118,6 +117,7 @@ function Dashboard({ setIsAuthenticated }) {
   const handleAgentClick = (agent) => {
     setSelectedAgentForChat(agent);
     setActiveMenu('Chat');
+    setShowChatHomePage(true);
   };
 
   const handleBackToAgent = () => {

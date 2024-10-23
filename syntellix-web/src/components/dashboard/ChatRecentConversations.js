@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { ArrowPathIcon, MagnifyingGlassIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon, MagnifyingGlassIcon, PencilSquareIcon, TrashIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { ConversationListSkeleton } from './ChatSkeletons';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
@@ -168,6 +168,13 @@ function RecentConversations({
       <div className="h-px bg-border-primary mx-4"></div>
       {isInitialLoading ? (
         <ConversationListSkeleton />
+      ) : filteredConversations.length === 0 ? (
+        <div className="flex flex-col items-center justify-center flex-1 text-text-muted">
+          <ChatBubbleLeftRightIcon className="w-12 h-12 mb-4" />
+          <p className="text-sm">
+            {searchTerm ? '没有找到匹配的对话' : '无对话记录'}
+          </p>
+        </div>
       ) : (
         <ul className="flex-1 overflow-y-auto py-2 space-y-1">
           {filteredConversations.map(chat => (
