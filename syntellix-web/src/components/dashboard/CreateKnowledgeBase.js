@@ -308,22 +308,22 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
             </div>
 
             {showEmptyKBModal && (
-                <div className="fixed inset-0 bg-text-secondary bg-opacity-50 backdrop-filter backdrop-blur-sm overflow-y-auto h-full w-full z-50">
-                    <div className="relative top-20 mx-auto p-6 border w-[450px] shadow-lg rounded-2xl bg-bg-primary bg-opacity-90">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-semibold text-text-body font-sans-sc">创建空知识库</h3>
-                            <button onClick={handleCloseModal} className="text-text-muted hover:text-text-secondary transition-colors duration-200">
-                                <XMarkIcon className="h-5 w-5" />
+                <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-filter backdrop-blur-sm overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+                    <div className="relative mx-auto p-8 border w-[480px] shadow-xl rounded-2xl bg-bg-primary">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-xl font-semibold text-text-body font-sans-sc">创建空知识库</h3>
+                            <button onClick={handleCloseModal} className="text-text-muted hover:text-text-body transition-colors duration-200">
+                                <XMarkIcon className="h-6 w-6" />
                             </button>
                         </div>
-                        <p className="text-sm text-text-body mb-6 font-sans-sc">
+                        <p className="text-sm text-text-secondary mb-8 font-sans-sc">
                             空知识库中还没有文档，你可以在今后任何时候上传文档至该知识库。
                         </p>
-                        <form onSubmit={handleSubmitEmptyKB} className="space-y-4">
+                        <form onSubmit={handleSubmitEmptyKB} className="space-y-6">
                             <div>
-                                <label htmlFor="kbName" className="block text-sm font-medium text-text-body mb-1 font-sans-sc flex items-center">
-                                    知识库名称 <span className="text-red-500">*</span>
-                                    <InfoIcon tooltip="为您的知识库起一个独特的名称，方便识别和管理。" />
+                                <label htmlFor="kbName" className="block text-sm font-medium text-text-body mb-2 font-sans-sc flex items-center">
+                                    知识库名称 <span className="text-red-500 ml-1">*</span>
+                                    <InfoIcon tooltip="为您的知识库起一个独特的名称，方便识别和管理。" className="ml-2" />
                                 </label>
                                 <input
                                     type="text"
@@ -331,27 +331,27 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
                                     value={kbName}
                                     onChange={(e) => setKbName(e.target.value)}
                                     placeholder="请输入知识库名称"
-                                    className="w-full p-2 text-sm font-tech bg-bg-secondary border border-bg-secondary rounded-md text-text-body focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                                    className="w-full p-3 text-sm font-tech bg-bg-secondary border border-bg-tertiary rounded-lg text-text-body focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
                                 />
                                 {kbNameError && (
-                                    <p className="mt-1 text-xs text-red-500 flex items-center">
-                                        <ExclamationCircleIcon className="h-3 w-3 mr-1" />
+                                    <p className="mt-2 text-sm text-red-500 flex items-center">
+                                        <ExclamationCircleIcon className="h-4 w-4 mr-1" />
                                         {kbNameError}
                                     </p>
                                 )}
                             </div>
-                            <div className="flex justify-end space-x-3">
+                            <div className="flex justify-end space-x-4">
                                 <button
                                     type="button"
                                     onClick={handleCloseModal}
-                                    className="px-4 py-2 text-sm font-medium bg-bg-secondary text-text-body rounded-md hover:bg-bg-secondary hover:bg-opacity-70 transition-colors duration-200 font-sans-sc"
+                                    className="px-6 py-2.5 text-sm font-medium bg-bg-secondary text-text-body rounded-lg hover:bg-bg-tertiary transition-colors duration-200 font-sans-sc"
                                     disabled={isLoading}
                                 >
                                     取消
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-md hover:bg-primary hover:bg-opacity-80 transition-colors duration-200 font-sans-sc flex items-center justify-center"
+                                    className="px-6 py-2.5 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors duration-200 font-sans-sc flex items-center justify-center"
                                     disabled={isLoading}
                                 >
                                     {isLoading ? (
