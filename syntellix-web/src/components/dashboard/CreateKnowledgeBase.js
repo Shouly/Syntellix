@@ -1,5 +1,5 @@
 import { ArrowLeftIcon, BookOpenIcon, CloudArrowUpIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { ArchiveBoxIcon, ArrowPathIcon, CheckIcon, CloudIcon, DocumentTextIcon, ExclamationCircleIcon, PlusIcon, XCircleIcon } from '@heroicons/react/24/solid';
+import { ArchiveBoxIcon, ArrowPathIcon, CheckCircleIcon, CloudIcon, DocumentTextIcon, ExclamationCircleIcon, PlusIcon, XCircleIcon } from '@heroicons/react/24/solid';
 import {
     mdiCodeJson,
     mdiEmail,
@@ -30,6 +30,10 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
     const [kbNameError, setKbNameError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const { showToast } = useToast();
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [currentlyUploading, setCurrentlyUploading] = useState(null);
+    const [uploadedFileIds, setUploadedFileIds] = useState([]);
 
     const handleDrag = (e) => {
         e.preventDefault();
@@ -54,13 +58,13 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
         fileInputRef.current.click();
     };
 
-    const handleFiles = (uploadedFiles) => {
+    const handleFiles = async (uploadedFiles) => {
         const newValidFiles = [];
         const newErrors = [];
         const validTypes = ['txt', 'md', 'pdf', 'html', 'xlsx', 'xls', 'docx', 'csv', 'ppt', 'json', 'eml', 'jpg', 'jpeg', 'png', 'gif'];
         const maxSize = 15 * 1024 * 1024; // 15MB in bytes
 
-        Array.from(uploadedFiles).forEach(file => {
+        for (let file of Array.from(uploadedFiles)) {
             const fileType = file.name.split('.').pop().toLowerCase();
             const isValidType = validTypes.includes(fileType);
             const isValidSize = file.size <= maxSize;
@@ -70,19 +74,53 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
             } else if (!isValidSize) {
                 newErrors.push(`文件大小超过15MB: ${file.name}`);
             } else {
-                newValidFiles.push(file);
+                newValidFiles.push({
+                    name: file.name,
+                    size: formatFileSize(file.size),
+                    file: file
+                });
             }
-        });
+        }
 
-        setFiles(prevFiles => [
-            ...prevFiles,
-            ...newValidFiles.map(file => ({
-                name: file.name,
-                size: formatFileSize(file.size),
-                file: file
-            }))
-        ]);
         setErrors(prevErrors => [...prevErrors, ...newErrors]);
+
+        for (let file of newValidFiles) {
+            setCurrentlyUploading(file.name);
+            setIsUploading(true);
+            try {
+                const result = await uploadSingleFile(file);
+                setFiles(prevFiles => [...prevFiles, { ...file, uploaded: true, result }]);
+                setUploadedFileIds(prevIds => [...prevIds, result.id]);
+            } catch (error) {
+                setErrors(prev => [...prev, `上传文件失败 ${file.name}: ${error.response?.data?.message || error.message}`]);
+                setFiles(prevFiles => [...prevFiles, { ...file, uploaded: false }]);
+            }
+            setCurrentlyUploading(null);
+        }
+        setIsUploading(false);
+    };
+
+    const uploadSingleFile = async (file) => {
+        const formData = new FormData();
+        formData.append('file', file.file);
+
+        try {
+            const response = await axios.post('/console/api/files/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                },
+                onUploadProgress: (progressEvent) => {
+                    const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                    setUploadProgress(percentCompleted);
+                }
+            });
+
+            console.log('File uploaded successfully:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            throw error;
+        }
     };
 
     const formatFileSize = (bytes) => {
@@ -136,8 +174,20 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
         }
     };
 
-    const handleDeleteFile = (indexToDelete) => {
-        setFiles(files.filter((_, index) => index !== indexToDelete));
+    const handleDeleteFile = async (indexToDelete) => {
+        const fileToDelete = files[indexToDelete];
+        if (fileToDelete.result && fileToDelete.result.id) {
+            try {
+                await axios.delete(`/console/api/files/${fileToDelete.result.id}`);
+                setFiles(files.filter((_, index) => index !== indexToDelete));
+                setUploadedFileIds(prevIds => prevIds.filter(id => id !== fileToDelete.result.id));
+            } catch (error) {
+                console.error('Error deleting file:', error);
+                setErrors(prev => [...prev, `删除文件失败 ${fileToDelete.name}: ${error.response?.data?.message || error.message}`]);
+            }
+        } else {
+            setFiles(files.filter((_, index) => index !== indexToDelete));
+        }
     };
 
     const handleCreateEmptyKB = () => {
@@ -239,30 +289,48 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
                         />
                     </div>
 
-                    {files.length > 0 && (
-                        <ul className="space-y-2">
-                            {files.map((file, index) => (
-                                <li
-                                    key={index}
-                                    className="flex items-center text-sm text-text-body bg-bg-secondary bg-opacity-50 backdrop-blur-sm rounded-lg p-3 shadow-sm hover:bg-bg-secondary hover:bg-opacity-70 transition-colors duration-200 group"
-                                >
-                                    {getFileIcon(file.name)}
-                                    <div className="flex-1 ml-3 overflow-hidden">
-                                        <div className="flex items-center">
-                                            <span className="font-semibold truncate mr-2">{file.name}</span>
-                                            <span className="text-text-muted text-xs whitespace-nowrap">{file.size}</span>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => handleDeleteFile(index)}
-                                        className="ml-2 text-text-muted hover:text-red-500 transition-colors duration-200 opacity-0 group-hover:opacity-100"
+                    <div className="space-y-4">
+                        {files.length > 0 && (
+                            <ul className="space-y-2">
+                                {files.map((file, index) => (
+                                    <li
+                                        key={index}
+                                        className="flex items-center text-sm text-text-body bg-bg-secondary bg-opacity-50 backdrop-blur-sm rounded-lg p-3 shadow-sm hover:bg-bg-secondary hover:bg-opacity-70 transition-colors duration-200 group"
                                     >
-                                        <XCircleIcon className="w-5 h-5" />
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
+                                        {getFileIcon(file.name)}
+                                        <div className="flex-1 ml-3 overflow-hidden">
+                                            <div className="flex items-center">
+                                                <span className="font-semibold truncate mr-2">{file.name}</span>
+                                                <span className="text-text-muted text-xs whitespace-nowrap">{file.size}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            {file.uploaded ? (
+                                                <CheckCircleIcon className="w-5 h-5 text-success" />
+                                            ) : file.name === currentlyUploading ? (
+                                                <ArrowPathIcon className="w-5 h-5 text-warning animate-spin" />
+                                            ) : (
+                                                <div className="w-5 h-5" />
+                                            )}
+                                            <XCircleIcon 
+                                                className="w-5 h-5 text-danger cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-200" 
+                                                onClick={() => handleDeleteFile(index)}
+                                            />
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+
+                        {isUploading && (
+                            <div className="w-full bg-bg-secondary rounded-full h-1.5">
+                                <div 
+                                    className="h-1.5 rounded-full transition-all duration-500 ease-in-out bg-primary" 
+                                    style={{ width: `${uploadProgress}%` }}
+                                />
+                            </div>
+                        )}
+                    </div>
 
                     {errors.length > 0 && (
                         <div className="bg-danger bg-opacity-10 border border-danger border-opacity-20 rounded-lg p-4 mt-4">
@@ -374,7 +442,7 @@ function StepItem({ number, text, active = false, completed = false }) {
     return (
         <li className={`flex items-center ${active ? 'text-text-body' : 'text-text-muted'}`}>
             <span className={`w-6 h-6 flex items-center justify-center rounded-full mr-3 z-10 ${completed ? 'bg-primary text-white' : active ? 'bg-primary text-white font-semibold' : 'bg-bg-secondary'}`}>
-                {completed ? <CheckIcon className="w-4 h-4" /> : number}
+                {completed ? <CheckCircleIcon className="w-4 h-4" /> : number}
             </span>
             <span className={`font-sans-sc text-sm ${active ? 'font-semibold' : ''}`}>{text}</span>
         </li>
