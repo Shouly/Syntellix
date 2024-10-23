@@ -19,6 +19,9 @@ import axios from 'axios'; // 确保已安装 axios
 import React, { useRef, useState } from 'react';
 import InfoIcon from '../../components/InfoIcon';
 import { useToast } from '../../components/Toast';
+import TextSplitting from './TextSplitting';
+import ProcessingStatus from './ProcessingStatus';
+import KnowledgeBaseDetail from './KnowledgeBaseDetail';
 
 function CreateKnowledgeBase({ onBack, onCreated }) {
     const [dragActive, setDragActive] = useState(false);
@@ -33,7 +36,10 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
     const [isUploading, setIsUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [currentlyUploading, setCurrentlyUploading] = useState(null);
+    const [currentStep, setCurrentStep] = useState(1);
     const [uploadedFileIds, setUploadedFileIds] = useState([]);
+    const [knowledgeBaseId, setKnowledgeBaseId] = useState(null);
+    const [showKnowledgeBaseDetail, setShowKnowledgeBaseDetail] = useState(false);
 
     const handleDrag = (e) => {
         e.preventDefault();
@@ -224,6 +230,40 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
         }
     };
 
+    const handleNextStep = () => {
+        if (currentStep === 1) {
+            setCurrentStep(2);
+        }
+    };
+
+    const handlePreviousStep = () => {
+        if (currentStep === 2) {
+            setCurrentStep(1);
+        }
+    };
+
+    const handleProcessingComplete = (newKnowledgeBaseId, fileIds) => {
+        setKnowledgeBaseId(newKnowledgeBaseId);
+        setUploadedFileIds(fileIds);
+        setCurrentStep(3);
+    };
+
+    const handleBackToDocuments = () => {
+        setShowKnowledgeBaseDetail(true);
+    };
+
+    if (showKnowledgeBaseDetail) {
+        return (
+            <KnowledgeBaseDetail 
+                id={knowledgeBaseId} 
+                onBack={() => {
+                    setShowKnowledgeBaseDetail(false);
+                    onCreated();
+                }}
+            />
+        );
+    }
+
     return (
         <div className="flex h-full overflow-hidden">
             {/* Left sidebar */}
@@ -238,141 +278,160 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
                 </div>
                 <ol className="space-y-4 relative">
                     <div className="absolute left-3 top-6 bottom-0 w-0.5 bg-bg-tertiary"></div>
-                    <StepItem number={1} text="选数据源" active />
-                    <StepItem number={2} text="文本切分" />
-                    <StepItem number={3} text="处理完成" />
+                    <StepItem number={1} text="选数据源" active={currentStep === 1} completed={currentStep > 1} />
+                    <StepItem number={2} text="文本切分" active={currentStep === 2} completed={currentStep > 2} />
+                    <StepItem number={3} text="处理完成" active={currentStep === 3} />
                 </ol>
             </div>
 
             {/* Main content area */}
             <div className="flex-1 overflow-y-auto bg-bg-primary p-6 px-12">
-                <div className="space-y-6">
-                    <div className="flex items-center mb-6">
-                        <h3 className="text-lg font-semibold text-text-body font-sans-sc">选择数据源</h3>
-                    </div>
-                    <p className="text-sm text-text-secondary font-sans-sc -mt-1">
-                        选择您要导入到知识库的数据源。
-                    </p>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 font-medium">
-                        <DataSourceButton icon={DocumentTextIcon} text="导入本地文件" active />
-                        <DataSourceButton icon={CloudIcon} text="同步钉钉文档" developing />
-                        <DataSourceButton icon={ArchiveBoxIcon} text="同步微盘文档" developing />
-                        <DataSourceButton icon={BookOpenIcon} text="同步飞书文档" developing />
-                        <DataSourceButton icon={PlusIcon} text="更多数据源" />
-                    </div>
-
-                    <div
-                        className={`rounded-lg p-8 border-2 border-dashed transition-colors duration-200 cursor-pointer ${dragActive ? 'border-primary bg-primary bg-opacity-5' : 'border-bg-secondary hover:border-primary'
-                            }`}
-                        onDragEnter={handleDrag}
-                        onDragLeave={handleDrag}
-                        onDragOver={handleDrag}
-                        onDrop={handleDrop}
-                        onClick={handleClick}
-                    >
-                        <div className="text-center">
-                            <CloudArrowUpIcon className={`w-16 h-16 mx-auto mb-4 ${dragActive ? 'text-primary' : 'text-text-muted'}`} />
-                            <p className="text-sm text-text-body mb-2 font-sans-sc">
-                                点击或拖拽文件至此区域即可上传
-                            </p>
-                            <p className="text-xs text-text-muted font-sans-sc">
-                                支持 TXT、MARKDOWN、PDF、HTML、XLSX、XLS、DOCX、CSV、PPT、JSON、EML、IMAGE，每个文件不超过 15MB
-                            </p>
+                {currentStep === 1 && (
+                    <div className="space-y-6">
+                        <div className="flex items-center mb-6">
+                            <h3 className="text-lg font-semibold text-text-body font-sans-sc">选择数据源</h3>
                         </div>
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleFileInputChange}
-                            style={{ display: 'none' }}
-                            multiple
-                        />
-                    </div>
+                        <p className="text-sm text-text-secondary font-sans-sc -mt-1">
+                            选择您要导入到知识库的数据源。
+                        </p>
 
-                    <div className="space-y-4">
-                        {files.length > 0 && (
-                            <ul className="space-y-2">
-                                {files.map((file, index) => (
-                                    <li
-                                        key={index}
-                                        className="flex items-center text-sm text-text-body bg-bg-secondary bg-opacity-50 backdrop-blur-sm rounded-lg p-3 shadow-sm hover:bg-bg-secondary hover:bg-opacity-70 transition-colors duration-200 group"
-                                    >
-                                        {getFileIcon(file.name)}
-                                        <div className="flex-1 ml-3 overflow-hidden">
-                                            <div className="flex items-center">
-                                                <span className="font-semibold truncate mr-2">{file.name}</span>
-                                                <span className="text-text-muted text-xs whitespace-nowrap">{file.size}</span>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            {file.uploaded ? (
-                                                <CheckCircleIcon className="w-5 h-5 text-success" />
-                                            ) : file.name === currentlyUploading ? (
-                                                <ArrowPathIcon className="w-5 h-5 text-warning animate-spin" />
-                                            ) : (
-                                                <div className="w-5 h-5" />
-                                            )}
-                                            <XCircleIcon 
-                                                className="w-5 h-5 text-danger cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-200" 
-                                                onClick={() => handleDeleteFile(index)}
-                                            />
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 font-medium">
+                            <DataSourceButton icon={DocumentTextIcon} text="导入本地文件" active />
+                            <DataSourceButton icon={CloudIcon} text="同步钉钉文档" developing />
+                            <DataSourceButton icon={ArchiveBoxIcon} text="同步微盘文档" developing />
+                            <DataSourceButton icon={BookOpenIcon} text="同步飞书文档" developing />
+                            <DataSourceButton icon={PlusIcon} text="更多数据源" />
+                        </div>
 
-                        {isUploading && (
-                            <div className="w-full bg-bg-secondary rounded-full h-1.5">
-                                <div 
-                                    className="h-1.5 rounded-full transition-all duration-500 ease-in-out bg-primary" 
-                                    style={{ width: `${uploadProgress}%` }}
-                                />
+                        <div
+                            className={`rounded-lg p-8 border-2 border-dashed transition-colors duration-200 cursor-pointer ${dragActive ? 'border-primary bg-primary bg-opacity-5' : 'border-bg-secondary hover:border-primary'
+                                }`}
+                            onDragEnter={handleDrag}
+                            onDragLeave={handleDrag}
+                            onDragOver={handleDrag}
+                            onDrop={handleDrop}
+                            onClick={handleClick}
+                        >
+                            <div className="text-center">
+                                <CloudArrowUpIcon className={`w-16 h-16 mx-auto mb-4 ${dragActive ? 'text-primary' : 'text-text-muted'}`} />
+                                <p className="text-sm text-text-body mb-2 font-sans-sc">
+                                    点击或拖拽文件至此区域即可上传
+                                </p>
+                                <p className="text-xs text-text-muted font-sans-sc">
+                                    支持 TXT、MARKDOWN、PDF、HTML、XLSX、XLS、DOCX、CSV、PPT、JSON、EML、IMAGE，每个文件不超过 15MB
+                                </p>
                             </div>
-                        )}
-                    </div>
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleFileInputChange}
+                                style={{ display: 'none' }}
+                                multiple
+                            />
+                        </div>
 
-                    {errors.length > 0 && (
-                        <div className="bg-danger bg-opacity-10 border border-danger border-opacity-20 rounded-lg p-4 mt-4">
-                            <div className="flex">
-                                <ExclamationCircleIcon className="h-5 w-5 text-danger" aria-hidden="true" />
-                                <div className="ml-3">
-                                    <h3 className="text-sm font-medium text-danger">上传出现以下问题：</h3>
-                                    <div className="mt-2 text-sm text-danger text-opacity-90">
-                                        <ul className="list-disc pl-5 space-y-1">
-                                            {errors.map((error, index) => (
-                                                <li key={index}>{error}</li>
-                                            ))}
-                                        </ul>
+                        <div className="space-y-4">
+                            {files.length > 0 && (
+                                <ul className="space-y-2">
+                                    {files.map((file, index) => (
+                                        <li
+                                            key={index}
+                                            className="flex items-center text-sm text-text-body bg-bg-secondary bg-opacity-50 backdrop-blur-sm rounded-lg p-3 shadow-sm hover:bg-bg-secondary hover:bg-opacity-70 transition-colors duration-200 group"
+                                        >
+                                            {getFileIcon(file.name)}
+                                            <div className="flex-1 ml-3 overflow-hidden">
+                                                <div className="flex items-center">
+                                                    <span className="font-semibold truncate mr-2">{file.name}</span>
+                                                    <span className="text-text-muted text-xs whitespace-nowrap">{file.size}</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                {file.uploaded ? (
+                                                    <CheckCircleIcon className="w-5 h-5 text-success" />
+                                                ) : file.name === currentlyUploading ? (
+                                                    <ArrowPathIcon className="w-5 h-5 text-warning animate-spin" />
+                                                ) : (
+                                                    <div className="w-5 h-5" />
+                                                )}
+                                                <XCircleIcon 
+                                                    className="w-5 h-5 text-danger cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-200" 
+                                                    onClick={() => handleDeleteFile(index)}
+                                                />
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+
+                            {isUploading && (
+                                <div className="w-full bg-bg-secondary rounded-full h-1.5">
+                                    <div 
+                                        className="h-1.5 rounded-full transition-all duration-500 ease-in-out bg-primary" 
+                                        style={{ width: `${uploadProgress}%` }}
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        {errors.length > 0 && (
+                            <div className="bg-danger bg-opacity-10 border border-danger border-opacity-20 rounded-lg p-4 mt-4">
+                                <div className="flex">
+                                    <ExclamationCircleIcon className="h-5 w-5 text-danger" aria-hidden="true" />
+                                    <div className="ml-3">
+                                        <h3 className="text-sm font-medium text-danger">上传出现以下问题：</h3>
+                                        <div className="mt-2 text-sm text-danger text-opacity-90">
+                                            <ul className="list-disc pl-5 space-y-1">
+                                                {errors.map((error, index) => (
+                                                    <li key={index}>{error}</li>
+                                                ))}
+                                            </ul>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                            <button
-                                className={`text-sm font-semibold py-2.5 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 ${files.length > 0
-                                    ? 'bg-primary hover:bg-opacity-80 text-white'
-                                    : 'bg-bg-secondary text-text-muted cursor-not-allowed'
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                                <button
+                                    onClick={handleNextStep}
+                                    className={`text-sm font-semibold py-2.5 px-6 rounded-lg flex items-center justify-center transition-colors duration-200 ${
+                                        files.length > 0 && files.every(file => file.uploaded)
+                                            ? 'bg-primary hover:bg-opacity-80 text-white'
+                                            : 'bg-bg-secondary text-text-muted cursor-not-allowed'
                                     }`}
-                                disabled={files.length === 0}
-                            >
-                                <span className="font-sans-sc">下一步</span>
-                            </button>
-                        </div>
-                        <div className="flex justify-center">
-                            <button
-                                className="text-sm bg-white border border-primary text-text-body hover:bg-primary hover:bg-opacity-10 font-semibold py-2.5 px-6 rounded-lg flex items-center justify-center transition-colors duration-200"
-                                onClick={handleCreateEmptyKB}
-                            >
-                                <PlusIcon className="w-4 h-4 mr-2" />
-                                <span className="font-sans-sc">创建一个空知识库</span>
-                            </button>
+                                    disabled={files.length === 0 || !files.every(file => file.uploaded)}
+                                >
+                                    <span className="font-sans-sc">下一步</span>
+                                </button>
+                            </div>
+                            <div className="flex justify-center">
+                                <button
+                                    className="text-sm bg-white border border-primary text-text-body hover:bg-primary hover:bg-opacity-10 font-semibold py-2.5 px-6 rounded-lg flex items-center justify-center transition-colors duration-200"
+                                    onClick={handleCreateEmptyKB}
+                                >
+                                    <PlusIcon className="w-4 h-4 mr-2" />
+                                    <span className="font-sans-sc">创建一个空知识库</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
+                {currentStep === 2 && (
+                    <TextSplitting 
+                        onNextStep={handleProcessingComplete}
+                        onPreviousStep={handlePreviousStep}
+                        knowledgeBaseId={knowledgeBaseId}
+                        fileIds={uploadedFileIds}
+                    />
+                )}
+                {currentStep === 3 && (
+                    <ProcessingStatus 
+                        onBackToDocuments={handleBackToDocuments}
+                        knowledgeBaseId={knowledgeBaseId}
+                        fileIds={uploadedFileIds}
+                    />
+                )}
             </div>
 
             {showEmptyKBModal && (

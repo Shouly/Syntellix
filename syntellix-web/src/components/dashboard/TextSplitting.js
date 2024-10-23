@@ -185,7 +185,7 @@ const methodDescriptions = {
 
 function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds }) {
     const [splitConfig, setSplitConfig] = useState({
-        method: 'naive', // 默认设置为 'naive'，对应"通用"
+        method: 'naive',
         chunkSize: 1024,
         separator: '\\n!?。；！？',
         layoutAware: true
@@ -223,7 +223,11 @@ function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds })
         setError('');
         setIsProcessing(true);
         try {
-            const response = await axios.post(`/console/api/knowledge-bases/${knowledgeBaseId}/documents`, {
+            const endpoint = knowledgeBaseId 
+                ? `/console/api/knowledge-bases/${knowledgeBaseId}/documents`
+                : '/console/api/knowledge-bases/documents';
+
+            const payload = {
                 data_source: {
                     type: 'upload_file',
                 },
@@ -234,11 +238,15 @@ function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds })
                     separator: splitConfig.separator,
                     layout_aware: splitConfig.layoutAware
                 }
-            });
+            };
+
+            const response = await axios.post(endpoint, payload);
 
             console.log('Documents processed:', response.data);
             showToast('保存成功', 'success');
-            onNextStep(knowledgeBaseId, fileIds);
+            
+            // Use the returned knowledge_base_id for the next step
+            onNextStep(response.data.knowledge_base_id, fileIds);
         } catch (error) {
             console.error('Error processing documents:', error);
             setError(error.response?.data?.message || '保存失败，请重试。');

@@ -1,3 +1,4 @@
+import datetime
 import json
 
 from flask import request
@@ -61,13 +62,38 @@ class KnowledgeBaseDocumentListApi(Resource):
     documents_and_batch_fields = {
         "documents": fields.List(fields.Nested(document_fields)),
         "batch": fields.String,
+        "knowledge_base_id": fields.Integer,
     }
 
     @login_required
     @marshal_with(documents_and_batch_fields)
-    def post(self, knowledge_base_id):
+    def post(self, knowledge_base_id=None):
+        parser = reqparse.RequestParser()
+        parser.add_argument(
+            "data_source", type=dict, required=True, nullable=True, location="json"
+        )
+        parser.add_argument("file_ids", type=list, required=True, location="json")
+        parser.add_argument("parser_type", type=str, required=True, location="json")
+        parser.add_argument("parser_config", type=dict, required=False, location="json")
+        parser.add_argument(
+            "knowledge_base_name", type=str, required=False, location="json"
+        )
+        args = parser.parse_args()
 
-        knowledge_base = KonwledgeBaseService.get_knowledge_base(knowledge_base_id)
+        if knowledge_base_id is None:
+            # Create a new knowledge base
+            kb_name = (
+                args.get("knowledge_base_name")
+                or f"知识库 {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+            )
+            knowledge_base = KonwledgeBaseService.create_empty_knowledge_base(
+                tenant_id=current_user.current_tenant_id,
+                name=kb_name,
+                account=current_user,
+            )
+            knowledge_base_id = knowledge_base.id
+        else:
+            knowledge_base = KonwledgeBaseService.get_knowledge_base(knowledge_base_id)
 
         if not knowledge_base:
             raise NotFound("Knowledge base not found.")
@@ -83,19 +109,11 @@ class KnowledgeBaseDocumentListApi(Resource):
         except NoPermissionError as e:
             raise Forbidden(str(e))
 
-        parser = reqparse.RequestParser()
-        parser.add_argument(
-            "data_source", type=dict, required=True, nullable=True, location="json"
-        )
-        parser.add_argument("file_ids", type=list, required=True, location="json")
-        parser.add_argument("parser_type", type=str, required=True, location="json")
-        parser.add_argument("parser_config", type=dict, required=False, location="json")
-        args = parser.parse_args()
         documents, batch = DocumentService.save_documents(
             knowledge_base, args, current_user
         )
 
-        return {"documents": documents, "batch": batch}
+        return {"documents": documents, "batch": batch, "knowledge_base_id": knowledge_base_id}
 
 
 class KnowledgeBaseDocumentProgressApi(Resource):
@@ -120,7 +138,9 @@ class KnowledgeBaseDocumentProgressApi(Resource):
 
 
 api.add_resource(
-    KnowledgeBaseDocumentListApi, "/knowledge-bases/<int:knowledge_base_id>/documents"
+    KnowledgeBaseDocumentListApi,
+    "/knowledge-bases/documents",
+    "/knowledge-bases/<int:knowledge_base_id>/documents",
 )
 api.add_resource(
     KnowledgeBaseDocumentProgressApi,
