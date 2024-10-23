@@ -499,9 +499,16 @@ function CreateKnowledgeBase({ onBack, onCreated }) {
 
 function StepItem({ number, text, active = false, completed = false }) {
     return (
-        <li className={`flex items-center ${active ? 'text-text-body' : 'text-text-muted'}`}>
-            <span className={`w-6 h-6 flex items-center justify-center rounded-full mr-3 z-10 ${completed ? 'bg-primary text-white' : active ? 'bg-primary text-white font-semibold' : 'bg-bg-secondary'}`}>
-                {completed ? <CheckCircleIcon className="w-4 h-4" /> : number}
+        <li className={`flex items-center ${active ? 'text-primary' : completed ? 'text-primary' : 'text-text-muted'}`}>
+            <span className={`w-6 h-6 flex items-center justify-center rounded-full mr-3 z-10 ${
+                active ? 'bg-primary bg-opacity-10 text-primary font-semibold' : 
+                completed ? 'bg-primary bg-opacity-10 text-primary' : 'bg-bg-secondary'
+            }`}>
+                {completed ? (
+                    <CheckCircleIcon className="w-4 h-4" />
+                ) : (
+                    number
+                )}
             </span>
             <span className={`font-sans-sc text-sm ${active ? 'font-semibold' : ''}`}>{text}</span>
         </li>
