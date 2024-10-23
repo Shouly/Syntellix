@@ -155,7 +155,7 @@ function Agent({ onCreateNew, onAgentClick }) {
 
         return (
             <div
-                onClick={() => onAgentClick(agent.id)}
+                onClick={() => onAgentClick(agent)}
                 onMouseEnter={() => setShowActions(true)}
                 onMouseLeave={() => setShowActions(false)}
                 className="bg-gradient-to-br from-bg-primary to-bg-secondary rounded-lg shadow-sm overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-md flex flex-col h-64 relative"

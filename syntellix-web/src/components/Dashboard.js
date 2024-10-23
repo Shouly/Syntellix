@@ -115,8 +115,8 @@ function Dashboard({ setIsAuthenticated }) {
     }
   };
 
-  const handleAgentClick = (id) => {
-    setSelectedAgentForChat(id);
+  const handleAgentClick = (agent) => {
+    setSelectedAgentForChat(agent);
     setActiveMenu('Chat');
   };
 
