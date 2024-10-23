@@ -249,7 +249,7 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
     <div className="h-full flex flex-col">
       {/* Header - 优化样式 */}
       <header className="flex items-center justify-between py-2 px-3 bg-bg-primary border-b border-border-primary">
-        <h2 className="text-base font-bold text-primary">知识库</h2>
+        <h2 className="text-lg font-bold text-primary">知识库</h2>
         <div className="flex items-center space-x-3">
           <div className="relative">
             <input
