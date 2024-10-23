@@ -234,9 +234,9 @@ function TextSplitting({ onNextStep, onPreviousStep, knowledgeBaseId, fileIds })
                 file_ids: fileIds,
                 parser_type: splitConfig.method,
                 parser_config: {
-                    chunk_size: splitConfig.chunkSize,
-                    separator: splitConfig.separator,
-                    layout_aware: splitConfig.layoutAware
+                    chunk_token_num: splitConfig.chunkSize,
+                    delimiter: splitConfig.separator,
+                    layout_recognize: splitConfig.layoutAware
                 }
             };
 

@@ -74,6 +74,8 @@ def process_document(
         document.process_begin_at = datetime.now()
         db.session.commit()
 
+        print(f"parser_config: {parser_config}")
+
         chunks = parser.chunk(
             document.name,
             binary=file_binary,

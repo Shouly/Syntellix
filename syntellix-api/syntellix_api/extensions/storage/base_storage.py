@@ -37,3 +37,7 @@ class BaseStorage(ABC):
     @abstractmethod
     def delete(self, filename):
         raise NotImplementedError
+
+    @abstractmethod
+    def get_url(self, filename):
+        raise NotImplementedError

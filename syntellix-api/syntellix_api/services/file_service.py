@@ -95,7 +95,7 @@ class FileService:
         current_tenant_id = user.current_tenant_id
 
         file_key = (
-            "upload_files/" + str(current_tenant_id) + "/" + file_uuid + "." + extension
+            "files/" + str(current_tenant_id) + "/" + file_uuid + "." + extension
         )
 
         # save file to storage

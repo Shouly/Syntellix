@@ -91,3 +91,6 @@ class MinioStorage(BaseStorage):
         except S3Error as e:
             self.app.logger.error(f"Error deleting file from MinIO: {e}")
             raise
+    
+    def get_url(self, filename):
+        return f"{self.app.config['MINIO_ENDPOINT']}/{self.bucket_name}/{filename}"

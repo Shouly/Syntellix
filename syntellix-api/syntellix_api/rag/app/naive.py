@@ -222,6 +222,7 @@ def chunk(
         "parser_config",
         {"chunk_token_num": 128, "delimiter": "\n!?。；！？", "layout_recognize": True},
     )
+    print(f"parser_config in naive: {parser_config}")
     doc = {
         "docnm_kwd": filename,
         "title_tks": rag_tokenizer.tokenize(re.sub(r"\.[a-zA-Z]+$", "", filename)),
