@@ -342,5 +342,5 @@ if __name__ == "__main__":
 
     def dummy(prog=None, msg=""):
         pass
-    ensure_nltk_resources()
-    chunk("/Users/liangbing/Downloads/%E7%9F%A5%E8%AF%86%E5%BA%93/DMS%E7%B3%BB%E7%BB%9F%E4%BB%8B%E7%BB%8D.docx", from_page=0, to_page=10, callback=dummy)
+    # ensure_nltk_resources()
+    chunk("/Users/liangbing/Downloads/test.docx", from_page=0, to_page=10, callback=dummy)

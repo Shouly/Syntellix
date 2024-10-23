@@ -92,14 +92,14 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
       <select
         value={selectedTag}
         onChange={(e) => setSelectedTag(e.target.value)}
-        className="pl-10 pr-8 py-2 text-sm rounded-md bg-bg-primary border border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 appearance-none cursor-pointer font-noto-sans-sc text-text-body"
+        className="pl-8 pr-6 py-1.5 text-sm rounded-md bg-bg-secondary border border-bg-tertiary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 appearance-none cursor-pointer font-noto-sans-sc text-text-body"
       >
         {tags.map((tag) => (
           <option key={tag} value={tag}>{tag}</option>
         ))}
       </select>
-      <FunnelIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-primary" />
-      <ChevronDownIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-primary pointer-events-none" />
+      <FunnelIcon className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-secondary" />
+      <ChevronDownIcon className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-secondary pointer-events-none" />
     </div>
   );
 
@@ -247,19 +247,19 @@ function KnowledgeBase({ onCreateNew, onKnowledgeBaseClick }) {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Header - 移到内容区域外 */}
-      <header className="flex items-center justify-between py-2 px-6 border-b border-bg-tertiary bg-bg-primary">
-        <h2 className="text-lg font-bold text-primary font-noto-sans-sc">知识库</h2>
-        <div className="flex items-center space-x-4">
+      {/* Header - 优化样式 */}
+      <header className="flex items-center justify-between py-2 px-3 bg-bg-primary border-b border-border-primary">
+        <h2 className="text-base font-bold text-primary">知识库</h2>
+        <div className="flex items-center space-x-3">
           <div className="relative">
             <input
               type="text"
               placeholder="搜索知识库..."
               value={searchTerm}
               onChange={handleSearch}
-              className="pl-10 pr-4 py-2 w-64 text-sm rounded-md bg-bg-secondary border border-bg-tertiary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+              className="pl-10 pr-4 py-1.5 w-48 text-sm rounded-md bg-bg-secondary border border-bg-tertiary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
             />
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-text-secondary" />
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-secondary" />
           </div>
           <TagSelector tags={tags} selectedTag={selectedTag} setSelectedTag={setSelectedTag} />
         </div>
