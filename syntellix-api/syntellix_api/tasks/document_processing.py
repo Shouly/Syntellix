@@ -168,7 +168,9 @@ def process_document(
         db.session.commit()
 
     except Exception as e:
+        import traceback
         logger.error(f"Error processing document {document_id}: {str(e)}")
+        logger.error(traceback.format_exc())
         document.parse_status = DocumentParseStatusEnum.FAILED
         document.progress_msg = f"Processing failed: {str(e)}"
         document.progress = 0
