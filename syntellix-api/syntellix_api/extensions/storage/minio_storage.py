@@ -95,25 +95,39 @@ class MinioStorage(BaseStorage):
     def get_url(self, filename):
         return f"{self.app.config['MINIO_ENDPOINT']}/{self.bucket_name}/{filename}"
 
-    def load_text(
-        self, filename: str, encoding="utf-8", fallback_encodings=["gbk", "latin1"]
-    ) -> str:
+    def load_text(self, filename: str, encoding: str = None) -> str:
+        """
+        Load text file with automatic encoding detection.
+
+        Args:
+            filename: The name of the file to load
+            encoding: Optional explicit encoding to use. If None, will auto-detect
+
+        Returns:
+            str: The decoded text content
+        """
         try:
             content = self.load_once(filename)
-            # 尝试主要编码
-            try:
+
+            if encoding:
                 return content.decode(encoding)
-            except UnicodeDecodeError:
-                # 尝试备选编码
-                for fallback_encoding in fallback_encodings:
-                    try:
-                        return content.decode(fallback_encoding)
-                    except UnicodeDecodeError:
-                        continue
-                # 如果所有编码都失败，抛出异常
+
+            # Use chardet to detect encoding
+            import chardet
+
+            detected = chardet.detect(content)
+            detected_encoding = detected["encoding"]
+
+            if not detected_encoding:
                 raise UnicodeDecodeError(
-                    f"Failed to decode file with encodings: {[encoding] + fallback_encodings}"
+                    f"Could not detect encoding for file: {filename}"
                 )
+
+            self.app.logger.debug(
+                f"Detected encoding {detected_encoding} for file {filename}"
+            )
+            return content.decode(detected_encoding)
+
         except S3Error as e:
             self.app.logger.error(f"Error loading file from MinIO: {e}")
             raise

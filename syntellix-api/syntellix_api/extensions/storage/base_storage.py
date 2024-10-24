@@ -43,5 +43,5 @@ class BaseStorage(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def load_text(self, filename: str, encoding="utf-8", fallback_encodings=["gbk", "latin1"]) -> str:
+    def load_text(self, filename: str, encoding: str = None) -> str:
         raise NotImplementedError
