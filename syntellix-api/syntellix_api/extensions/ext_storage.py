@@ -44,6 +44,12 @@ class Storage:
     def delete(self, filename):
         return self.storage_runner.delete(filename)
 
+    def get_url(self, filename):
+        return self.storage_runner.get_url(filename)
+
+    def load_text(self, filename: str, encoding="utf-8", fallback_encodings=["gbk", "latin1"]) -> str:
+        return self.storage_runner.load_text(filename, encoding, fallback_encodings)
+
 
 storage = Storage()
 

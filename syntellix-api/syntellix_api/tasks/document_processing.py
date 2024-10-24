@@ -1,9 +1,12 @@
 import logging
+import traceback
 from datetime import datetime
+from io import BytesIO
 
 from celery import shared_task
 from syntellix_api.configs import syntellix_config
 from syntellix_api.extensions.ext_database import db
+from syntellix_api.extensions.ext_storage import storage
 from syntellix_api.models.dataset_model import (
     Document,
     DocumentParserTypeEnum,
@@ -25,10 +28,11 @@ from syntellix_api.rag.app import (
     resume,
     table,
 )
-from syntellix_api.rag.vector_database.vector_service import VectorService
-from syntellix_api.rag.vector_database.vector_model import BaseNode
-from syntellix_api.services.file_service import FileService
+from syntellix_api.rag.ext.contextual_rag import situate_context
 from syntellix_api.rag.llm.embedding_model_local import EmbeddingModel
+from syntellix_api.rag.vector_database.vector_model import BaseNode
+from syntellix_api.rag.vector_database.vector_service import VectorService
+from syntellix_api.services.file_service import FileService
 
 logger = logging.getLogger(__name__)
 
@@ -67,14 +71,14 @@ def process_document(
             document.progress = int(progress * 100)
             document.progress_msg = message
             db.session.commit()
-            logger.info(f"Document {document_id} progress: {document.progress}% - {message}")
+            logger.info(
+                f"Document {document_id} progress: {document.progress}% - {message}"
+            )
 
         # 更新状态为处理中
         document.parse_status = DocumentParseStatusEnum.PROCESSING
         document.process_begin_at = datetime.now()
         db.session.commit()
-
-        print(f"parser_config: {parser_config}")
 
         chunks = parser.chunk(
             document.name,
@@ -94,28 +98,57 @@ def process_document(
         update_progress(0.5, "文件解析完成，开始嵌入过程")
 
         vector_service = VectorService(tenant_id)
-        
+
         # Initialize the embedding model
-        embedding_model = EmbeddingModel(model_name=syntellix_config.EMBEDDING_MODEL_NAME)
-        
+        embedding_model = EmbeddingModel(
+            model_name=syntellix_config.EMBEDDING_MODEL_NAME
+        )
+
         nodes = []
         total_chunks = len(chunks)
         print(f"total_chunks: {total_chunks}")
         for i, chunk in enumerate(chunks, 1):
             text = chunk["content_with_weight"]
+
+            # add contextualized_content
+            contextualized_content = situate_context(
+                FileService.read_file_text(file_key), text
+            )
+
             # Calculate embedding for each text chunk individually
-            vector = embedding_model.encode([text])[0]
-            
+            vector = embedding_model.encode([f"{text}\n\n{contextualized_content}"])[0]
+
             node = BaseNode(
                 content=text,
+                contextualized_content=contextualized_content,
                 embedding=vector,
                 metadata={
                     "file_name": document.name,
                     "document_id": document_id,
                     "knowledge_base_id": knowledge_base_id,
+                    "image_id": "",
                     "created_at": datetime.now(),
-                }
+                },
             )
+
+            if chunk.get("image"):
+                try:
+                    output_buffer = BytesIO()
+                    if isinstance(chunk["image"], bytes):
+                        output_buffer.write(chunk["image"])
+                    else:
+                        chunk["image"].save(output_buffer, format="JPEG")
+                    output_buffer.seek(0)
+
+                    img_id = f"{knowledge_base_id}-{document_id}-{node.node_id}"
+                    image_filename = f"images/{tenant_id}/{img_id}.jpg"
+                    storage.save(image_filename, output_buffer.getvalue())
+
+                    node.metadata["image_id"] = img_id
+                    logger.info(f"Image saved: {image_filename}")
+                except Exception as e:
+                    logger.error(traceback.format_exc())
+
             nodes.append(node)
 
             # Update progress for embedding process
@@ -123,14 +156,16 @@ def process_document(
             update_progress(embedding_progress, f"嵌入进度: {i}/{total_chunks}")
 
         update_progress(0.9, "文件嵌入完成，开始保存嵌入数据")
-        
+
         # Add nodes to vector database
         vector_service.add_nodes(nodes)
 
         update_progress(1.0, "处理完成")
         document.parse_status = DocumentParseStatusEnum.COMPLETED
         document.chunk_num = total_chunks
-        document.process_duration = (datetime.now() - document.process_begin_at).total_seconds()
+        document.process_duration = (
+            datetime.now() - document.process_begin_at
+        ).total_seconds()
         db.session.commit()
 
     except Exception as e:

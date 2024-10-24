@@ -41,3 +41,7 @@ class BaseStorage(ABC):
     @abstractmethod
     def get_url(self, filename):
         raise NotImplementedError
+
+    @abstractmethod
+    def load_text(self, filename: str, encoding="utf-8", fallback_encodings=["gbk", "latin1"]) -> str:
+        raise NotImplementedError

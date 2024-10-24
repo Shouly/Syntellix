@@ -10,6 +10,7 @@ class BaseNode(BaseModel):
         default_factory=lambda: str(uuid.uuid4()), description="Unique ID of the node."
     )
     content: str
+    contextualized_content: str
     embedding: Optional[list[float]] = Field(
         default=None, description="Embedding of the node."
     )
@@ -17,6 +18,9 @@ class BaseNode(BaseModel):
 
     def get_content(self) -> str:
         return self.content
+
+    def get_contextualized_content(self) -> str:
+        return self.contextualized_content
 
     def get_metadata(self) -> dict:
         return self.metadata

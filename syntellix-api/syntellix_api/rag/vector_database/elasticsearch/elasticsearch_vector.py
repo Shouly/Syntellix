@@ -55,6 +55,7 @@ class ElasticSearchVector:
         client_config: ElasticSearchConfig,
         text_field: str = "content",
         vector_field: str = "embedding",
+        contextualized_text_field: str = "contextualized_content",
         batch_size: int = 200,
         distance_strategy: Optional[DISTANCE_STRATEGIES] = "COSINE",
         client: Optional[Elasticsearch] = None,
@@ -62,6 +63,7 @@ class ElasticSearchVector:
         self._index_name = index_name
         self._client = client or self._init_client(client_config)
         self._text_field = text_field
+        self._contextualized_text_field = contextualized_text_field
         self._vector_field = vector_field
         self._batch_size = batch_size
         self._distance_strategy = distance_strategy
@@ -118,17 +120,27 @@ class ElasticSearchVector:
                             "index": True,
                             "similarity": similarityAlgo,
                         },
-                        self._text_field: {"type": "text"},
+                        self._text_field: {
+                            "type": "text",
+                            "analyzer": "ik_smart",
+                            "search_analyzer": "ik_smart",
+                        },
+                        self._contextualized_text_field: {
+                            "type": "text",
+                            "analyzer": "ik_smart",
+                            "search_analyzer": "ik_smart",
+                        },
                         "metadata": {
                             "properties": {
                                 "file_name": {"type": "text"},
                                 "document_id": {"type": "keyword"},
+                                "image_id": {"type": "text"},
                                 "knowledge_base_id": {"type": "keyword"},
                                 "created_at": {"type": "date"},
                             }
                         },
                     }
-                }
+                },
             }
 
             logger.debug(
@@ -167,6 +179,7 @@ class ElasticSearchVector:
                 "_source": {
                     self._vector_field: node.get_embedding(),
                     self._text_field: node.get_content(),
+                    self._contextualized_text_field: node.get_contextualized_content(),
                     "metadata": node.get_metadata(),
                 },
             }
@@ -242,6 +255,8 @@ class ElasticSearchVector:
         self,
         query: dict,
         es_filter: Optional[List[Dict]] = None,
+        knn_boost: float = 1.5,
+        text_boost: float = 0.5,
         **kwargs: Any,
     ) -> list[BaseNode]:
         query_embedding = cast(List[float], query["query_embedding"])
@@ -255,16 +270,32 @@ class ElasticSearchVector:
                 "query_vector": query_embedding,
                 "k": query["similarity_top_k"],
                 "num_candidates": query["similarity_top_k"] * 10,
+                "boost": knn_boost,
             },
             "query": {
                 "bool": {
                     "must": [
-                        {"match": {self._text_field: {"query": query["query_str"]}}},
+                        {
+                            "multi_match": {
+                                "query": query["query_str"],
+                                "fields": [
+                                    self._text_field,
+                                    self._contextualized_text_field,
+                                ],
+                                "boost": text_boost,
+                            }
+                        }
                     ],
                     "filter": filter,
                 }
             },
-            "rank": {"rrf": {"rank_constant": 20}},
+            "rank": {
+                "rrf": {
+                    "rank_constant": 10 if query["similarity_top_k"] <= 5 else (
+                        20 if query["similarity_top_k"] <= 10 else 60
+                    )
+                }
+            },
         }
 
         response = self._client.search(
@@ -275,7 +306,7 @@ class ElasticSearchVector:
         )
 
         print(response)
-        
+
         top_k_nodes = []
         top_k_ids = []
         top_k_scores = []

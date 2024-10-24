@@ -91,6 +91,29 @@ class MinioStorage(BaseStorage):
         except S3Error as e:
             self.app.logger.error(f"Error deleting file from MinIO: {e}")
             raise
-    
+
     def get_url(self, filename):
         return f"{self.app.config['MINIO_ENDPOINT']}/{self.bucket_name}/{filename}"
+
+    def load_text(
+        self, filename: str, encoding="utf-8", fallback_encodings=["gbk", "latin1"]
+    ) -> str:
+        try:
+            content = self.load_once(filename)
+            # 尝试主要编码
+            try:
+                return content.decode(encoding)
+            except UnicodeDecodeError:
+                # 尝试备选编码
+                for fallback_encoding in fallback_encodings:
+                    try:
+                        return content.decode(fallback_encoding)
+                    except UnicodeDecodeError:
+                        continue
+                # 如果所有编码都失败，抛出异常
+                raise UnicodeDecodeError(
+                    f"Failed to decode file with encodings: {[encoding] + fallback_encodings}"
+                )
+        except S3Error as e:
+            self.app.logger.error(f"Error loading file from MinIO: {e}")
+            raise
