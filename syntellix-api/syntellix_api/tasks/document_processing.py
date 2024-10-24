@@ -64,9 +64,6 @@ def process_document(
             logger.error(f"Document not found: {document_id}")
             return
 
-        parser = FACTORY[parser_type]
-        file_binary = FileService.read_file_binary(file_key)
-
         def update_progress(progress, message):
             document.progress = int(progress * 100)
             document.progress_msg = message
@@ -79,6 +76,9 @@ def process_document(
         document.parse_status = DocumentParseStatusEnum.PROCESSING
         document.process_begin_at = datetime.now()
         db.session.commit()
+
+        parser = FACTORY[parser_type]
+        file_binary = FileService.read_file_binary(file_key)
 
         chunks = parser.chunk(
             document.name,
@@ -95,9 +95,7 @@ def process_document(
             db.session.commit()
             return
 
-        update_progress(0.5, "文件解析完成，开始嵌入过程")
-
-        vector_service = VectorService(tenant_id)
+        update_progress(0.3, "文件解析完成，开始嵌入过程")
 
         # Initialize the embedding model
         embedding_model = EmbeddingModel(
@@ -152,11 +150,12 @@ def process_document(
             nodes.append(node)
 
             # Update progress for embedding process
-            embedding_progress = 0.5 + (i / total_chunks) * 0.4
+            embedding_progress = 0.3 + (i / total_chunks) * 0.6
             update_progress(embedding_progress, f"嵌入进度: {i}/{total_chunks}")
 
         update_progress(0.9, "文件嵌入完成，开始保存嵌入数据")
 
+        vector_service = VectorService(tenant_id)
         # Add nodes to vector database
         vector_service.add_nodes(nodes)
 

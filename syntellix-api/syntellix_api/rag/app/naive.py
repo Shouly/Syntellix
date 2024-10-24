@@ -232,7 +232,9 @@ def chunk(
     pdf_parser = None
     sections = []
     if re.search(r"\.docx$", filename, re.IGNORECASE):
-        callback(0.1, "Start to parse.")
+
+        callback(0.1, "开始解析文件")
+
         sections, tbls = Docx()(filename, binary)
         res = tokenize_table(tbls, doc, eng)  # just for table
 
@@ -252,7 +254,7 @@ def chunk(
         return res
 
     elif re.search(r"\.pdf$", filename, re.IGNORECASE):
-        callback(0.1, "Start to parse.")
+        callback(0.1, "开始解析文件")
         pdf_parser = (
             Pdf() if parser_config.get("layout_recognize", True) else PlainParser()
         )
@@ -265,14 +267,14 @@ def chunk(
         res = tokenize_table(tbls, doc, eng)
 
     elif re.search(r"\.xlsx?$", filename, re.IGNORECASE):
-        callback(0.1, "Start to parse.")
+        callback(0.1, "开始解析文件")
         excel_parser = ExcelParser()
         sections = [(l, "") for l in excel_parser.html(binary) if l]
 
     elif re.search(
         r"\.(txt|py|js|java|c|cpp|h|php|go|ts|sh|cs|kt|sql)$", filename, re.IGNORECASE
     ):
-        callback(0.1, "Start to parse.")
+        callback(0.1, "开始解析文件")
         sections = TxtParser()(
             filename,
             binary,
@@ -282,7 +284,7 @@ def chunk(
         callback(0.4, "Finish parsing.")
 
     elif re.search(r"\.(md|markdown)$", filename, re.IGNORECASE):
-        callback(0.1, "Start to parse.")
+        callback(0.1, "开始解析文件")
         sections, tbls = Markdown(int(parser_config.get("chunk_token_num", 128)))(
             filename, binary
         )
@@ -290,19 +292,19 @@ def chunk(
         callback(0.4, "Finish parsing.")
 
     elif re.search(r"\.(htm|html)$", filename, re.IGNORECASE):
-        callback(0.1, "Start to parse.")
+        callback(0.1, "开始解析文件")
         sections = HtmlParser()(filename, binary)
         sections = [(l, "") for l in sections if l]
         callback(0.4, "Finish parsing.")
 
     elif re.search(r"\.json$", filename, re.IGNORECASE):
-        callback(0.1, "Start to parse.")
+        callback(0.1, "开始解析文件")
         sections = JsonParser(int(parser_config.get("chunk_token_num", 128)))(binary)
         sections = [(l, "") for l in sections if l]
         callback(0.4, "Finish parsing.")
 
     elif re.search(r"\.doc$", filename, re.IGNORECASE):
-        callback(0.1, "Start to parse.")
+        callback(0.1, "开始解析文件")
         binary = BytesIO(binary)
         doc_parsed = parser.from_buffer(binary)
         sections = doc_parsed["content"].split("\n")
