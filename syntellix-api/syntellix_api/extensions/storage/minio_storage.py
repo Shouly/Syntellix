@@ -118,10 +118,10 @@ class MinioStorage(BaseStorage):
             detected = chardet.detect(content)
             detected_encoding = detected["encoding"]
 
+            print(f"detected_encoding: {detected_encoding}")
+
             if not detected_encoding:
-                raise UnicodeDecodeError(
-                    f"Could not detect encoding for file: {filename}"
-                )
+                raise Exception(f"Could not detect encoding for file: {filename}")
 
             self.app.logger.debug(
                 f"Detected encoding {detected_encoding} for file {filename}"

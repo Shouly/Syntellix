@@ -105,13 +105,15 @@ def process_document(
         nodes = []
         total_chunks = len(chunks)
         print(f"total_chunks: {total_chunks}")
+        
+        # Collect all text content first
+        all_text_content = "\n".join([chunk["content_with_weight"] for chunk in chunks])
+        
         for i, chunk in enumerate(chunks, 1):
             text = chunk["content_with_weight"]
 
-            # add contextualized_content
-            contextualized_content = situate_context(
-                FileService.read_file_text(file_key), text
-            )
+            # add contextualized_content with full document context
+            contextualized_content = situate_context(all_text_content, text)
 
             # Calculate embedding for each text chunk individually
             vector = embedding_model.encode([f"{text}\n\n{contextualized_content}"])[0]

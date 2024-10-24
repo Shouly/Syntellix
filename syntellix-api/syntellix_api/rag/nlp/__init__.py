@@ -404,8 +404,6 @@ def hierarchical_merge(bull, sections, depth):
                 levels[bullets_size + 1].append(i)
     sections = [t for t, _ in sections]
 
-    # for s in sections: print("--", s)
-
     def binary_search(arr, target):
         if not arr:
             return -1

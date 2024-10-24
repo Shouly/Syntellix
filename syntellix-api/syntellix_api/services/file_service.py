@@ -244,10 +244,3 @@ class FileService:
             return file_content
         except Exception as e:
             raise IOError(f"Error reading file from storage {file_key}: {str(e)}")
-
-    @staticmethod
-    def read_file_text(file_key: str) -> str:
-        try:
-            return storage.load_text(file_key)
-        except Exception as e:
-            raise IOError(f"Error reading file from storage {file_key}: {str(e)}")
